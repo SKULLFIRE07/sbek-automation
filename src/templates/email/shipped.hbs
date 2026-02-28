@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your order is on its way!</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #F5F5F5; font-family: Arial, sans-serif; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+
+  <!-- Outer wrapper -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F5F5F5;">
+    <tr>
+      <td align="center" style="padding: 24px 16px;">
+
+        <!-- Main container -->
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #FFFFFF; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+
+          <!-- Gold Header Bar -->
+          <tr>
+            <td align="center" style="background-color: #B8860B; padding: 28px 24px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" style="font-family: Georgia, serif; font-size: 36px; font-weight: bold; color: #FFFFFF; letter-spacing: 8px;">
+                    SBEK
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="font-family: Arial, sans-serif; font-size: 11px; color: rgba(255,255,255,0.8); letter-spacing: 3px; padding-top: 6px; text-transform: uppercase;">
+                    Fine Indian Jewelry
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Decorative gold line -->
+          <tr>
+            <td style="background-color: #DAA520; height: 3px; font-size: 0; line-height: 0;">&nbsp;</td>
+          </tr>
+
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 40px 32px 24px 32px;">
+
+              <!-- Heading & Greeting -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" style="font-family: Georgia, serif; font-size: 24px; color: #B8860B; padding-bottom: 8px;">
+                    Your Order Is on Its Way!
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-family: Arial, sans-serif; font-size: 16px; color: #333333; line-height: 1.6; padding-top: 16px; padding-bottom: 24px;">
+                    Dear {{customer_name}},
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-family: Arial, sans-serif; font-size: 16px; color: #555555; line-height: 1.7; padding-bottom: 24px;">
+                    Wonderful news! Your <strong style="color: #333333;">{{product_name}}</strong> has been lovingly packaged and dispatched. It is now making its way to you.
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Divider -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="border-bottom: 2px solid #F0E6D0; height: 1px; font-size: 0; line-height: 0;">&nbsp;</td>
+                </tr>
+              </table>
+
+              <!-- Tracking Information -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="font-family: Georgia, serif; font-size: 20px; color: #B8860B; padding: 28px 0 16px 0;">
+                    Shipment Details
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Tracking Info Table -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #F0E6D0; border-radius: 6px; overflow: hidden;">
+                <tr>
+                  <td style="background-color: #FBF7F0; padding: 14px 20px; font-family: Arial, sans-serif; font-size: 14px; color: #888888; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #F0E6D0; width: 40%;">
+                    Order ID
+                  </td>
+                  <td style="background-color: #FBF7F0; padding: 14px 20px; font-family: Arial, sans-serif; font-size: 16px; color: #333333; font-weight: bold; border-bottom: 1px solid #F0E6D0;">
+                    {{order_id}}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 14px 20px; font-family: Arial, sans-serif; font-size: 14px; color: #888888; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #F0E6D0;">
+                    Carrier
+                  </td>
+                  <td style="padding: 14px 20px; font-family: Arial, sans-serif; font-size: 16px; color: #333333; border-bottom: 1px solid #F0E6D0;">
+                    {{carrier_name}}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="background-color: #FBF7F0; padding: 14px 20px; font-family: Arial, sans-serif; font-size: 14px; color: #888888; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #F0E6D0;">
+                    Tracking Number
+                  </td>
+                  <td style="background-color: #FBF7F0; padding: 14px 20px; font-family: Arial, sans-serif; font-size: 16px; border-bottom: 1px solid #F0E6D0;">
+                    <a href="{{tracking_url}}" target="_blank" style="color: #B8860B; text-decoration: underline; font-weight: bold;">{{tracking_number}}</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 14px 20px; font-family: Arial, sans-serif; font-size: 14px; color: #888888; text-transform: uppercase; letter-spacing: 1px;">
+                    Estimated Delivery
+                  </td>
+                  <td style="padding: 14px 20px; font-family: Georgia, serif; font-size: 17px; color: #333333; font-weight: bold;">
+                    {{delivery_date}}
+                  </td>
+                </tr>
+              </table>
+
+              <!-- CTA Button -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" style="padding: 32px 0;">
+                    <a href="{{tracking_url}}" target="_blank" style="display: inline-block; background-color: #B8860B; color: #FFFFFF; font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; text-decoration: none; padding: 14px 32px; border-radius: 6px; letter-spacing: 1px;">
+                      Track Shipment
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Divider -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="border-bottom: 2px solid #F0E6D0; height: 1px; font-size: 0; line-height: 0;">&nbsp;</td>
+                </tr>
+              </table>
+
+              <!-- Care Tips Teaser -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="font-family: Georgia, serif; font-size: 20px; color: #B8860B; padding: 28px 0 16px 0;">
+                    While You Wait...
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-family: Arial, sans-serif; font-size: 16px; color: #555555; line-height: 1.7; padding-bottom: 16px;">
+                    While you wait, here are some tips for caring for your new jewelry:
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Care Tips -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #FBF7F0; border-radius: 6px; border: 1px solid #F0E6D0;">
+                <tr>
+                  <td style="padding: 24px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="font-family: Arial, sans-serif; font-size: 16px; color: #555555; line-height: 1.8; padding-bottom: 8px;">
+                          <span style="color: #B8860B; font-weight: bold;">&#9672;</span>&nbsp;&nbsp;Store your jewelry in a soft pouch or lined box when not wearing it
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="font-family: Arial, sans-serif; font-size: 16px; color: #555555; line-height: 1.8; padding-bottom: 8px;">
+                          <span style="color: #B8860B; font-weight: bold;">&#9672;</span>&nbsp;&nbsp;Put on jewelry after applying perfume and cosmetics
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="font-family: Arial, sans-serif; font-size: 16px; color: #555555; line-height: 1.8;">
+                          <span style="color: #B8860B; font-weight: bold;">&#9672;</span>&nbsp;&nbsp;Gently wipe with a soft cloth after each wear
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Closing -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="font-family: Arial, sans-serif; font-size: 16px; color: #555555; line-height: 1.7; padding-top: 28px; padding-bottom: 8px;">
+                    With warm regards,<br />
+                    <strong style="color: #B8860B;">The SBEK Team</strong>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #1A1A1A; padding: 32px 32px 24px 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <!-- Brand -->
+                <tr>
+                  <td align="center" style="font-family: Georgia, serif; font-size: 24px; color: #B8860B; letter-spacing: 6px; padding-bottom: 16px;">
+                    SBEK
+                  </td>
+                </tr>
+                <!-- Contact Info -->
+                <tr>
+                  <td align="center" style="font-family: Arial, sans-serif; font-size: 13px; color: #999999; line-height: 1.8; padding-bottom: 16px;">
+                    123 Jewelry Lane, Mumbai, Maharashtra, India<br />
+                    Phone: +91-XXXX-XXXXXX &nbsp;|&nbsp; Email: support@sbek.in
+                  </td>
+                </tr>
+                <!-- Social Links -->
+                <tr>
+                  <td align="center" style="padding-bottom: 20px;">
+                    <a href="{{instagram_url}}" style="font-family: Arial, sans-serif; font-size: 13px; color: #B8860B; text-decoration: none; padding: 0 10px;">Instagram</a>
+                    <span style="color: #555555;">|</span>
+                    <a href="{{facebook_url}}" style="font-family: Arial, sans-serif; font-size: 13px; color: #B8860B; text-decoration: none; padding: 0 10px;">Facebook</a>
+                    <span style="color: #555555;">|</span>
+                    <a href="{{pinterest_url}}" style="font-family: Arial, sans-serif; font-size: 13px; color: #B8860B; text-decoration: none; padding: 0 10px;">Pinterest</a>
+                  </td>
+                </tr>
+                <!-- Divider -->
+                <tr>
+                  <td style="border-bottom: 1px solid #333333; height: 1px; font-size: 0; line-height: 0;">&nbsp;</td>
+                </tr>
+                <!-- Unsubscribe -->
+                <tr>
+                  <td align="center" style="font-family: Arial, sans-serif; font-size: 12px; color: #777777; padding-top: 16px;">
+                    You received this email because you placed an order with SBEK.<br />
+                    <a href="{{unsubscribe_url}}" style="color: #999999; text-decoration: underline;">Unsubscribe</a> from future emails.
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+        </table>
+        <!-- End Main Container -->
+
+      </td>
+    </tr>
+  </table>
+  <!-- End Outer Wrapper -->
+
+</body>
+</html>

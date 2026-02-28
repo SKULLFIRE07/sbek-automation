@@ -1,0 +1,19 @@
+Minimal, sophisticated ad layout for luxury Indian jewelry brand SBEK, featuring: {product_name}.
+
+Layout: Clean, modern design with generous white space. The jewelry image occupies roughly 60% of the frame. Remaining space is reserved for minimal text overlay (to be added in post-production).
+
+Design direction:
+- Background: Solid neutral tone — off-white, soft champagne, warm grey, or muted blush
+- The jewelry piece is photographed at a slight angle with soft shadow for depth
+- A thin gold accent line or subtle geometric border frames the composition
+- Leave a clear text-safe zone (top or bottom third) for headline and CTA
+
+Typography zone (leave blank but design around it):
+- Top area: Space for a short headline (e.g., "Timeless Elegance")
+- Bottom area: Space for brand name "SBEK" and a CTA button
+
+Aesthetic: Think Cartier or Tiffany ad minimalism, but with warm Indian tones. Luxurious yet restrained. The jewelry should speak for itself.
+
+Category: {category}
+Metal: {metal_type}
+Additional attributes: {attributes}

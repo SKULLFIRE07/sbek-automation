@@ -1,0 +1,40 @@
+{
+  "presets": [
+    {
+      "name": "instagram_square",
+      "label": "Instagram Square Post",
+      "width": 1080,
+      "height": 1080,
+      "aspectRatio": "1:1",
+      "platform": "instagram",
+      "placement": "feed"
+    },
+    {
+      "name": "facebook_feed",
+      "label": "Facebook Feed Image",
+      "width": 1200,
+      "height": 628,
+      "aspectRatio": "1.91:1",
+      "platform": "facebook",
+      "placement": "feed"
+    },
+    {
+      "name": "google_display",
+      "label": "Google Display Network — Medium Rectangle",
+      "width": 300,
+      "height": 250,
+      "aspectRatio": "6:5",
+      "platform": "google",
+      "placement": "display_network"
+    },
+    {
+      "name": "stories",
+      "label": "Instagram / Facebook Stories",
+      "width": 1080,
+      "height": 1920,
+      "aspectRatio": "9:16",
+      "platform": "instagram",
+      "placement": "stories"
+    }
+  ]
+}

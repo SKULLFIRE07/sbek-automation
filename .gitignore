@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+*.log
+reports/*.html
+crawler/node_modules/
+crawler/dist/
+.DS_Store
+*.pdf

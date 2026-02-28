@@ -1,0 +1,64 @@
+{
+  "id": 501,
+  "name": "Celestial Gold Ring",
+  "slug": "celestial-gold-ring",
+  "type": "variable",
+  "status": "publish",
+  "description": "A stunning handcrafted ring featuring a celestial design in 18K gold, adorned with ethically sourced diamonds. Each piece is uniquely crafted by our master artisans.",
+  "short_description": "Handcrafted 18K gold ring with celestial diamond design.",
+  "sku": "SBEK-GR-001",
+  "price": "45000",
+  "regular_price": "45000",
+  "categories": [
+    { "id": 15, "name": "Rings", "slug": "rings" },
+    { "id": 20, "name": "Gold", "slug": "gold" }
+  ],
+  "images": [
+    {
+      "id": 201,
+      "src": "https://your-store.com/wp-content/uploads/celestial-ring.jpg",
+      "name": "Celestial Gold Ring - Main",
+      "alt": "SBEK Celestial Gold Ring with diamonds"
+    },
+    {
+      "id": 202,
+      "src": "https://your-store.com/wp-content/uploads/celestial-ring-side.jpg",
+      "name": "Celestial Gold Ring - Side View",
+      "alt": "Side view of SBEK Celestial Gold Ring"
+    }
+  ],
+  "attributes": [
+    {
+      "id": 1,
+      "name": "Ring Size",
+      "slug": "pa_ring-size",
+      "position": 0,
+      "visible": true,
+      "variation": true,
+      "options": ["5", "6", "7", "8", "9", "10"]
+    },
+    {
+      "id": 2,
+      "name": "Metal Type",
+      "slug": "pa_metal-type",
+      "position": 1,
+      "visible": true,
+      "variation": true,
+      "options": ["14K Yellow Gold", "18K Yellow Gold", "18K White Gold", "Platinum"]
+    },
+    {
+      "id": 3,
+      "name": "Stone Type",
+      "slug": "pa_stone-type",
+      "position": 2,
+      "visible": true,
+      "variation": true,
+      "options": ["Diamond", "Moissanite", "Sapphire"]
+    }
+  ],
+  "meta_data": [
+    { "id": 100, "key": "_estimated_production_days", "value": "14" },
+    { "id": 101, "key": "_jewelry_category", "value": "Fine Jewelry" },
+    { "id": 102, "key": "_certification_number", "value": "GIA-98765432" }
+  ]
+}

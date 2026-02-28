@@ -1,0 +1,202 @@
+[
+  {
+    "name": "order_confirmation",
+    "language": "en",
+    "category": "UTILITY",
+    "components": [
+      {
+        "type": "HEADER",
+        "format": "TEXT",
+        "text": "Order Confirmed"
+      },
+      {
+        "type": "BODY",
+        "text": "Hi {{1}}, thank you for your SBEK order #{{2}}! Your {{3}} is confirmed. Expected delivery: {{4}}.",
+        "example": {
+          "body_text": [
+            ["Priya", "1042", "Gold Kundan Necklace", "15 March 2026"]
+          ]
+        }
+      },
+      {
+        "type": "FOOTER",
+        "text": "SBEK — Handcrafted Luxury Jewelry"
+      }
+    ]
+  },
+  {
+    "name": "production_started",
+    "language": "en",
+    "category": "UTILITY",
+    "components": [
+      {
+        "type": "HEADER",
+        "format": "TEXT",
+        "text": "Crafting in Progress"
+      },
+      {
+        "type": "BODY",
+        "text": "Hi {{1}}, exciting news! Your {{2}} (Order #{{3}}) is now being handcrafted by our artisans.",
+        "example": {
+          "body_text": [
+            ["Priya", "Gold Kundan Necklace", "1042"]
+          ]
+        }
+      },
+      {
+        "type": "FOOTER",
+        "text": "SBEK — Handcrafted Luxury Jewelry"
+      }
+    ]
+  },
+  {
+    "name": "qc_passed",
+    "language": "en",
+    "category": "UTILITY",
+    "components": [
+      {
+        "type": "HEADER",
+        "format": "TEXT",
+        "text": "Quality Check Passed"
+      },
+      {
+        "type": "BODY",
+        "text": "Hi {{1}}, great news! Your {{2}} has passed our quality inspection. We're preparing it for dispatch.",
+        "example": {
+          "body_text": [
+            ["Priya", "Gold Kundan Necklace"]
+          ]
+        }
+      },
+      {
+        "type": "FOOTER",
+        "text": "SBEK — Handcrafted Luxury Jewelry"
+      }
+    ]
+  },
+  {
+    "name": "order_shipped",
+    "language": "en",
+    "category": "UTILITY",
+    "components": [
+      {
+        "type": "HEADER",
+        "format": "TEXT",
+        "text": "Order Shipped"
+      },
+      {
+        "type": "BODY",
+        "text": "Hi {{1}}, your SBEK order #{{2}} has been shipped! Track: {{3}}",
+        "example": {
+          "body_text": [
+            ["Priya", "1042", "https://track.example.com/ABC123"]
+          ]
+        }
+      },
+      {
+        "type": "FOOTER",
+        "text": "SBEK — Handcrafted Luxury Jewelry"
+      }
+    ]
+  },
+  {
+    "name": "order_delivered",
+    "language": "en",
+    "category": "UTILITY",
+    "components": [
+      {
+        "type": "HEADER",
+        "format": "TEXT",
+        "text": "Order Delivered"
+      },
+      {
+        "type": "BODY",
+        "text": "Hi {{1}}, your {{2}} has been delivered! We hope you love it. For care tips or support, reply to this message.",
+        "example": {
+          "body_text": [
+            ["Priya", "Gold Kundan Necklace"]
+          ]
+        }
+      },
+      {
+        "type": "FOOTER",
+        "text": "SBEK — Handcrafted Luxury Jewelry"
+      }
+    ]
+  },
+  {
+    "name": "review_request",
+    "language": "en",
+    "category": "MARKETING",
+    "components": [
+      {
+        "type": "HEADER",
+        "format": "TEXT",
+        "text": "We'd Love Your Feedback"
+      },
+      {
+        "type": "BODY",
+        "text": "Hi {{1}}, we hope you're enjoying your {{2}}! We'd love your feedback: {{3}}",
+        "example": {
+          "body_text": [
+            ["Priya", "Gold Kundan Necklace", "https://sbek.in/review/1042"]
+          ]
+        }
+      },
+      {
+        "type": "FOOTER",
+        "text": "SBEK — Handcrafted Luxury Jewelry"
+      }
+    ]
+  },
+  {
+    "name": "production_brief",
+    "language": "en",
+    "category": "UTILITY",
+    "components": [
+      {
+        "type": "HEADER",
+        "format": "TEXT",
+        "text": "New Production Brief"
+      },
+      {
+        "type": "BODY",
+        "text": "New order brief: Order #{{1}} — {{2}} for {{3}}. Size: {{4}}, Metal: {{5}}, Engraving: {{6}}. Due: {{7}}",
+        "example": {
+          "body_text": [
+            ["1042", "Kundan Necklace", "Priya Sharma", "16 inches", "22K Gold", "With love", "15 March 2026"]
+          ]
+        }
+      },
+      {
+        "type": "FOOTER",
+        "text": "SBEK Internal — Production Team"
+      }
+    ]
+  },
+  {
+    "name": "qc_failed_alert",
+    "language": "en",
+    "category": "UTILITY",
+    "components": [
+      {
+        "type": "HEADER",
+        "format": "TEXT",
+        "text": "QC Alert"
+      },
+      {
+        "type": "BODY",
+        "text": "QC ALERT: Order #{{1}} failed inspection. Issues: {{2}}. Please review and schedule rework.",
+        "example": {
+          "body_text": [
+            ["1042", "Stone setting loose, clasp misaligned"]
+          ]
+        }
+      },
+      {
+        "type": "FOOTER",
+        "text": "SBEK Internal — Quality Control"
+      }
+    ]
+  }
+]

@@ -1,0 +1,13 @@
+Lifestyle editorial photograph featuring a luxury Indian jewelry piece: {product_name}.
+
+Scene: An elegant Indian woman wearing the {product_name}, photographed in a sophisticated setting — a sunlit heritage haveli courtyard, a modern luxury apartment with marble interiors, or an upscale Indian restaurant. The environment conveys understated luxury and contemporary Indian aesthetics.
+
+Styling: The model wears a complementary outfit — silk saree, contemporary Indo-Western ensemble, or elegant evening wear in rich jewel tones. The jewelry is the hero of the image, styled to be the focal point.
+
+Mood: Warm, aspirational, confident. Golden hour or warm interior lighting. Soft bokeh background to keep attention on the jewelry. The overall feeling is "modern Indian luxury."
+
+Composition: Medium close-up or three-quarter shot. The jewelry should occupy at least 30% of the visible frame. Natural, candid pose — not stiff or overly posed.
+
+Category: {category}
+Metal: {metal_type}
+Additional attributes: {attributes}

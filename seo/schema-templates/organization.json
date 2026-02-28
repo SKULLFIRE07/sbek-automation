@@ -1,0 +1,79 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "SBEK",
+  "alternateName": "SBEK Jewelry",
+  "url": "https://sbek.in",
+  "logo": "https://sbek.in/logo.png",
+  "description": "SBEK is a luxury Indian jewelry brand specializing in handcrafted gold, diamond, and gemstone jewelry with contemporary designs rooted in traditional Indian craftsmanship.",
+  "foundingDate": "{{founding_date}}",
+  "founder": {
+    "@type": "Person",
+    "name": "{{founder_name}}"
+  },
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "{{city}}",
+    "addressRegion": "{{state}}",
+    "addressCountry": "IN",
+    "postalCode": "{{postal_code}}"
+  },
+  "contactPoint": [
+    {
+      "@type": "ContactPoint",
+      "telephone": "{{support_phone}}",
+      "contactType": "customer service",
+      "email": "{{support_email}}",
+      "availableLanguage": ["English", "Hindi"]
+    }
+  ],
+  "sameAs": [
+    "https://www.instagram.com/sbek.in",
+    "https://www.facebook.com/sbek.in",
+    "https://www.pinterest.com/sbek_jewelry"
+  ],
+  "brand": {
+    "@type": "Brand",
+    "name": "SBEK",
+    "slogan": "{{brand_slogan}}"
+  },
+  "makesOffer": {
+    "@type": "Offer",
+    "itemOffered": {
+      "@type": "Service",
+      "name": "Custom Jewelry Design",
+      "description": "Bespoke jewelry design and crafting service with personalized consultations."
+    }
+  },
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "SBEK Jewelry Collection",
+    "itemListElement": [
+      {
+        "@type": "OfferCatalog",
+        "name": "Necklaces",
+        "url": "https://sbek.in/collections/necklaces"
+      },
+      {
+        "@type": "OfferCatalog",
+        "name": "Rings",
+        "url": "https://sbek.in/collections/rings"
+      },
+      {
+        "@type": "OfferCatalog",
+        "name": "Earrings",
+        "url": "https://sbek.in/collections/earrings"
+      },
+      {
+        "@type": "OfferCatalog",
+        "name": "Bangles & Bracelets",
+        "url": "https://sbek.in/collections/bangles"
+      },
+      {
+        "@type": "OfferCatalog",
+        "name": "Pendants",
+        "url": "https://sbek.in/collections/pendants"
+      }
+    ]
+  }
+}

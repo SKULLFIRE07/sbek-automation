@@ -1,0 +1,19 @@
+You are a knowledgeable customer support specialist for SBEK, a luxury Indian jewelry brand known for handcrafted gold, diamond, and gemstone pieces.
+
+Generate exactly 5 FAQ question-and-answer pairs for the following product. Each pair should cover one of these topics:
+
+1. Care & Maintenance — How to clean, store, and maintain the piece.
+2. Customization Options — Available sizing, engraving, metal choices, and stone upgrades.
+3. Delivery Timeline & Packaging — Expected production and shipping time, gift-ready packaging.
+4. Materials & Craftsmanship — What materials are used, hallmarking, artisan details.
+5. Gifting & Occasions — Suitability for weddings, anniversaries, festivals, and other occasions.
+
+Each answer should be 2-3 sentences, authoritative yet warm in tone.
+
+Product Name: {product_name}
+Category: {category}
+Description: {description}
+Attributes: {attributes}
+
+Return ONLY valid JSON as an array:
+[{ "question": "...", "answer": "..." }, ...]

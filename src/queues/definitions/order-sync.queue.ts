@@ -1,0 +1,40 @@
+import { Worker, type Job } from 'bullmq';
+import { env } from '../../config/env.js';
+import { logger } from '../../config/logger.js';
+import type { OrderSyncPayload } from '../types.js';
+import { processOrderSync } from '../../workflows/order-processing.workflow.js';
+
+/** Parse REDIS_URL for BullMQ worker connection */
+function redisOpts() {
+  const url = new URL(env.REDIS_URL);
+  return {
+    host: url.hostname,
+    port: Number(url.port) || 6379,
+    password: url.password || undefined,
+    maxRetriesPerRequest: null as null,
+  };
+}
+
+export const orderSyncWorker = new Worker<OrderSyncPayload>(
+  'order-sync',
+  async (job: Job<OrderSyncPayload>) => {
+    logger.info({ jobId: job.id, orderId: job.data.orderId, event: job.data.event }, 'Processing order sync');
+    return processOrderSync(job.data);
+  },
+  {
+    connection: redisOpts(),
+    concurrency: 3,
+    limiter: {
+      max: 10,
+      duration: 60_000, // max 10 jobs/minute — respect API rate limits
+    },
+  }
+);
+
+orderSyncWorker.on('completed', (job) => {
+  logger.info({ jobId: job.id, orderId: job.data.orderId }, 'Order sync completed');
+});
+
+orderSyncWorker.on('failed', (job, err) => {
+  logger.error({ jobId: job?.id, orderId: job?.data.orderId, err: err.message }, 'Order sync failed');
+});

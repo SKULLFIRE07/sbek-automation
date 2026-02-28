@@ -1,0 +1,73 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-3000}:3000"
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - sbek-net
+    restart: unless-stopped
+    volumes:
+      - ./reports:/app/reports
+
+  crawler:
+    build:
+      context: ./crawler
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    env_file: .env
+    networks:
+      - sbek-net
+    restart: unless-stopped
+    volumes:
+      - ./reports:/app/reports
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - sbek-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-sbek}
+      POSTGRES_USER: ${POSTGRES_USER:-sbek}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sbek_dev_password}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - sbek-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sbek}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+networks:
+  sbek-net:
+    driver: bridge
+
+volumes:
+  redis_data:
+  pg_data:

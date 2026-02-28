@@ -1,0 +1,111 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "{{product_name}}",
+  "description": "{{product_description}}",
+  "image": [
+    "{{image_url_1}}",
+    "{{image_url_2}}",
+    "{{image_url_3}}"
+  ],
+  "brand": {
+    "@type": "Brand",
+    "name": "SBEK"
+  },
+  "manufacturer": {
+    "@type": "Organization",
+    "name": "SBEK",
+    "url": "https://sbek.in"
+  },
+  "sku": "{{sku}}",
+  "gtin13": "{{gtin}}",
+  "category": "{{category}}",
+  "material": "{{material}}",
+  "color": "{{color}}",
+  "weight": {
+    "@type": "QuantitativeValue",
+    "value": "{{weight_value}}",
+    "unitCode": "GRM"
+  },
+  "offers": {
+    "@type": "Offer",
+    "url": "{{product_url}}",
+    "priceCurrency": "INR",
+    "price": "{{price}}",
+    "priceValidUntil": "{{price_valid_until}}",
+    "availability": "https://schema.org/InStock",
+    "seller": {
+      "@type": "Organization",
+      "name": "SBEK"
+    },
+    "shippingDetails": {
+      "@type": "OfferShippingDetails",
+      "shippingDestination": {
+        "@type": "DefinedRegion",
+        "addressCountry": "IN"
+      },
+      "deliveryTime": {
+        "@type": "ShippingDeliveryTime",
+        "handlingTime": {
+          "@type": "QuantitativeValue",
+          "minValue": 7,
+          "maxValue": 14,
+          "unitCode": "DAY"
+        },
+        "transitTime": {
+          "@type": "QuantitativeValue",
+          "minValue": 2,
+          "maxValue": 5,
+          "unitCode": "DAY"
+        }
+      }
+    },
+    "hasMerchantReturnPolicy": {
+      "@type": "MerchantReturnPolicy",
+      "applicableCountry": "IN",
+      "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+      "merchantReturnDays": 7,
+      "returnMethod": "https://schema.org/ReturnByMail"
+    }
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{rating_value}}",
+    "reviewCount": "{{review_count}}",
+    "bestRating": "5",
+    "worstRating": "1"
+  },
+  "review": [
+    {
+      "@type": "Review",
+      "author": {
+        "@type": "Person",
+        "name": "{{reviewer_name}}"
+      },
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": "{{review_rating}}",
+        "bestRating": "5"
+      },
+      "reviewBody": "{{review_body}}",
+      "datePublished": "{{review_date}}"
+    }
+  ],
+  "additionalProperty": [
+    {
+      "@type": "PropertyValue",
+      "name": "Metal Purity",
+      "value": "{{metal_purity}}"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Hallmark",
+      "value": "BIS Hallmarked"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Craftsmanship",
+      "value": "Handcrafted"
+    }
+  ]
+}

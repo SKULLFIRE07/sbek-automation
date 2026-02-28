@@ -1,0 +1,22 @@
+Instagram Story format (9:16 vertical) creative for luxury Indian jewelry brand SBEK, featuring: {product_name}.
+
+Format: Vertical 9:16 aspect ratio, optimized for Instagram Stories and Reels cover frames.
+
+Composition: The jewelry piece is positioned in the center or lower-center of the vertical frame, leaving the top third open for text overlays (swipe-up CTA, stickers, polls). The image should work both as a static story and as a background for interactive story elements.
+
+Background options (choose what suits the piece best):
+- Gradient: Soft gold-to-cream or rose-gold-to-blush vertical gradient
+- Textured: Marble, silk fabric, or velvet texture in muted luxury tones
+- Lifestyle: Cropped close-up of the jewelry on skin, with soft-focus surroundings
+
+Styling:
+- The piece should be dramatic and eye-catching even at mobile screen size
+- Use close-up or macro perspective to showcase detail
+- Warm, inviting lighting — as if viewed on a phone in a cozy setting
+- Include subtle sparkle or light-catch effects on gemstones or metal
+
+Safe zones: Keep the jewelry and key visual elements within the center 80% of the frame (avoid top/bottom 10% where UI overlays appear on Instagram).
+
+Category: {category}
+Metal: {metal_type}
+Additional attributes: {attributes}

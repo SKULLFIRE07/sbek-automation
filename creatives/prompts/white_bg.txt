@@ -1,0 +1,16 @@
+Professional product photography of a luxury Indian jewelry piece: {product_name}.
+
+Style: Clean white background studio shot. The jewelry is the sole focus, centered in frame. Shot from a slightly elevated angle to show depth and detail.
+
+Lighting: Soft, diffused studio lighting with subtle highlights on metal surfaces and gemstone facets. No harsh shadows. A gentle gradient from pure white to very light grey at the base for dimension.
+
+Details to emphasize:
+- Intricate metalwork and craftsmanship details
+- Gemstone brilliance, color, and clarity
+- Surface texture of {metal_type} (polished, matte, or hammered)
+- Scale and proportions of the piece
+
+Technical: Ultra-high resolution, sharp focus on every detail, color-accurate rendering of {metal_type} and stones. No props, no model, no text overlays. E-commerce ready.
+
+Category: {category}
+Additional attributes: {attributes}

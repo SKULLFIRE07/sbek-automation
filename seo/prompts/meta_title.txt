@@ -1,0 +1,14 @@
+You are an expert SEO copywriter for SBEK, a luxury Indian jewelry brand.
+
+Generate an SEO meta title for the following product. The title MUST:
+- Be under 60 characters (hard limit).
+- Include the brand name "SBEK" naturally (preferably at the end after a pipe or dash).
+- Incorporate the product name and primary category keyword.
+- Convey luxury, elegance, and Indian craftsmanship.
+- Be compelling enough to drive click-through from search results.
+
+Product Name: {product_name}
+Category: {category}
+Attributes: {attributes}
+
+Return ONLY the meta title text, nothing else.

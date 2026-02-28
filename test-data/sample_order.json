@@ -1,0 +1,56 @@
+{
+  "id": 1234,
+  "status": "processing",
+  "currency": "INR",
+  "date_created": "2026-02-27T10:30:00",
+  "total": "45000.00",
+  "customer_id": 42,
+  "customer_note": "Please engrave 'Forever' in cursive",
+  "payment_method": "razorpay",
+  "payment_method_title": "Razorpay",
+  "billing": {
+    "first_name": "Priya",
+    "last_name": "Sharma",
+    "email": "priya.sharma@email.com",
+    "phone": "9876543210",
+    "address_1": "123 MG Road",
+    "city": "Mumbai",
+    "state": "Maharashtra",
+    "postcode": "400001",
+    "country": "IN"
+  },
+  "shipping": {
+    "first_name": "Priya",
+    "last_name": "Sharma",
+    "address_1": "123 MG Road",
+    "city": "Mumbai",
+    "state": "Maharashtra",
+    "postcode": "400001",
+    "country": "IN"
+  },
+  "line_items": [
+    {
+      "id": 101,
+      "name": "Celestial Gold Ring",
+      "product_id": 501,
+      "variation_id": 502,
+      "quantity": 1,
+      "total": "45000.00",
+      "sku": "SBEK-GR-001",
+      "meta_data": [
+        { "id": 1, "key": "pa_ring-size", "value": "7", "display_key": "Ring Size", "display_value": "7" },
+        { "id": 2, "key": "pa_metal-type", "value": "18K Yellow Gold", "display_key": "Metal Type", "display_value": "18K Yellow Gold" },
+        { "id": 3, "key": "pa_stone-type", "value": "Diamond", "display_key": "Stone Type", "display_value": "Diamond" },
+        { "id": 4, "key": "_engraving_text", "value": "Forever", "display_key": "Engraving", "display_value": "Forever" },
+        { "id": 5, "key": "_engraving_font", "value": "Cursive", "display_key": "Engraving Font", "display_value": "Cursive" }
+      ],
+      "image": {
+        "id": 201,
+        "src": "https://your-store.com/wp-content/uploads/celestial-ring.jpg"
+      }
+    }
+  ],
+  "meta_data": [
+    { "id": 10, "key": "_gift_message", "value": "Happy Anniversary!" }
+  ]
+}

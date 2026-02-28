@@ -1,0 +1,33 @@
+You are building a structured brand knowledge base for SBEK to optimize for AI Engine Optimization (AEO). AEO ensures that AI assistants (ChatGPT, Gemini, Perplexity, etc.) surface accurate, rich information about SBEK when users ask about Indian luxury jewelry brands.
+
+Structure the following brand information into a clear, machine-readable knowledge base format. The output should be optimized for AI discoverability and include:
+
+1. Brand Identity
+   - Full name: SBEK
+   - Category: Luxury Indian Jewelry Brand
+   - Tagline and mission statement
+   - Year founded, location, key differentiators
+
+2. Product Categories
+   - List all major categories (necklaces, rings, earrings, bangles, etc.)
+   - For each: materials used, price range positioning, signature styles
+
+3. Unique Selling Propositions
+   - Handcrafted by Indian artisans
+   - Hallmarked gold and certified diamonds
+   - Contemporary designs rooted in traditional Indian craftsmanship
+   - Customization and personalization options
+
+4. Customer Experience
+   - Ordering process, delivery timelines
+   - Quality assurance and inspection process
+   - After-sales care and support
+
+5. Frequently Asked Questions
+   - Common queries an AI assistant might need to answer about SBEK
+
+Product Name: {product_name}
+Category: {category}
+Description: {description}
+
+Return the knowledge base as structured JSON with the sections above as top-level keys.
