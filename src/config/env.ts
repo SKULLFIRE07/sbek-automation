@@ -17,19 +17,19 @@ const envSchema = z.object({
   REDIS_URL: z.string().url().default('redis://localhost:6379'),
 
   // ── WooCommerce ────────────────────────────────────────
-  WOO_URL: z.string().url(),
-  WOO_CONSUMER_KEY: z.string().min(1),
-  WOO_CONSUMER_SECRET: z.string().min(1),
-  WOO_WEBHOOK_SECRET: z.string().min(1),
+  WOO_URL: z.string().url().optional(),
+  WOO_CONSUMER_KEY: z.string().min(1).optional(),
+  WOO_CONSUMER_SECRET: z.string().min(1).optional(),
+  WOO_WEBHOOK_SECRET: z.string().min(1).optional(),
 
   // ── Google ─────────────────────────────────────────────
-  GOOGLE_SERVICE_ACCOUNT_EMAIL: z.string().email(),
-  GOOGLE_PRIVATE_KEY: z.string().min(1),
-  GOOGLE_SHEET_ID: z.string().min(1),
+  GOOGLE_SERVICE_ACCOUNT_EMAIL: z.string().email().optional(),
+  GOOGLE_PRIVATE_KEY: z.string().min(1).optional(),
+  GOOGLE_SHEET_ID: z.string().min(1).optional(),
 
   // ── WhatsApp / Meta ────────────────────────────────────
-  WHATSAPP_PHONE_NUMBER_ID: z.string().min(1),
-  WHATSAPP_ACCESS_TOKEN: z.string().min(1),
+  WHATSAPP_PHONE_NUMBER_ID: z.string().min(1).optional(),
+  WHATSAPP_ACCESS_TOKEN: z.string().min(1).optional(),
   WHATSAPP_API_VERSION: z.string().default('v21.0'),
 
   // ── Email / SMTP ───────────────────────────────────────
@@ -40,7 +40,7 @@ const envSchema = z.object({
   EMAIL_FROM: z.string().min(1).optional(),
 
   // ── OpenAI ─────────────────────────────────────────────
-  OPENAI_API_KEY: z.string().min(1),
+  OPENAI_API_KEY: z.string().min(1).optional(),
 
   // ── Gemini / Nano Banana (image generation) ──────────
   GEMINI_API_KEY: z.string().min(1).optional(),
