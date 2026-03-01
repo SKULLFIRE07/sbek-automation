@@ -7,10 +7,10 @@ interface StatusDotProps {
 }
 
 const colorMap = {
-  ok: { bg: "#22c55e", class: "bg-green-500" },
+  ok: { bg: "#C5A572", class: "bg-[#C5A572]" },
   error: { bg: "#ef4444", class: "bg-red-500" },
   warn: { bg: "#f59e0b", class: "bg-amber-500" },
-  unknown: { bg: "#555", class: "bg-neutral-600" },
+  unknown: { bg: "#656453", class: "bg-[#656453]" },
 };
 
 export function StatusDot({ status, pulse, size = "md" }: StatusDotProps) {

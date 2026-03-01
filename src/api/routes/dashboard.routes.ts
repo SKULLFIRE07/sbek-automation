@@ -1,4 +1,7 @@
 import { Router, type Request, type Response } from 'express';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import nodemailer from 'nodemailer';
 import { queues } from '../../queues/registry.js';
 import { db } from '../../config/database.js';
 import { pool } from '../../config/database.js';
@@ -8,6 +11,8 @@ import { desc, eq } from 'drizzle-orm';
 import { logger } from '../../config/logger.js';
 import { env } from '../../config/env.js';
 import { settings, CONFIGURABLE_KEYS, type ConfigurableKey } from '../../services/settings.service.js';
+
+const execAsync = promisify(exec);
 
 export const dashboardRouter = Router();
 
@@ -362,5 +367,254 @@ dashboardRouter.put('/settings', async (req: Request, res: Response) => {
   } catch (err) {
     logger.error({ err }, 'Dashboard settings update error');
     res.status(500).json({ error: 'Failed to update settings' });
+  }
+});
+
+// ── Seed Demo Data ──────────────────────────────────────────────────────
+
+dashboardRouter.post('/data/seed', async (_req: Request, res: Response) => {
+  try {
+    logger.info('Seeding demo data via dashboard');
+    const { stdout } = await execAsync('npx tsx scripts/seed-demo.ts', {
+      cwd: process.cwd(),
+      timeout: 30000,
+    });
+    logger.info('Demo data seeded successfully');
+    res.json({ success: true, output: stdout });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Seed failed';
+    logger.error({ err }, 'Dashboard seed error');
+    res.status(500).json({ success: false, error: msg });
+  }
+});
+
+// ── Erase All Seeded Data ───────────────────────────────────────────────
+
+dashboardRouter.post('/data/reset', async (_req: Request, res: Response) => {
+  try {
+    logger.info('Erasing seeded data via dashboard');
+
+    // Truncate data tables (preserve system_config = user settings)
+    await db.delete(jobLogs);
+    await db.delete(webhookEvents);
+    await db.delete(cronRuns);
+    await db.delete(competitorSnapshots);
+
+    // Obliterate all BullMQ queues
+    const allQueues = queues.getAll();
+    for (const q of allQueues) {
+      await q.obliterate({ force: true });
+    }
+
+    logger.info('Seeded data erased successfully');
+    res.json({ success: true, message: 'All seeded data erased. Settings preserved.' });
+  } catch (err) {
+    logger.error({ err }, 'Dashboard reset error');
+    res.status(500).json({ success: false, error: 'Failed to erase data' });
+  }
+});
+
+// ── Validate Credentials Per Section ────────────────────────────────────
+
+dashboardRouter.post('/settings/validate', async (req: Request, res: Response) => {
+  const { section, values } = req.body as { section: string; values?: Record<string, string> };
+
+  // Resolve effective values: use provided values (only if not masked), fall back to saved settings
+  async function resolve(key: ConfigurableKey): Promise<string> {
+    const provided = values?.[key];
+    // Only use provided value if it exists and isn't a masked placeholder (contains ***)
+    if (provided && !provided.includes('***')) return provided;
+    return (await settings.get(key)) ?? '';
+  }
+
+  try {
+    switch (section) {
+      case 'woocommerce': {
+        const url = await resolve('WOO_URL');
+        const ck = await resolve('WOO_CONSUMER_KEY');
+        const cs = await resolve('WOO_CONSUMER_SECRET');
+        if (!url || !ck || !cs) {
+          res.json({ valid: false, message: 'Store URL, Consumer Key, and Consumer Secret are required' });
+          return;
+        }
+        const baseUrl = url.replace(/\/+$/, '');
+        const authParams = `consumer_key=${encodeURIComponent(ck)}&consumer_secret=${encodeURIComponent(cs)}`;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        // Test with products endpoint (lighter than system_status, proves read access)
+        const resp = await fetch(
+          `${baseUrl}/wp-json/wc/v3/products?per_page=1&${authParams}`,
+          { signal: controller.signal },
+        );
+        clearTimeout(timeout);
+        if (!resp.ok) {
+          const text = await resp.text().catch(() => '');
+          res.json({ valid: false, message: `WooCommerce returned ${resp.status}: ${text.slice(0, 200)}` });
+          return;
+        }
+        const products = await resp.json().catch(() => []) as unknown[];
+        const totalHeader = resp.headers.get('x-wp-total');
+        const productCount = totalHeader ? parseInt(totalHeader, 10) : products.length;
+        res.json({ valid: true, message: `Connected — ${productCount} product${productCount !== 1 ? 's' : ''} found in store` });
+        return;
+      }
+
+      case 'google-sheets': {
+        const email = await resolve('GOOGLE_SERVICE_ACCOUNT_EMAIL');
+        const sheetId = await resolve('GOOGLE_SHEET_ID');
+        if (!email || !sheetId) {
+          res.json({ valid: false, message: 'Service Account Email and Sheet ID are required' });
+          return;
+        }
+        // Just verify the service account email format and sheet ID exist
+        if (!email.includes('@') || !email.includes('.iam.gserviceaccount.com')) {
+          res.json({ valid: false, message: 'Service Account Email must be a valid GCP service account' });
+          return;
+        }
+        res.json({ valid: true, message: 'Google Sheets credentials format looks correct. Full connection test requires the private key.' });
+        return;
+      }
+
+      case 'whatsapp-meta': {
+        const phoneId = await resolve('WHATSAPP_PHONE_NUMBER_ID');
+        const token = await resolve('WHATSAPP_ACCESS_TOKEN');
+        if (!phoneId || !token) {
+          res.json({ valid: false, message: 'Phone Number ID and Access Token are required' });
+          return;
+        }
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        const resp = await fetch(
+          `https://graph.facebook.com/v21.0/${phoneId}`,
+          { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal },
+        );
+        clearTimeout(timeout);
+        if (!resp.ok) {
+          const body = await resp.json().catch(() => ({})) as Record<string, unknown>;
+          const errMsg = (body.error as Record<string, unknown>)?.message ?? `HTTP ${resp.status}`;
+          res.json({ valid: false, message: `WhatsApp API: ${errMsg}` });
+          return;
+        }
+        res.json({ valid: true, message: 'WhatsApp Cloud API credentials verified' });
+        return;
+      }
+
+      case 'email-smtp': {
+        const host = await resolve('SMTP_HOST');
+        const port = await resolve('SMTP_PORT');
+        const user = await resolve('SMTP_USER');
+        const pass = await resolve('SMTP_PASS');
+        if (!host || !user || !pass) {
+          res.json({ valid: false, message: 'Host, User, and Password are required' });
+          return;
+        }
+        const portNum = parseInt(port) || 587;
+        const transporter = nodemailer.createTransport({
+          host,
+          port: portNum,
+          secure: portNum === 465,
+          auth: { user, pass },
+          connectionTimeout: 10000,
+        });
+        await transporter.verify();
+        transporter.close();
+        res.json({ valid: true, message: 'SMTP connection verified successfully' });
+        return;
+      }
+
+      case 'ai': {
+        const results: { key: string; valid: boolean; message: string }[] = [];
+        const openaiKey = await resolve('OPENAI_API_KEY');
+        if (openaiKey) {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 10000);
+          try {
+            const resp = await fetch('https://api.openai.com/v1/models', {
+              headers: { Authorization: `Bearer ${openaiKey}` },
+              signal: controller.signal,
+            });
+            clearTimeout(timeout);
+            if (resp.ok) {
+              results.push({ key: 'OPENAI_API_KEY', valid: true, message: 'OpenAI API key is valid' });
+            } else {
+              results.push({ key: 'OPENAI_API_KEY', valid: false, message: `OpenAI returned ${resp.status}` });
+            }
+          } catch (e) {
+            clearTimeout(timeout);
+            results.push({ key: 'OPENAI_API_KEY', valid: false, message: e instanceof Error ? e.message : 'Connection failed' });
+          }
+        }
+        const geminiKey = await resolve('GEMINI_API_KEY');
+        if (geminiKey) {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 10000);
+          try {
+            const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${geminiKey}`, {
+              signal: controller.signal,
+            });
+            clearTimeout(timeout);
+            if (resp.ok) {
+              results.push({ key: 'GEMINI_API_KEY', valid: true, message: 'Gemini API key is valid' });
+            } else {
+              results.push({ key: 'GEMINI_API_KEY', valid: false, message: `Gemini returned ${resp.status}` });
+            }
+          } catch (e) {
+            clearTimeout(timeout);
+            results.push({ key: 'GEMINI_API_KEY', valid: false, message: e instanceof Error ? e.message : 'Connection failed' });
+          }
+        }
+        if (results.length === 0) {
+          res.json({ valid: false, message: 'No AI keys configured' });
+          return;
+        }
+        const allValid = results.every((r) => r.valid);
+        res.json({ valid: allValid, message: results.map((r) => `${r.key}: ${r.message}`).join('; '), results });
+        return;
+      }
+
+      case 'social-media': {
+        const apiKey = await resolve('POSTIZ_API_KEY');
+        const baseUrl = await resolve('POSTIZ_BASE_URL') || 'https://app.postiz.com/api/v1';
+        if (!apiKey) {
+          res.json({ valid: false, message: 'Postiz API Key is required' });
+          return;
+        }
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        const resp = await fetch(`${baseUrl}/posts`, {
+          headers: { 'api-key': apiKey },
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+        if (!resp.ok) {
+          res.json({ valid: false, message: `Postiz returned ${resp.status}` });
+          return;
+        }
+        res.json({ valid: true, message: 'Postiz API connection verified' });
+        return;
+      }
+
+      case 'crawler': {
+        const crawlerUrl = await resolve('CRAWLER_BASE_URL') || 'http://localhost:3001';
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+        const resp = await fetch(`${crawlerUrl}/health`, { signal: controller.signal });
+        clearTimeout(timeout);
+        if (!resp.ok) {
+          res.json({ valid: false, message: `Crawler returned ${resp.status}` });
+          return;
+        }
+        res.json({ valid: true, message: 'Crawler service is reachable' });
+        return;
+      }
+
+      default:
+        res.json({ valid: true, message: 'No validation needed for this section' });
+        return;
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Validation failed';
+    logger.error({ err, section }, 'Settings validation error');
+    res.json({ valid: false, message: msg });
   }
 });

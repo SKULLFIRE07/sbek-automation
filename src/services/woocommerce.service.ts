@@ -323,6 +323,121 @@ class WooCommerceService {
     }
   }
 
+  // ── WordPress Pages (for AEO Knowledge Base) ──────────────────────────
+
+  /**
+   * Create or update a WordPress page (for AEO knowledge base content).
+   * Searches by slug; if found updates, otherwise creates.
+   */
+  async upsertPage(
+    slug: string,
+    title: string,
+    content: string,
+    status: 'publish' | 'draft' = 'publish',
+  ): Promise<{ id: number; slug: string; link: string }> {
+    try {
+      const searchRes = await this.api.get('pages', { slug, per_page: 1 });
+      const existing = searchRes.data?.[0];
+
+      if (existing) {
+        const updated = await this.api.put(`pages/${existing.id}`, { title, content, status });
+        logger.info({ pageId: existing.id, slug }, 'WordPress page updated');
+        return { id: updated.data.id, slug: updated.data.slug, link: updated.data.link };
+      }
+
+      const created = await this.api.post('pages', { title, content, slug, status });
+      logger.info({ pageId: created.data.id, slug }, 'WordPress page created');
+      return { id: created.data.id, slug: created.data.slug, link: created.data.link };
+    } catch (error) {
+      logger.error({ err: error, slug }, 'Failed to upsert WordPress page');
+      throw error;
+    }
+  }
+
+  // ── WordPress Posts (for comparison articles) ────────────────────────
+
+  /**
+   * Create a WordPress blog post (for comparison articles).
+   */
+  async createPost(
+    title: string,
+    content: string,
+    status: 'publish' | 'draft' = 'publish',
+    categories?: number[],
+  ): Promise<{ id: number; slug: string; link: string }> {
+    try {
+      const data: Record<string, unknown> = { title, content, status };
+      if (categories?.length) data.categories = categories;
+
+      const response = await this.api.post('posts', data);
+      logger.info({ postId: response.data.id }, 'WordPress post created');
+      return { id: response.data.id, slug: response.data.slug, link: response.data.link };
+    } catch (error) {
+      logger.error({ err: error, title }, 'Failed to create WordPress post');
+      throw error;
+    }
+  }
+
+  // ── Related Products (for internal linking) ──────────────────────────
+
+  /**
+   * Get products in the same category for internal linking.
+   */
+  async getRelatedProducts(
+    productId: number,
+    limit: number = 5,
+  ): Promise<Array<{ id: number; name: string; slug: string; link: string }>> {
+    try {
+      const product = await this.getProduct(productId);
+      const categoryId = product.categories?.[0]?.id;
+      if (!categoryId) return [];
+
+      const response = await this.api.get('products', {
+        category: categoryId,
+        per_page: limit + 1,
+        status: 'publish',
+      });
+
+      return (response.data as WooProduct[])
+        .filter((p) => p.id !== productId)
+        .slice(0, limit)
+        .map((p) => ({
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          link: `${env.WOO_URL}/product/${p.slug}/`,
+        }));
+    } catch (error) {
+      logger.error({ err: error, productId }, 'Failed to fetch related products');
+      return [];
+    }
+  }
+
+  // ── Sitemap Ping ─────────────────────────────────────────────────────
+
+  /**
+   * Ping Google and Bing to re-crawl the sitemap after product changes.
+   */
+  async pingSitemap(): Promise<void> {
+    const siteUrl = env.WOO_URL || env.BRAND_WEBSITE;
+    if (!siteUrl) return;
+
+    const sitemapUrl = `${siteUrl}/sitemap_index.xml`;
+    const pingUrls = [
+      `https://www.google.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`,
+      `https://www.bing.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`,
+    ];
+
+    for (const url of pingUrls) {
+      try {
+        await fetch(url, { signal: AbortSignal.timeout(10_000) });
+        logger.info({ url }, 'Sitemap ping sent');
+      } catch (err) {
+        logger.warn({ err, url }, 'Sitemap ping failed');
+      }
+    }
+  }
+
   // ── Helper Methods ──────────────────────────────────────────────────────
 
   /* eslint-disable @typescript-eslint/no-explicit-any */

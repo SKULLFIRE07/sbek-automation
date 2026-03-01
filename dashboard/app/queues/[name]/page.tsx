@@ -18,7 +18,7 @@ function Skeleton({ className }: { className?: string }) {
   return (
     <div
       className={`animate-pulse ${className || ""}`}
-      style={{ background: "#111" }}
+      style={{ background: "#1A1B19" }}
     />
   );
 }
@@ -64,23 +64,23 @@ export default function QueueDetailPage() {
     <>
       {/* Breadcrumb + header */}
       <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest mb-4"
-        style={{ color: "#555" }}>
-        <Link href="/queues" className="hover:text-white transition-colors">Queues</Link>
+        style={{ color: "#656453" }}>
+        <Link href="/queues" className="hover:text-[#d4d3cc] transition-colors">Queues</Link>
         <span>/</span>
-        <span style={{ color: "#999" }}>{name}</span>
+        <span style={{ color: "#9A9880" }}>{name}</span>
       </div>
 
-      <div className="flex items-center justify-between border-b pb-4 mb-6" style={{ borderColor: "#222" }}>
+      <div className="flex items-center justify-between border-b pb-4 mb-6" style={{ borderColor: "#2A2B28" }}>
         <div>
-          <h1 className="text-lg font-medium text-white tracking-tight font-mono">{name}</h1>
+          <h1 className="text-lg font-medium tracking-tight font-mono" style={{ color: "#d4d3cc" }}>{name}</h1>
           <div className="flex items-center gap-3 mt-1">
             <span className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider"
-              style={{ color: "#999" }}>
+              style={{ color: "#9A9880" }}>
               <StatusDot status={queueStatus as "ok" | "error" | "warn" | "unknown"} />
               {statusLabels[queueStatus]}
             </span>
             {counts && (
-              <span className="text-[10px] font-mono" style={{ color: "#555" }}>
+              <span className="text-[10px] font-mono" style={{ color: "#656453" }}>
                 {formatNumber(total)} total jobs
               </span>
             )}
@@ -91,7 +91,7 @@ export default function QueueDetailPage() {
         <div className="flex items-center gap-2">
           {actionResult && (
             <span className="text-[10px] font-mono mr-2 flex items-center gap-1"
-              style={{ color: actionResult.type === "success" ? "#4ade80" : "#f87171" }}>
+              style={{ color: actionResult.type === "success" ? "#C5A572" : "#f87171" }}>
               <StatusDot status={actionResult.type === "success" ? "ok" : "error"} />
               {actionResult.msg}
             </span>
@@ -101,12 +101,12 @@ export default function QueueDetailPage() {
             disabled={actionLoading !== null}
             className="px-4 py-2 text-[11px] font-mono uppercase tracking-wider border transition-all"
             style={{
-              borderColor: "#333",
-              color: actionLoading === "retry-all" ? "#555" : "#e5e5e5",
-              background: actionLoading === "retry-all" ? "#111" : "transparent",
+              borderColor: "#3A3B37",
+              color: actionLoading === "retry-all" ? "#656453" : "#d4d3cc",
+              background: actionLoading === "retry-all" ? "#1A1B19" : "transparent",
             }}
-            onMouseEnter={(e) => { if (!actionLoading) e.currentTarget.style.background = "#1a1a1a"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = actionLoading ? "#111" : "transparent"; }}
+            onMouseEnter={(e) => { if (!actionLoading) e.currentTarget.style.background = "#1A1B19"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = actionLoading ? "#1A1B19" : "transparent"; }}
           >
             {actionLoading === "retry-all" ? "Retrying..." : "Retry Failed"}
           </button>
@@ -115,12 +115,12 @@ export default function QueueDetailPage() {
             disabled={actionLoading !== null}
             className="px-4 py-2 text-[11px] font-mono uppercase tracking-wider border transition-all"
             style={{
-              borderColor: "#333",
-              color: actionLoading === "clean" ? "#555" : "#e5e5e5",
-              background: actionLoading === "clean" ? "#111" : "transparent",
+              borderColor: "#3A3B37",
+              color: actionLoading === "clean" ? "#656453" : "#d4d3cc",
+              background: actionLoading === "clean" ? "#1A1B19" : "transparent",
             }}
-            onMouseEnter={(e) => { if (!actionLoading) e.currentTarget.style.background = "#1a1a1a"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = actionLoading ? "#111" : "transparent"; }}
+            onMouseEnter={(e) => { if (!actionLoading) e.currentTarget.style.background = "#1A1B19"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = actionLoading ? "#1A1B19" : "transparent"; }}
           >
             {actionLoading === "clean" ? "Cleaning..." : "Clean"}
           </button>
@@ -128,10 +128,10 @@ export default function QueueDetailPage() {
       </div>
 
       {/* Stats strip */}
-      <div className="grid grid-cols-5 gap-px mb-8" style={{ background: "#222" }}>
+      <div className="grid grid-cols-5 gap-px mb-8" style={{ background: "#2A2B28" }}>
         {isLoading || !counts ? (
           Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="px-5 py-5" style={{ background: "#0a0a0a" }}>
+            <div key={i} className="px-5 py-5" style={{ background: "#141513" }}>
               <Skeleton className="h-3 w-14 mb-2" />
               <Skeleton className="h-8 w-16" />
             </div>
@@ -146,19 +146,19 @@ export default function QueueDetailPage() {
                 onClick={() => setActiveStatus(s)}
                 className="text-left px-5 py-5 transition-all"
                 style={{
-                  background: isActive ? "#111" : "#0a0a0a",
-                  borderBottom: isActive ? "2px solid #fff" : "2px solid transparent",
+                  background: isActive ? "#1A1B19" : "#141513",
+                  borderBottom: isActive ? "2px solid #C5A572" : "2px solid transparent",
                 }}
               >
                 <p className="text-[10px] uppercase tracking-widest font-mono mb-1"
-                  style={{ color: isActive ? "#999" : "#555" }}>
+                  style={{ color: isActive ? "#9A9880" : "#656453" }}>
                   {s}
                 </p>
                 <p className="text-2xl font-mono font-bold"
                   style={{
                     color: s === "failed" && val > 0
                       ? "#f87171"
-                      : isActive ? "#fff" : "#666",
+                      : isActive ? "#d4d3cc" : "#7A7968",
                   }}>
                   {formatNumber(val)}
                 </p>
@@ -171,13 +171,13 @@ export default function QueueDetailPage() {
       {/* Progress bar */}
       {counts && total > 0 && (
         <div className="mb-8">
-          <div className="flex h-2 w-full overflow-hidden" style={{ background: "#1a1a1a" }}>
+          <div className="flex h-2 w-full overflow-hidden" style={{ background: "#1A1B19" }}>
             {[
-              { key: "completed", shade: "#444" },
-              { key: "active", shade: "#fff" },
-              { key: "waiting", shade: "#666" },
-              { key: "failed", shade: "#888" },
-              { key: "delayed", shade: "#555" },
+              { key: "completed", shade: "#4A4B47" },
+              { key: "active", shade: "#C5A572" },
+              { key: "waiting", shade: "#656453" },
+              { key: "failed", shade: "#7A7968" },
+              { key: "delayed", shade: "#656453" },
             ].map(({ key, shade }) => {
               const val = counts[key] ?? 0;
               return val > 0 ? (
@@ -190,19 +190,19 @@ export default function QueueDetailPage() {
             })}
           </div>
           <div className="flex justify-between mt-1">
-            <span className="text-[9px] font-mono" style={{ color: "#444" }}>0</span>
-            <span className="text-[9px] font-mono" style={{ color: "#444" }}>{formatNumber(total)}</span>
+            <span className="text-[9px] font-mono" style={{ color: "#656453" }}>0</span>
+            <span className="text-[9px] font-mono" style={{ color: "#656453" }}>{formatNumber(total)}</span>
           </div>
         </div>
       )}
 
       {/* Jobs table */}
-      <div className="border" style={{ borderColor: "#222", background: "#0a0a0a" }}>
-        <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid #222" }}>
-          <span className="text-[10px] uppercase tracking-widest font-mono" style={{ color: "#555" }}>
+      <div className="border" style={{ borderColor: "#2A2B28", background: "#141513" }}>
+        <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid #2A2B28" }}>
+          <span className="text-[10px] uppercase tracking-widest font-mono" style={{ color: "#656453" }}>
             {activeStatus} jobs
           </span>
-          <span className="text-[10px] font-mono" style={{ color: "#444" }}>
+          <span className="text-[10px] font-mono" style={{ color: "#656453" }}>
             showing up to 20 recent
           </span>
         </div>

@@ -28,11 +28,11 @@ export interface ReviewRequestPayload {
   deliveredDate: string;
 }
 
-/** SEO / FAQ content generation */
+/** SEO / FAQ / schema / linking content generation */
 export interface ContentGenerationPayload {
   productId: number;
   productName: string;
-  type: 'seo_meta' | 'faq' | 'aeo_kb' | 'comparison';
+  type: 'seo_meta' | 'faq' | 'aeo_kb' | 'comparison' | 'schema_inject' | 'internal_links';
 }
 
 /** Ad creative generation */
@@ -53,11 +53,12 @@ export interface CreativeGenerationPayload {
 
 /** Social media posting */
 export interface SocialPostingPayload {
-  platform: 'instagram' | 'facebook' | 'all';
+  platform: 'instagram' | 'facebook' | 'linkedin' | 'twitter' | 'pinterest' | 'all';
   imageUrl: string;
   caption: string;
   productName: string;
   scheduledFor?: string; // ISO date string
+  useOptimalTime?: boolean; // let the system pick the best posting time
 }
 
 /** Competitor crawl */

@@ -68,7 +68,7 @@ const envSchema = z.object({
 
   // ── Branding ───────────────────────────────────────────
   BRAND_NAME: z.string().min(1).default('SBEK'),
-  BRAND_PRIMARY_COLOR: z.string().min(1).default('#B8860B'),
+  BRAND_PRIMARY_COLOR: z.string().min(1).default('#C5A572'),
   BRAND_WEBSITE: z.string().url().optional(),
   BRAND_SUPPORT_PHONE: z.string().min(1).optional(),
   BRAND_SUPPORT_EMAIL: z.string().email().optional(),

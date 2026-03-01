@@ -16,7 +16,7 @@ function Skeleton({ className }: { className?: string }) {
   return (
     <div
       className={`animate-pulse ${className || ""}`}
-      style={{ background: "#111" }}
+      style={{ background: "#1A1B19" }}
     />
   );
 }
@@ -45,9 +45,9 @@ function LiveIndicator({ intervalMs }: { intervalMs: number }) {
     <div className="flex items-center gap-2">
       <span
         className="inline-block w-1.5 h-1.5 rounded-full live-dot"
-        style={{ background: "#22c55e" }}
+        style={{ background: "#C5A572" }}
       />
-      <span className="text-[10px] font-mono" style={{ color: "#555" }}>
+      <span className="text-[10px] font-mono" style={{ color: "#656453" }}>
         live {secondsAgo > 0 ? `\u00b7 ${secondsAgo}s ago` : ""}
       </span>
     </div>
@@ -69,14 +69,14 @@ function SectionHeading({
       <div className="section-divider flex-1">
         <h2
           className="text-xs uppercase tracking-widest font-medium shrink-0"
-          style={{ color: "#666" }}
+          style={{ color: "#7A7968" }}
         >
           {children}
         </h2>
         {count !== undefined && (
           <span
             className="text-[10px] font-mono shrink-0"
-            style={{ color: "#555" }}
+            style={{ color: "#656453" }}
           >
             {count}
           </span>
@@ -100,7 +100,7 @@ function FilterTabs({
   return (
     <div
       className="flex gap-0 overflow-x-auto"
-      style={{ borderBottom: "1px solid #1a1a1a" }}
+      style={{ borderBottom: "1px solid #1A1B19" }}
     >
       {tabs.map((tab) => (
         <button
@@ -109,7 +109,7 @@ function FilterTabs({
           className={`filter-tab px-3 py-2 text-[11px] uppercase tracking-wider font-medium whitespace-nowrap ${
             active === tab ? "filter-tab-active" : ""
           }`}
-          style={{ color: active === tab ? "#fff" : "#555" }}
+          style={{ color: active === tab ? "#C5A572" : "#656453" }}
         >
           {tab}
         </button>
@@ -170,11 +170,11 @@ export default function ActivityPage() {
         <div className="flex items-center gap-4">
           {webhooks && (
             <>
-              <span className="text-[10px] font-mono" style={{ color: "#555" }}>
-                <span style={{ color: "#22c55e" }}>{processedCount}</span>
+              <span className="text-[10px] font-mono" style={{ color: "#656453" }}>
+                <span style={{ color: "#C5A572" }}>{processedCount}</span>
                 {" processed"}
               </span>
-              <span className="text-[10px] font-mono" style={{ color: "#555" }}>
+              <span className="text-[10px] font-mono" style={{ color: "#656453" }}>
                 <span style={{ color: "#f59e0b" }}>{unprocessedCount}</span>
                 {" pending"}
               </span>
@@ -192,7 +192,7 @@ export default function ActivityPage() {
 
         <div
           className="border rounded overflow-hidden"
-          style={{ borderColor: "#1a1a1a", background: "#0a0a0a" }}
+          style={{ borderColor: "#1A1B19", background: "#141513" }}
         >
           {/* Filter tabs */}
           {webhooks && webhooks.length > 0 && (
@@ -212,7 +212,7 @@ export default function ActivityPage() {
           ) : filteredWebhooks.length === 0 ? (
             <p
               className="p-6 text-center text-xs"
-              style={{ color: "#666" }}
+              style={{ color: "#7A7968" }}
             >
               {sourceFilter === "All"
                 ? "No webhook events yet"
@@ -233,25 +233,25 @@ export default function ActivityPage() {
                       style={{
                         borderBottom:
                           idx < filteredWebhooks.length - 1
-                            ? "1px solid #111"
+                            ? "1px solid #1A1B19"
                             : "none",
                         paddingLeft: "16px",
                         marginLeft: "0",
-                        background: isProcessed ? "transparent" : "#0a0a0a",
+                        background: isProcessed ? "transparent" : "#141513",
                       }}
                       onMouseEnter={(e) =>
-                        (e.currentTarget.style.background = "#111")
+                        (e.currentTarget.style.background = "#1A1B19")
                       }
                       onMouseLeave={(e) =>
                         (e.currentTarget.style.background = isProcessed
                           ? "transparent"
-                          : "#0a0a0a")
+                          : "#141513")
                       }
                     >
                       {/* ID */}
                       <span
                         className="font-mono text-xs shrink-0 w-12"
-                        style={{ color: "#555" }}
+                        style={{ color: "#656453" }}
                       >
                         {typeof wh.id === "number"
                           ? `#${wh.id}`
@@ -262,9 +262,9 @@ export default function ActivityPage() {
                       <span
                         className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded shrink-0"
                         style={{
-                          color: "#999",
-                          background: "#1a1a1a",
-                          border: "1px solid #222",
+                          color: "#9A9880",
+                          background: "#1A1B19",
+                          border: "1px solid #2A2B28",
                         }}
                       >
                         {wh.source}
@@ -273,7 +273,7 @@ export default function ActivityPage() {
                       {/* Event name */}
                       <span
                         className="text-sm truncate min-w-0 flex-1"
-                        style={{ color: isProcessed ? "#999" : "#e5e5e5" }}
+                        style={{ color: isProcessed ? "#9A9880" : "#d4d3cc" }}
                       >
                         {wh.event}
                       </span>
@@ -287,7 +287,7 @@ export default function ActivityPage() {
                         <span
                           className="text-[10px] font-mono"
                           style={{
-                            color: isProcessed ? "#555" : "#f59e0b",
+                            color: isProcessed ? "#656453" : "#f59e0b",
                           }}
                         >
                           {isProcessed ? "done" : "pending"}
@@ -297,7 +297,7 @@ export default function ActivityPage() {
                       {/* Timestamp */}
                       <span
                         className="text-[11px] font-mono shrink-0"
-                        style={{ color: "#555" }}
+                        style={{ color: "#656453" }}
                       >
                         {timeAgo(wh.createdAt)}
                       </span>
@@ -316,7 +316,7 @@ export default function ActivityPage() {
 
         <div
           className="border rounded"
-          style={{ borderColor: "#1a1a1a", background: "#0a0a0a" }}
+          style={{ borderColor: "#1A1B19", background: "#141513" }}
         >
           {logsLoading || !logs ? (
             <div className="p-4 space-y-2">
@@ -327,7 +327,7 @@ export default function ActivityPage() {
           ) : logs.length === 0 ? (
             <p
               className="p-6 text-center text-xs"
-              style={{ color: "#666" }}
+              style={{ color: "#7A7968" }}
             >
               No log entries yet
             </p>
@@ -346,10 +346,10 @@ export default function ActivityPage() {
                 <tbody>
                   {logs.map((log) => (
                     <tr key={log.id} className="hoverable-row">
-                      <td className="font-mono" style={{ color: "#e5e5e5" }}>
+                      <td className="font-mono" style={{ color: "#d4d3cc" }}>
                         {log.queueName}
                       </td>
-                      <td className="font-mono" style={{ color: "#999" }}>
+                      <td className="font-mono" style={{ color: "#9A9880" }}>
                         {log.jobId}
                       </td>
                       <td>
@@ -360,7 +360,7 @@ export default function ActivityPage() {
                           />
                           <span
                             className="text-xs font-mono"
-                            style={{ color: "#999" }}
+                            style={{ color: "#9A9880" }}
                           >
                             {log.status}
                           </span>
@@ -368,11 +368,11 @@ export default function ActivityPage() {
                       </td>
                       <td
                         className="font-mono text-xs"
-                        style={{ color: log.error ? "#f87171" : "#666" }}
+                        style={{ color: log.error ? "#f87171" : "#7A7968" }}
                       >
                         {log.error ? truncate(log.error, 60) : "\u2014"}
                       </td>
-                      <td className="text-xs" style={{ color: "#666" }}>
+                      <td className="text-xs" style={{ color: "#7A7968" }}>
                         {timeAgo(log.createdAt)}
                       </td>
                     </tr>

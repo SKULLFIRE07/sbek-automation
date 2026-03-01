@@ -11,7 +11,7 @@ function Skeleton({ className }: { className?: string }) {
   return (
     <div
       className={`animate-pulse ${className || ""}`}
-      style={{ background: "#111" }}
+      style={{ background: "#1A1B19" }}
     />
   );
 }
@@ -33,7 +33,7 @@ function StatusBadge({ status }: { status: "ok" | "error" | "warn" | "unknown" }
   };
   return (
     <span className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider"
-      style={{ color: "#999" }}>
+      style={{ color: "#9A9880" }}>
       <StatusDot status={status} />
       {labels[status]}
     </span>
@@ -42,10 +42,10 @@ function StatusBadge({ status }: { status: "ok" | "error" | "warn" | "unknown" }
 
 function ProgressBar({ segments, total }: { segments: { label: string; value: number; shade: string }[]; total: number }) {
   if (total === 0) return (
-    <div className="h-1.5 w-full" style={{ background: "#1a1a1a" }} />
+    <div className="h-1.5 w-full" style={{ background: "#1A1B19" }} />
   );
   return (
-    <div className="flex h-1.5 w-full overflow-hidden" style={{ background: "#1a1a1a" }}>
+    <div className="flex h-1.5 w-full overflow-hidden" style={{ background: "#1A1B19" }}>
       {segments.map((seg) =>
         seg.value > 0 ? (
           <div
@@ -74,19 +74,19 @@ export default function QueuesPage() {
       <PageHeader title="Queues" subtitle={`${queues?.length ?? "..."} queues registered`} />
 
       {/* Summary strip */}
-      <div className="grid grid-cols-4 gap-px mb-8" style={{ background: "#222" }}>
+      <div className="grid grid-cols-4 gap-px mb-8" style={{ background: "#2A2B28" }}>
         {[
           { label: "Total Jobs", value: formatNumber(totalJobs) },
           { label: "Active", value: formatNumber(totalActive) },
           { label: "Waiting", value: formatNumber(totalWaiting) },
           { label: "Failed", value: formatNumber(totalFailed), highlight: totalFailed > 0 },
         ].map((item) => (
-          <div key={item.label} className="px-5 py-4" style={{ background: "#0a0a0a" }}>
-            <p className="text-[10px] uppercase tracking-widest font-mono mb-1" style={{ color: "#666" }}>
+          <div key={item.label} className="px-5 py-4" style={{ background: "#141513" }}>
+            <p className="text-[10px] uppercase tracking-widest font-mono mb-1" style={{ color: "#7A7968" }}>
               {item.label}
             </p>
             <p className="text-xl font-mono font-bold"
-              style={{ color: item.highlight ? "#f87171" : "#fff" }}>
+              style={{ color: item.highlight ? "#f87171" : "#d4d3cc" }}>
               {item.value}
             </p>
           </div>
@@ -95,9 +95,9 @@ export default function QueuesPage() {
 
       {/* Queue cards grid */}
       {isLoading || !queues ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-px" style={{ background: "#222" }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-px" style={{ background: "#2A2B28" }}>
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="p-6" style={{ background: "#0a0a0a" }}>
+            <div key={i} className="p-6" style={{ background: "#141513" }}>
               <Skeleton className="h-4 w-32 mb-4" />
               <Skeleton className="h-1.5 w-full mb-4" />
               <div className="flex gap-6">
@@ -109,16 +109,16 @@ export default function QueuesPage() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-px" style={{ background: "#222" }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-px" style={{ background: "#2A2B28" }}>
           {queues.map((q) => {
             const total = q.waiting + q.active + q.completed + q.failed + q.delayed;
             const status = deriveStatus(q);
             const segments = [
-              { label: "Completed", value: q.completed, shade: "#444" },
-              { label: "Active", value: q.active, shade: "#fff" },
-              { label: "Waiting", value: q.waiting, shade: "#666" },
-              { label: "Failed", value: q.failed, shade: "#888" },
-              { label: "Delayed", value: q.delayed, shade: "#555" },
+              { label: "Completed", value: q.completed, shade: "#4A4B47" },
+              { label: "Active", value: q.active, shade: "#C5A572" },
+              { label: "Waiting", value: q.waiting, shade: "#656453" },
+              { label: "Failed", value: q.failed, shade: "#7A7968" },
+              { label: "Delayed", value: q.delayed, shade: "#656453" },
             ];
 
             return (
@@ -126,14 +126,14 @@ export default function QueuesPage() {
                 key={q.name}
                 href={`/queues/${encodeURIComponent(q.name)}`}
                 className="block p-6 transition-colors group"
-                style={{ background: "#0a0a0a" }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = "#111"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "#0a0a0a"; }}
+                style={{ background: "#141513" }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "#1A1B19"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "#141513"; }}
               >
                 {/* Header row */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-sm text-white group-hover:underline">
+                    <span className="font-mono text-sm group-hover:underline" style={{ color: "#d4d3cc" }}>
                       {q.name}
                     </span>
                   </div>
@@ -154,11 +154,11 @@ export default function QueuesPage() {
                   ].map((col) => (
                     <div key={col.label}>
                       <p className="text-[9px] font-mono uppercase tracking-widest mb-0.5"
-                        style={{ color: "#555" }}>
+                        style={{ color: "#656453" }}>
                         {col.label}
                       </p>
                       <p className="text-lg font-mono font-bold"
-                        style={{ color: col.danger ? "#f87171" : "#e5e5e5" }}>
+                        style={{ color: col.danger ? "#f87171" : "#d4d3cc" }}>
                         {col.value}
                       </p>
                     </div>
@@ -167,11 +167,11 @@ export default function QueuesPage() {
 
                 {/* Total footer */}
                 <div className="mt-3 pt-3 flex items-center justify-between"
-                  style={{ borderTop: "1px solid #1a1a1a" }}>
-                  <span className="text-[10px] font-mono uppercase tracking-widest" style={{ color: "#555" }}>
+                  style={{ borderTop: "1px solid #1A1B19" }}>
+                  <span className="text-[10px] font-mono uppercase tracking-widest" style={{ color: "#656453" }}>
                     Total
                   </span>
-                  <span className="text-sm font-mono font-bold" style={{ color: "#999" }}>
+                  <span className="text-sm font-mono font-bold" style={{ color: "#9A9880" }}>
                     {formatNumber(total)}
                   </span>
                 </div>
@@ -182,21 +182,21 @@ export default function QueuesPage() {
       )}
 
       {/* Legend */}
-      <div className="mt-6 flex items-center gap-6 text-[10px] font-mono" style={{ color: "#555" }}>
+      <div className="mt-6 flex items-center gap-6 text-[10px] font-mono" style={{ color: "#656453" }}>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-1.5" style={{ background: "#444" }} /> Completed
+          <span className="inline-block w-3 h-1.5" style={{ background: "#4A4B47" }} /> Completed
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-1.5" style={{ background: "#fff" }} /> Active
+          <span className="inline-block w-3 h-1.5" style={{ background: "#C5A572" }} /> Active
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-1.5" style={{ background: "#666" }} /> Waiting
+          <span className="inline-block w-3 h-1.5" style={{ background: "#656453" }} /> Waiting
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-1.5" style={{ background: "#888" }} /> Failed
+          <span className="inline-block w-3 h-1.5" style={{ background: "#7A7968" }} /> Failed
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-1.5" style={{ background: "#555" }} /> Delayed
+          <span className="inline-block w-3 h-1.5" style={{ background: "#656453" }} /> Delayed
         </span>
       </div>
     </>

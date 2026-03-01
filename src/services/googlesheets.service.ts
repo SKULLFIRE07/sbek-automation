@@ -149,6 +149,11 @@ class GoogleSheetsService {
 
       this.initialized = true;
       logger.info('Google Sheets service initialised — all tabs cached');
+
+      // Apply formatting (color coding, dropdowns) — fire-and-forget
+      this.applyFormatting().catch((err) =>
+        logger.warn({ err }, 'Non-critical: failed to apply sheets formatting'),
+      );
     } catch (error) {
       logger.error(
         { err: error },
@@ -611,6 +616,143 @@ class GoogleSheetsService {
     } catch (error) {
       logger.error({ err: error }, 'Error fetching competitors');
       return [];
+    }
+  }
+
+  // ── Formatting & Data Validation ─────────────────────────────────────────
+
+  /**
+   * Apply conditional formatting (color-coded rows by status) and data
+   * validation dropdowns to Orders, Production, and QC tabs.
+   * Safe to call multiple times — rules are additive.
+   */
+  async applyFormatting(): Promise<void> {
+    this.assertInitialized();
+    try {
+      const ordersSheet = this.getSheet(TAB_NAMES.ORDERS);
+      if (!ordersSheet || !this.doc) return;
+
+      const statusColIdx = TAB_HEADERS[TAB_NAMES.ORDERS].indexOf('Status');
+      if (statusColIdx === -1) return;
+
+      const statusColors: Record<string, { red: number; green: number; blue: number }> = {
+        'New':           { red: 1.0,  green: 0.95, blue: 0.8  },
+        'In Production': { red: 0.8,  green: 0.9,  blue: 1.0  },
+        'QC':            { red: 1.0,  green: 0.9,  blue: 0.8  },
+        'Ready to Ship': { red: 0.85, green: 0.95, blue: 0.85 },
+        'Shipped':       { red: 0.7,  green: 0.95, blue: 0.7  },
+        'Delivered':     { red: 0.9,  green: 0.9,  blue: 0.9  },
+        'Cancelled':     { red: 1.0,  green: 0.85, blue: 0.85 },
+        'Refunded':      { red: 1.0,  green: 0.8,  blue: 0.8  },
+        'Failed':        { red: 0.95, green: 0.75, blue: 0.75 },
+      };
+
+      const statusValues = Object.keys(statusColors);
+      const colLetter = String.fromCharCode(65 + statusColIdx);
+      const requests: Array<Record<string, unknown>> = [];
+
+      // Conditional formatting rules for each status
+      for (const [status, color] of Object.entries(statusColors)) {
+        requests.push({
+          addConditionalFormatRule: {
+            rule: {
+              ranges: [{
+                sheetId: ordersSheet.sheetId,
+                startRowIndex: 1,
+                startColumnIndex: 0,
+                endColumnIndex: TAB_HEADERS[TAB_NAMES.ORDERS].length,
+              }],
+              booleanRule: {
+                condition: {
+                  type: 'CUSTOM_FORMULA',
+                  values: [{ userEnteredValue: `=$${colLetter}2="${status}"` }],
+                },
+                format: { backgroundColor: color },
+              },
+            },
+            index: 0,
+          },
+        });
+      }
+
+      // Data validation: Orders → Status dropdown
+      requests.push({
+        setDataValidation: {
+          range: {
+            sheetId: ordersSheet.sheetId,
+            startRowIndex: 1,
+            startColumnIndex: statusColIdx,
+            endColumnIndex: statusColIdx + 1,
+          },
+          rule: {
+            condition: {
+              type: 'ONE_OF_LIST',
+              values: statusValues.map((v) => ({ userEnteredValue: v })),
+            },
+            showCustomUi: true,
+            strict: false,
+          },
+        },
+      });
+
+      // Data validation: QC → Pass/Fail dropdown
+      const qcSheet = this.getSheet(TAB_NAMES.QC);
+      if (qcSheet) {
+        const pfIdx = TAB_HEADERS[TAB_NAMES.QC].indexOf('Pass/Fail');
+        if (pfIdx !== -1) {
+          requests.push({
+            setDataValidation: {
+              range: {
+                sheetId: qcSheet.sheetId,
+                startRowIndex: 1,
+                startColumnIndex: pfIdx,
+                endColumnIndex: pfIdx + 1,
+              },
+              rule: {
+                condition: {
+                  type: 'ONE_OF_LIST',
+                  values: ['Pending', 'Pass', 'Fail'].map((v) => ({ userEnteredValue: v })),
+                },
+                showCustomUi: true,
+                strict: false,
+              },
+            },
+          });
+        }
+      }
+
+      // Data validation: Production → Status dropdown
+      const prodSheet = this.getSheet(TAB_NAMES.PRODUCTION);
+      if (prodSheet) {
+        const psIdx = TAB_HEADERS[TAB_NAMES.PRODUCTION].indexOf('Status');
+        if (psIdx !== -1) {
+          requests.push({
+            setDataValidation: {
+              range: {
+                sheetId: prodSheet.sheetId,
+                startRowIndex: 1,
+                startColumnIndex: psIdx,
+                endColumnIndex: psIdx + 1,
+              },
+              rule: {
+                condition: {
+                  type: 'ONE_OF_LIST',
+                  values: ['In Progress', 'Completed', 'Rework', 'On Hold'].map((v) => ({ userEnteredValue: v })),
+                },
+                showCustomUi: true,
+                strict: false,
+              },
+            },
+          });
+        }
+      }
+
+      // Execute all formatting via Sheets batchUpdate API
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (this.doc as any)._makeBatchUpdateRequest(requests);
+      logger.info({ ruleCount: requests.length }, 'Sheets formatting applied: color coding + dropdowns');
+    } catch (error) {
+      logger.error({ err: error }, 'Error applying sheets formatting');
     }
   }
 

@@ -36,11 +36,16 @@ class CrawlerService {
 
   /**
    * Submit a URL to the crawler microservice for analysis.
+   * Optionally pass previous crawl data for delta comparison.
    * Crawling can be slow, so we use a 60-second timeout.
    */
-  async analyzeSite(url: string): Promise<CrawlResult> {
+  async analyzeSite(url: string, previousCrawl?: Record<string, unknown>): Promise<CrawlResult> {
     try {
-      const data = await this.request('POST', '/crawl', { url });
+      const body: Record<string, unknown> = { url };
+      if (previousCrawl) {
+        body.previousCrawl = previousCrawl;
+      }
+      const data = await this.request('POST', '/crawl', body);
       logger.info({ url, snapshotId: data.snapshotId }, 'Site crawl completed');
       return data as CrawlResult;
     } catch (error) {

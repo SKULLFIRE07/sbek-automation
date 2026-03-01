@@ -33,7 +33,7 @@ function Skeleton({ className }: { className?: string }) {
   return (
     <div
       className={`animate-pulse ${className ?? ""}`}
-      style={{ background: "#111" }}
+      style={{ background: "#1A1B19" }}
     />
   );
 }
@@ -42,7 +42,7 @@ function StatSkeleton() {
   return (
     <div
       className="px-6 py-8 border min-h-[160px] flex flex-col justify-between"
-      style={{ background: "#0a0a0a", borderColor: "#222" }}
+      style={{ background: "#141513", borderColor: "#2A2B28" }}
     >
       <Skeleton className="h-3 w-20 mb-3" />
       <div>
@@ -57,7 +57,7 @@ function QueueCardSkeleton() {
   return (
     <div
       className="p-4 border"
-      style={{ background: "#0a0a0a", borderColor: "#222" }}
+      style={{ background: "#141513", borderColor: "#2A2B28" }}
     >
       <div className="flex items-center justify-between mb-3">
         <Skeleton className="h-4 w-32" />
@@ -88,9 +88,9 @@ function EmptyState({ message }: { message: string }) {
   return (
     <div
       className="border py-12 text-center"
-      style={{ background: "#0a0a0a", borderColor: "#222" }}
+      style={{ background: "#141513", borderColor: "#2A2B28" }}
     >
-      <p className="text-sm font-mono" style={{ color: "#666" }}>
+      <p className="text-sm font-mono" style={{ color: "#7A7968" }}>
         {message}
       </p>
     </div>
@@ -103,7 +103,7 @@ function SectionHeader({ label }: { label: string }) {
   return (
     <h2
       className="text-[11px] uppercase tracking-[0.15em] mb-3 font-medium"
-      style={{ color: "#666", letterSpacing: "0.15em" }}
+      style={{ color: "#7A7968", letterSpacing: "0.15em" }}
     >
       {label}
     </h2>
@@ -130,21 +130,21 @@ function LiveHeader({
   return (
     <div
       className="border-b pb-4 mb-6"
-      style={{ borderColor: "#222" }}
+      style={{ borderColor: "#2A2B28" }}
     >
       <div className="flex items-center justify-between">
         {/* Left: title + live dot */}
         <div className="flex items-center gap-3">
           <h1
             className="text-lg font-medium tracking-tight"
-            style={{ color: "#fff" }}
+            style={{ color: "#d4d3cc" }}
           >
             Dashboard
           </h1>
           <span
             className="inline-block w-2 h-2 rounded-full"
             style={{
-              background: "#22c55e",
+              background: "#C5A572",
               animation: "livePulse 2s ease-in-out infinite",
             }}
             title="Live"
@@ -155,14 +155,14 @@ function LiveHeader({
         {secondsAgo != null && (
           <span
             className="text-[11px] font-mono"
-            style={{ color: "#555" }}
+            style={{ color: "#656453" }}
           >
             Updated {secondsAgo === 0 ? "just now" : `${secondsAgo}s ago`}
           </span>
         )}
       </div>
 
-      <p className="text-xs mt-1" style={{ color: "#555" }}>
+      <p className="text-xs mt-1" style={{ color: "#656453" }}>
         System overview
       </p>
     </div>
@@ -179,17 +179,17 @@ function QuickStatsBar({ stats, queues }: { stats: StatsData; queues: QueueItem[
   const queueCount = queues?.length ?? stats.totalQueues;
 
   const items = [
-    { label: "Throughput", value: `${formatNumber(totalActive)} active`, dot: "#22c55e" },
+    { label: "Throughput", value: `${formatNumber(totalActive)} active`, dot: "#C5A572" },
     { label: "Queued", value: `${formatNumber(totalWaiting)} waiting`, dot: "#f59e0b" },
-    { label: "Delayed", value: formatNumber(totalDelayed), dot: totalDelayed > 0 ? "#f59e0b" : "#555" },
+    { label: "Delayed", value: formatNumber(totalDelayed), dot: totalDelayed > 0 ? "#f59e0b" : "#656453" },
     { label: "Queues", value: `${queueCount} registered`, dot: null },
-    { label: "Uptime", value: `${stats.successRate.toFixed(1)}%`, dot: stats.successRate >= 99 ? "#22c55e" : stats.successRate >= 95 ? "#f59e0b" : "#ef4444" },
+    { label: "Uptime", value: `${stats.successRate.toFixed(1)}%`, dot: stats.successRate >= 99 ? "#C5A572" : stats.successRate >= 95 ? "#f59e0b" : "#ef4444" },
   ];
 
   return (
     <div
       className="flex flex-wrap gap-x-6 gap-y-2 px-4 py-3 mb-8 border"
-      style={{ background: "#0a0a0a", borderColor: "#1a1a1a" }}
+      style={{ background: "#141513", borderColor: "#1A1B19" }}
     >
       {items.map((item) => (
         <div key={item.label} className="flex items-center gap-2">
@@ -199,10 +199,10 @@ function QuickStatsBar({ stats, queues }: { stats: StatsData; queues: QueueItem[
               style={{ background: item.dot }}
             />
           )}
-          <span className="text-[11px] font-mono" style={{ color: "#555" }}>
+          <span className="text-[11px] font-mono" style={{ color: "#656453" }}>
             {item.label}
           </span>
-          <span className="text-[11px] font-mono font-medium" style={{ color: "#999" }}>
+          <span className="text-[11px] font-mono font-medium" style={{ color: "#9A9880" }}>
             {item.value}
           </span>
         </div>
@@ -255,7 +255,7 @@ export default function DashboardPage() {
       <div className="fade-in-section fade-in-section-delay-1">
         <div
           className="grid grid-cols-2 lg:grid-cols-4 gap-px mb-8"
-          style={{ background: "#222" }}
+          style={{ background: "#2A2B28" }}
         >
           {statsLoading || !hasStats ? (
             <>
@@ -305,7 +305,7 @@ export default function DashboardPage() {
         {queuesLoading ? (
           <div
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-px"
-            style={{ background: "#222" }}
+            style={{ background: "#2A2B28" }}
           >
             {Array.from({ length: 8 }).map((_, i) => (
               <QueueCardSkeleton key={i} />
@@ -314,7 +314,7 @@ export default function DashboardPage() {
         ) : hasQueues && queues.length > 0 ? (
           <div
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-px"
-            style={{ background: "#222" }}
+            style={{ background: "#2A2B28" }}
           >
             {queues.map((q: QueueItem) => (
               <QueueCard key={q.name} {...q} />
@@ -332,8 +332,8 @@ export default function DashboardPage() {
         <div
           className="border relative"
           style={{
-            borderColor: "#222",
-            background: "#0a0a0a",
+            borderColor: "#2A2B28",
+            background: "#141513",
             minHeight: 340,
           }}
         >
@@ -348,13 +348,13 @@ export default function DashboardPage() {
                 style={{
                   height: 64,
                   background:
-                    "linear-gradient(to bottom, transparent, #0a0a0a)",
+                    "linear-gradient(to bottom, transparent, #141513)",
                 }}
               />
             </>
           ) : (
             <div className="py-12 text-center">
-              <p className="text-sm font-mono" style={{ color: "#666" }}>
+              <p className="text-sm font-mono" style={{ color: "#7A7968" }}>
                 No activity yet
               </p>
             </div>

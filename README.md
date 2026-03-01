@@ -110,6 +110,11 @@ Built with TypeScript, Express, BullMQ, Redis, PostgreSQL, and Docker.
 - **Social Scheduling** -- Auto-posts approved creatives to Instagram/Facebook via Postiz with AI-generated captions
 - **Competitor Monitoring** -- Playwright crawler scrapes competitor sites weekly, GPT-4o analyzes changes, alerts on significant moves
 
+### Dashboard
+- **Real-time Admin Dashboard** -- Next.js 15 app (port 3002) with live queue monitoring, job activity feed, system health overview, and cron job status
+- **Settings Management** -- Configure API keys (BYOK), notification channels, cron schedules, and brand settings from the UI
+- **Queue Inspector** -- Drill into individual queues to view active, completed, failed, and delayed jobs
+
 ### Infrastructure
 - **7 BullMQ queues** with independent concurrency, retry counts, and exponential backoff
 - **4 cron jobs** (daily sheets sync, daily review requests, weekly content generation, weekly competitor crawl)
@@ -176,6 +181,7 @@ chmod +x scripts/test-webhooks.sh
 | `http://localhost:3000/health/ready` | Deep readiness check |
 | `http://localhost:3000/jobs/status`  | Queue job counts     |
 | `http://localhost:3001/health`       | Crawler health check |
+| `http://localhost:3002`              | Admin dashboard      |
 
 ---
 
@@ -447,6 +453,7 @@ sbek-automation/
 |   |-- templates/             # Email (.hbs) and WhatsApp templates
 |   |-- utils/                 # Crypto, dates, retry, sanitization
 |
+|-- dashboard/                 # Next.js 15 admin dashboard (port 3002)
 |-- crawler/                   # Standalone Playwright microservice (port 3001)
 |-- creatives/                 # DALL-E prompt templates + size presets
 |-- seo/                       # SEO/AEO prompt templates + JSON-LD schemas
@@ -668,4 +675,5 @@ npm run db:studio      # Open Drizzle Studio GUI
 | **Crawler**      | Playwright + Chromium (separate microservice)                |
 | **Validation**   | Zod (env vars), HMAC-SHA256 (webhooks)                       |
 | **Logging**      | Pino (structured JSON)                                       |
-| **Containers**   | Docker Compose (4 services)                                  |
+| **Dashboard**    | Next.js 15, React 18, SWR, Tailwind CSS                      |
+| **Containers**   | Docker Compose (5 services)                                  |

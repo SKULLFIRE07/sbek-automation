@@ -20,7 +20,7 @@ function Skeleton({ className }: { className?: string }) {
   return (
     <div
       className={`animate-pulse ${className || ""}`}
-      style={{ background: "#111" }}
+      style={{ background: "#1A1B19" }}
     />
   );
 }
@@ -37,14 +37,14 @@ function SectionHeading({
     <div className="section-divider mb-4 mt-2">
       <h2
         className="text-xs uppercase tracking-widest font-medium shrink-0"
-        style={{ color: "#666" }}
+        style={{ color: "#7A7968" }}
       >
         {children}
       </h2>
       {count !== undefined && (
         <span
           className="text-[10px] font-mono shrink-0"
-          style={{ color: "#555" }}
+          style={{ color: "#656453" }}
         >
           {count}
         </span>
@@ -74,12 +74,12 @@ function UptimeCounter() {
   return (
     <div
       className="flex items-center gap-3 px-4 py-2.5 rounded"
-      style={{ background: "#0a0a0a", border: "1px solid #1a1a1a" }}
+      style={{ background: "#141513", border: "1px solid #1A1B19" }}
     >
-      <span className="text-[10px] uppercase tracking-widest" style={{ color: "#555" }}>
+      <span className="text-[10px] uppercase tracking-widest" style={{ color: "#656453" }}>
         Session Uptime
       </span>
-      <span className="font-mono text-sm" style={{ color: "#e5e5e5" }}>
+      <span className="font-mono text-sm" style={{ color: "#d4d3cc" }}>
         {pad(hrs)}:{pad(mins)}:{pad(secs)}
       </span>
     </div>
@@ -111,9 +111,9 @@ function LastChecked({ refreshIntervalMs }: { refreshIntervalMs: number }) {
     <div className="flex items-center gap-2">
       <span
         className="inline-block w-1.5 h-1.5 rounded-full live-dot"
-        style={{ background: "#22c55e" }}
+        style={{ background: "#C5A572" }}
       />
-      <span className="text-[10px] font-mono" style={{ color: "#555" }}>
+      <span className="text-[10px] font-mono" style={{ color: "#656453" }}>
         checked {secondsAgo}s ago
       </span>
     </div>
@@ -160,10 +160,10 @@ export default function SystemPage() {
         {healthLoading || !health ? (
           <div
             className="grid grid-cols-1 md:grid-cols-3 gap-px"
-            style={{ background: "#222" }}
+            style={{ background: "#2A2B28" }}
           >
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="p-5" style={{ background: "#0a0a0a" }}>
+              <div key={i} className="p-5" style={{ background: "#141513" }}>
                 <Skeleton className="h-3 w-20 mb-3" />
                 <Skeleton className="h-6 w-16 mb-2" />
                 <Skeleton className="h-1 w-full" />
@@ -183,7 +183,7 @@ export default function SystemPage() {
 
         <div
           className="border rounded"
-          style={{ borderColor: "#1a1a1a", background: "#0a0a0a" }}
+          style={{ borderColor: "#1A1B19", background: "#141513" }}
         >
           {cronLoading || !cronRuns ? (
             <div className="p-4 space-y-2">
@@ -203,7 +203,7 @@ export default function SystemPage() {
 
         <div
           className="border rounded"
-          style={{ borderColor: "#1a1a1a", background: "#0a0a0a" }}
+          style={{ borderColor: "#1A1B19", background: "#141513" }}
         >
           {logsLoading || !logs ? (
             <div className="p-4 space-y-2">
@@ -214,7 +214,7 @@ export default function SystemPage() {
           ) : logs.length === 0 ? (
             <p
               className="p-6 text-center text-xs"
-              style={{ color: "#666" }}
+              style={{ color: "#7A7968" }}
             >
               No log entries yet
             </p>
@@ -233,10 +233,10 @@ export default function SystemPage() {
                 <tbody>
                   {logs.slice(0, 50).map((log) => (
                     <tr key={log.id} className="hoverable-row">
-                      <td className="font-mono" style={{ color: "#e5e5e5" }}>
+                      <td className="font-mono" style={{ color: "#d4d3cc" }}>
                         {log.queueName}
                       </td>
-                      <td className="font-mono" style={{ color: "#999" }}>
+                      <td className="font-mono" style={{ color: "#9A9880" }}>
                         {log.jobId}
                       </td>
                       <td>
@@ -244,7 +244,7 @@ export default function SystemPage() {
                           <StatusDot status={mapLogStatus(log.status)} pulse />
                           <span
                             className="text-xs font-mono"
-                            style={{ color: "#999" }}
+                            style={{ color: "#9A9880" }}
                           >
                             {log.status}
                           </span>
@@ -252,11 +252,11 @@ export default function SystemPage() {
                       </td>
                       <td
                         className="font-mono text-xs"
-                        style={{ color: log.error ? "#f87171" : "#666" }}
+                        style={{ color: log.error ? "#f87171" : "#7A7968" }}
                       >
                         {log.error ? truncate(log.error, 60) : "\u2014"}
                       </td>
-                      <td className="text-xs" style={{ color: "#666" }}>
+                      <td className="text-xs" style={{ color: "#7A7968" }}>
                         {timeAgo(log.createdAt)}
                       </td>
                     </tr>

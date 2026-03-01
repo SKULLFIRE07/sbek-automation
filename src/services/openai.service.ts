@@ -4,7 +4,6 @@ import { systemConfig } from '../db/schema.js';
 import { inArray } from 'drizzle-orm';
 import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
-import { settings } from './settings.service.js';
 
 // ── Service ─────────────────────────────────────────────────────────────────
 
@@ -81,12 +80,10 @@ class AIService {
     });
   }
 
-  /** Re-initialize the OpenAI client with the latest API key from settings */
+  /** Invalidate cached config so the next request fetches fresh keys */
   async refreshClient(): Promise<void> {
-    const key = await settings.get('OPENAI_API_KEY');
-    if (key) {
-      this.client = new OpenAI({ apiKey: key });
-    }
+    this.cacheTime = 0;
+    this.cachedKey = null;
   }
 
   // ── Generic Text Generation ────────────────────────────────────────────
@@ -351,6 +348,77 @@ class AIService {
       temperature: 0.5,
     });
   }
+
+  /**
+   * Enhanced competitor analysis that includes:
+   * - Historical delta comparison (if previous data available)
+   * - Messaging & brand voice analysis
+   * - Technical SEO assessment
+   * - Trend detection over time
+   */
+  async analyzeCompetitorEnhanced(
+    competitorName: string,
+    currentData: Record<string, unknown>,
+    previousData?: Record<string, unknown>,
+  ): Promise<string> {
+    const systemPrompt = [
+      'You are a senior competitive intelligence analyst for SBEK, a luxury Indian',
+      'jewelry brand. Perform a comprehensive competitor analysis.',
+      '',
+      'Structure your analysis into these sections:',
+      '',
+      '## 1. Pricing & Positioning',
+      '- Price range analysis and comparison to SBEK',
+      '- Value proposition positioning',
+      '',
+      '## 2. Product Range',
+      '- Catalog size and gaps/overlaps with SBEK',
+      '- New products or collections (if historical data available)',
+      '',
+      '## 3. SEO & Content Strategy',
+      '- Meta description quality and keyword usage',
+      '- H1 tag effectiveness',
+      '- Structured data implementation (JSON-LD presence)',
+      '- Content freshness and blog activity',
+      '- Open Graph and social media optimization',
+      '',
+      '## 4. Technical SEO Assessment',
+      '- Schema markup quality',
+      '- Mobile optimization signals',
+      '- Site architecture (navigation depth, URL structure)',
+      '- Indexability signals',
+      '',
+      '## 5. Messaging & Brand Voice',
+      '- Tone of copy (luxury vs mass-market, emotional vs rational)',
+      '- Key messaging themes and value props',
+      '- Target audience indicators',
+      '- Call-to-action patterns',
+      '- Cultural positioning (Indian heritage, global appeal)',
+      '',
+      '## 6. Historical Trends',
+      previousData
+        ? '- Compare current vs previous crawl for changes in products, pricing, content'
+        : '- No previous data available. Baseline established.',
+      '',
+      '## 7. Recommendations',
+      '- 3-5 specific, actionable recommendations for SBEK',
+      '',
+      'Be concise, data-driven, and specific. Reference actual numbers and content from the data.',
+    ].join('\n');
+
+    const dataSections = [`Competitor: ${competitorName}`];
+    dataSections.push(`\nCurrent Crawl Data:\n${JSON.stringify(currentData, null, 2).slice(0, 6000)}`);
+
+    if (previousData) {
+      dataSections.push(`\nPrevious Crawl Data:\n${JSON.stringify(previousData, null, 2).slice(0, 3000)}`);
+    }
+
+    return this.generateText(systemPrompt, dataSections.join('\n'), {
+      maxTokens: 3000,
+      temperature: 0.5,
+    });
+  }
+
 }
 
 // ── Singleton Export ────────────────────────────────────────────────────────

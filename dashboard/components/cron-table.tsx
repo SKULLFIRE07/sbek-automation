@@ -33,7 +33,7 @@ export function CronTable({ runs }: CronTableProps) {
     return (
       <p
         className="text-sm py-8 text-center"
-        style={{ color: "#666" }}
+        style={{ color: "#7A7968" }}
       >
         No cron runs recorded.
       </p>
@@ -44,20 +44,20 @@ export function CronTable({ runs }: CronTableProps) {
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
         <thead>
-          <tr style={{ borderBottom: "1px solid #222" }}>
-            <th className={TH} style={{ color: "#666" }}>
+          <tr style={{ borderBottom: "1px solid #2A2B28" }}>
+            <th className={TH} style={{ color: "#7A7968" }}>
               Job Name
             </th>
-            <th className={TH} style={{ color: "#666" }}>
+            <th className={TH} style={{ color: "#7A7968" }}>
               Started
             </th>
-            <th className={TH} style={{ color: "#666" }}>
+            <th className={TH} style={{ color: "#7A7968" }}>
               Completed
             </th>
-            <th className={TH} style={{ color: "#666" }}>
+            <th className={TH} style={{ color: "#7A7968" }}>
               Items Processed
             </th>
-            <th className={TH} style={{ color: "#666" }}>
+            <th className={TH} style={{ color: "#7A7968" }}>
               Status
             </th>
           </tr>
@@ -69,25 +69,25 @@ export function CronTable({ runs }: CronTableProps) {
               <tr
                 key={`${run.jobName}-${i}`}
                 className="hoverable-row"
-                style={{ borderBottom: "1px solid #111" }}
+                style={{ borderBottom: "1px solid #1A1B19" }}
               >
-                <td className={TD} style={{ color: "#e5e5e5" }}>
+                <td className={TD} style={{ color: "#d4d3cc" }}>
                   {run.jobName}
                 </td>
-                <td className={TD} style={{ color: "#999" }}>
+                <td className={TD} style={{ color: "#9A9880" }}>
                   {timeAgo(run.startedAt)}
                 </td>
-                <td className={TD} style={{ color: "#999" }}>
+                <td className={TD} style={{ color: "#9A9880" }}>
                   {run.completedAt ? timeAgo(run.completedAt) : "--"}
                 </td>
-                <td className={TD} style={{ color: "#999" }}>
+                <td className={TD} style={{ color: "#9A9880" }}>
                   {run.itemsProcessed !== undefined
                     ? run.itemsProcessed
                     : "--"}
                 </td>
                 <td className={`${TD} flex items-center gap-2`}>
                   <StatusDot status={st.dot} pulse />
-                  <span className="text-xs" style={{ color: "#666" }}>
+                  <span className="text-xs" style={{ color: "#7A7968" }}>
                     {st.label}
                   </span>
                 </td>

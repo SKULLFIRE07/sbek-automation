@@ -13,7 +13,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body style={{ background: "#000", margin: 0 }}>
+      <body style={{ background: "#0C0D0B", margin: 0 }}>
         <Sidebar />
         <main
           style={{

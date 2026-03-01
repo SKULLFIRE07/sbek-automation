@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 import { webhookAuth } from '../middleware/webhookAuth.js';
 import { webhookLimiter } from '../middleware/rateLimiter.js';
-import { orderSync } from '../../queues/registry.js';
+import { orderSync, contentGeneration, creativeGeneration } from '../../queues/registry.js';
 import { logger } from '../../config/logger.js';
 
 export const webhooksRouter = Router();
@@ -66,6 +66,7 @@ webhooksRouter.post(
 /**
  * WooCommerce product webhook handler.
  * Receives product.created and product.updated events.
+ * Auto-triggers SEO content generation and ad creative generation.
  */
 webhooksRouter.post(
   '/woocommerce/product',
@@ -75,15 +76,99 @@ webhooksRouter.post(
       const topic = req.headers['x-wc-webhook-topic'] as string;
       const payload = req.body;
       const productId = payload?.id;
+      const productName = payload?.name || '';
 
       if (!productId) {
         res.status(400).json({ error: 'Missing product ID' });
         return;
       }
 
-      // Content generation will be wired in Phase 6
-      logger.info({ productId, topic }, 'Product webhook received (queuing not yet wired)');
-      res.json({ received: true, productId, topic });
+      // Only enqueue jobs for published products
+      const status = payload?.status || '';
+      if (status !== 'publish') {
+        logger.info({ productId, topic, status }, 'Product webhook received — skipping non-published product');
+        res.json({ received: true, productId, topic, skipped: true });
+        return;
+      }
+
+      logger.info({ productId, productName, topic }, 'Product webhook received — enqueuing automation jobs');
+
+      const jobs: Promise<unknown>[] = [];
+
+      // 1. SEO meta generation
+      jobs.push(
+        contentGeneration.add(`seo-${productId}-webhook`, {
+          productId,
+          productName,
+          type: 'seo_meta',
+        }),
+      );
+
+      // 2. FAQ generation
+      jobs.push(
+        contentGeneration.add(`faq-${productId}-webhook`, {
+          productId,
+          productName,
+          type: 'faq',
+        }),
+      );
+
+      // 3. AEO knowledge base
+      jobs.push(
+        contentGeneration.add(`aeo-${productId}-webhook`, {
+          productId,
+          productName,
+          type: 'aeo_kb',
+        }),
+      );
+
+      // 4. Comparison article
+      jobs.push(
+        contentGeneration.add(`comparison-${productId}-webhook`, {
+          productId,
+          productName,
+          type: 'comparison',
+        }),
+      );
+
+      // 5. Schema injection
+      jobs.push(
+        contentGeneration.add(`schema-${productId}-webhook`, {
+          productId,
+          productName,
+          type: 'schema_inject',
+        }),
+      );
+
+      // 6. Internal linking
+      jobs.push(
+        contentGeneration.add(`intlink-${productId}-webhook`, {
+          productId,
+          productName,
+          type: 'internal_links',
+        }),
+      );
+
+      // 7. Ad creative generation (all 5 variants)
+      const description = payload?.short_description || payload?.description || '';
+      const category = payload?.categories?.[0]?.name || 'Jewelry';
+      const imageUrl = payload?.images?.[0]?.src || '';
+
+      jobs.push(
+        creativeGeneration.add(`creative-${productId}-webhook`, {
+          productId,
+          productName,
+          productDescription: description.replace(/<[^>]*>/g, '').slice(0, 500),
+          productImageUrl: imageUrl,
+          category,
+          variants: ['white_bg', 'lifestyle', 'festive', 'minimal_text', 'story_format'],
+        }),
+      );
+
+      await Promise.all(jobs);
+
+      logger.info({ productId, productName, jobCount: jobs.length }, 'Product webhook jobs enqueued');
+      res.json({ received: true, productId, topic, jobsEnqueued: jobs.length });
     } catch (err) {
       logger.error({ err }, 'Failed to process product webhook');
       res.json({ received: true, error: 'Processing failed' });

@@ -83,7 +83,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="inline-flex items-center justify-center w-5 h-5 rounded opacity-0 group-hover/row:opacity-60 hover:!opacity-100 transition-opacity duration-150 text-neutral-500 hover:text-white"
+      className="inline-flex items-center justify-center w-5 h-5 rounded opacity-0 group-hover/row:opacity-60 hover:!opacity-100 transition-opacity duration-150 text-[#656453] hover:text-[#d4d3cc]"
       title="Copy job ID"
       aria-label={`Copy job ID ${text}`}
     >
@@ -102,13 +102,13 @@ function CopyButton({ text }: { text: string }) {
 }
 
 const TH =
-  "text-left text-[10px] uppercase tracking-widest text-neutral-500 font-normal pb-2 pr-4";
-const TD = "py-2 pr-4 text-sm text-neutral-300 font-mono whitespace-nowrap";
+  "text-left text-[10px] uppercase tracking-widest text-[#7A7968] font-normal pb-2 pr-4";
+const TD = "py-2 pr-4 text-sm text-[#d4d3cc] font-mono whitespace-nowrap";
 
 export function QueueTable({ jobs, status }: QueueTableProps) {
   if (jobs.length === 0) {
     return (
-      <p className="text-sm text-neutral-500 py-8 text-center">
+      <p className="text-sm text-[#7A7968] py-8 text-center">
         No jobs in this state.
       </p>
     );
@@ -118,7 +118,7 @@ export function QueueTable({ jobs, status }: QueueTableProps) {
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
         <thead>
-          <tr className="border-b border-[#222]">
+          <tr className="border-b border-[#2A2B28]">
             <th className={TH}>ID</th>
             <th className={TH}>Status</th>
             <th className={TH}>Data</th>
@@ -134,12 +134,12 @@ export function QueueTable({ jobs, status }: QueueTableProps) {
             return (
               <tr
                 key={job.id}
-                className="group/row border-b border-[#111] transition-colors duration-150 hover:!bg-[#141414]"
-                style={{ backgroundColor: isEven ? "#0a0a0a" : "#0e0e0e" }}
+                className="group/row border-b border-[#1A1B19] transition-colors duration-150 hover:!bg-[#1A1B19]"
+                style={{ backgroundColor: isEven ? "#141513" : "#181917" }}
               >
                 <td className={TD}>
                   <span className="inline-flex items-center gap-1.5">
-                    <span className="text-xs font-mono text-neutral-400">
+                    <span className="text-xs font-mono text-[#9A9880]">
                       {job.id}
                     </span>
                     <CopyButton text={String(job.id)} />
@@ -147,7 +147,7 @@ export function QueueTable({ jobs, status }: QueueTableProps) {
                 </td>
                 <td className={`${TD} flex items-center gap-2`}>
                   <StatusDot status={jobStatusDot(status)} />
-                  <span className="text-xs text-neutral-500">{status}</span>
+                  <span className="text-xs text-[#7A7968]">{status}</span>
                 </td>
                 <td className={TD}>
                   <span title={safeStringify(job.data)}>
@@ -162,13 +162,13 @@ export function QueueTable({ jobs, status }: QueueTableProps) {
                 <td className={TD}>
                   {job.failedReason ? (
                     <span
-                      className="text-neutral-400"
+                      className="text-[#9A9880]"
                       title={job.failedReason}
                     >
                       {truncate(job.failedReason, 40)}
                     </span>
                   ) : (
-                    <span className="text-neutral-600">--</span>
+                    <span className="text-[#656453]">--</span>
                   )}
                 </td>
               </tr>

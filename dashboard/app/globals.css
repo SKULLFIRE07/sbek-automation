@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 html, body {
   height: 100%;
@@ -10,9 +10,9 @@ html, body {
 }
 
 body {
-  background: #000;
-  color: #e5e5e5;
-  font-family: 'Inter', system-ui, sans-serif;
+  background: #0C0D0B;
+  color: #d4d3cc;
+  font-family: 'Poppins', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -20,58 +20,58 @@ body {
   font-family: 'JetBrains Mono', monospace !important;
 }
 
-/* ────────────────────────────────────────────────────────────
-   Custom selection color (white on dark gray)
-   ──────────────────────────────────────────────────────────── */
+/* ── Selection ─────────────────────────────────────────────── */
 ::selection {
-  background: #333;
-  color: #fff;
+  background: #C5A57240;
+  color: #FDF9CF;
 }
-
 ::-moz-selection {
-  background: #333;
-  color: #fff;
+  background: #C5A57240;
+  color: #FDF9CF;
 }
 
-/* ────────────────────────────────────────────────────────────
-   Accessibility: subtle focus ring
-   ──────────────────────────────────────────────────────────── */
+/* ── Focus ─────────────────────────────────────────────────── */
 *:focus-visible {
-  outline: 1px solid #555;
+  outline: 1px solid #C5A572;
   outline-offset: 2px;
   border-radius: 2px;
 }
 
-/* ────────────────────────────────────────────────────────────
-   Scrollbar styling
-   ──────────────────────────────────────────────────────────── */
+/* ── Scrollbar ─────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #0a0a0a; }
-::-webkit-scrollbar-thumb { background: #333; }
+::-webkit-scrollbar-track { background: #0C0D0B; }
+::-webkit-scrollbar-thumb { background: #3A3B37; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #C5A57260; }
 
-/* ────────────────────────────────────────────────────────────
-   Minimal table styling
-   ──────────────────────────────────────────────────────────── */
+/* ── Tables ────────────────────────────────────────────────── */
 table { border-collapse: collapse; width: 100%; }
-th { text-align: left; padding: 12px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #666; border-bottom: 1px solid #222; font-weight: 500; }
-td { padding: 12px 16px; border-bottom: 1px solid #111; font-size: 13px; }
+th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7A7968;
+  border-bottom: 1px solid #2A2B28;
+  font-weight: 500;
+}
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #1A1B19;
+  font-size: 13px;
+}
 
-/* ────────────────────────────────────────────────────────────
-   Skeleton loading animation
-   ──────────────────────────────────────────────────────────── */
+/* ── Animations ────────────────────────────────────────────── */
 @keyframes skeleton-shimmer {
-  0% { opacity: 0.4; }
-  50% { opacity: 0.7; }
-  100% { opacity: 0.4; }
+  0% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+  100% { opacity: 0.3; }
 }
 
 .animate-pulse {
   animation: skeleton-shimmer 1.8s ease-in-out infinite;
 }
 
-/* ────────────────────────────────────────────────────────────
-   Subtle fade-in for content appearing after loading
-   ──────────────────────────────────────────────────────────── */
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
@@ -81,85 +81,41 @@ td { padding: 12px 16px; border-bottom: 1px solid #111; font-size: 13px; }
   animation: fade-in 0.3s ease-out forwards;
 }
 
-/* ────────────────────────────────────────────────────────────
-   Page transition: smooth enter animation for main content
-   ──────────────────────────────────────────────────────────── */
 @keyframes page-enter {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .page-transition {
   animation: page-enter 0.25s ease-out;
 }
 
-/* ────────────────────────────────────────────────────────────
-   Glass-morphism utility
-   ──────────────────────────────────────────────────────────── */
+/* ── Glass morphism ────────────────────────────────────────── */
 .glass {
-  background: rgba(10, 10, 10, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(12, 13, 11, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(197, 165, 114, 0.08);
 }
 
-/* ────────────────────────────────────────────────────────────
-   Sidebar: brand shimmer on hover
-   ──────────────────────────────────────────────────────────── */
-@keyframes brand-shimmer {
-  0% {
-    background-position: -200% center;
-  }
-  100% {
-    background-position: 200% center;
-  }
-}
-
+/* ── Sidebar brand ─────────────────────────────────────────── */
 .sidebar-brand {
   transition: all 0.3s ease;
 }
 
 .sidebar-brand:hover {
-  background: linear-gradient(
-    90deg,
-    #fff 0%,
-    #999 25%,
-    #fff 50%,
-    #999 75%,
-    #fff 100%
-  );
-  background-size: 200% auto;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: brand-shimmer 1.5s linear infinite;
+  filter: brightness(1.2);
 }
 
-/* ────────────────────────────────────────────────────────────
-   Status dot: pulse/glow for error and warn states
-   ──────────────────────────────────────────────────────────── */
+/* ── Status dots ───────────────────────────────────────────── */
 @keyframes status-pulse-error {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 4px 2px rgba(239, 68, 68, 0.3);
-  }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+  50% { box-shadow: 0 0 4px 2px rgba(239, 68, 68, 0.3); }
 }
 
 @keyframes status-pulse-warn {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 4px 2px rgba(245, 158, 11, 0.3);
-  }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(197, 165, 114, 0.5); }
+  50% { box-shadow: 0 0 4px 2px rgba(197, 165, 114, 0.3); }
 }
 
 .status-dot-error {
@@ -170,7 +126,6 @@ td { padding: 12px 16px; border-bottom: 1px solid #111; font-size: 13px; }
   animation: status-pulse-warn 2s ease-in-out infinite;
 }
 
-/* Pulse animation for healthy status dots */
 @keyframes status-pulse {
   0%, 100% { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
   50% { box-shadow: 0 0 0 4px currentColor; opacity: 0.4; }
@@ -180,7 +135,6 @@ td { padding: 12px 16px; border-bottom: 1px solid #111; font-size: 13px; }
   animation: status-pulse 2.5s ease-in-out infinite;
 }
 
-/* Live indicator blink */
 @keyframes live-blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
@@ -190,7 +144,17 @@ td { padding: 12px 16px; border-bottom: 1px solid #111; font-size: 13px; }
   animation: live-blink 1.5s ease-in-out infinite;
 }
 
-/* Latency bar fill animation */
+/* ── Gold glow ─────────────────────────────────────────────── */
+@keyframes gold-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(197, 165, 114, 0); }
+  50% { box-shadow: 0 0 20px 4px rgba(197, 165, 114, 0.1); }
+}
+
+.gold-glow {
+  animation: gold-glow 3s ease-in-out infinite;
+}
+
+/* ── Latency bar ───────────────────────────────────────────── */
 @keyframes latency-fill {
   from { width: 0; }
 }
@@ -199,15 +163,15 @@ td { padding: 12px 16px; border-bottom: 1px solid #111; font-size: 13px; }
   animation: latency-fill 0.8s ease-out forwards;
 }
 
-/* Hover transition for table rows */
+/* ── Table rows ────────────────────────────────────────────── */
 tr.hoverable-row td {
   transition: background-color 0.15s ease;
 }
 tr.hoverable-row:hover td {
-  background: #111 !important;
+  background: #1A1B19 !important;
 }
 
-/* Timeline left border for activity items */
+/* ── Timeline ──────────────────────────────────────────────── */
 .timeline-item {
   position: relative;
 }
@@ -218,35 +182,35 @@ tr.hoverable-row:hover td {
   top: 0;
   bottom: 0;
   width: 2px;
-  background: #222;
+  background: #2A2B28;
   transition: background-color 0.15s ease;
 }
 .timeline-item:hover::before {
-  background: #333;
+  background: #3A3B37;
 }
 .timeline-item.timeline-processed::before {
-  background: #22c55e20;
+  background: #C5A57230;
 }
 .timeline-item.timeline-processed:hover::before {
-  background: #22c55e40;
+  background: #C5A57250;
 }
 
-/* Filter tab styles */
+/* ── Filter tabs ───────────────────────────────────────────── */
 .filter-tab {
   transition: all 0.15s ease;
   cursor: pointer;
   border-bottom: 2px solid transparent;
 }
 .filter-tab:hover {
-  color: #e5e5e5;
-  border-bottom-color: #333;
+  color: #d4d3cc;
+  border-bottom-color: #3A3B37;
 }
 .filter-tab.filter-tab-active {
-  color: #fff;
-  border-bottom-color: #fff;
+  color: #C5A572;
+  border-bottom-color: #C5A572;
 }
 
-/* Section divider */
+/* ── Section divider ───────────────────────────────────────── */
 .section-divider {
   position: relative;
   display: flex;
@@ -257,5 +221,5 @@ tr.hoverable-row:hover td {
   content: '';
   flex: 1;
   height: 1px;
-  background: linear-gradient(to right, #222, transparent);
+  background: linear-gradient(to right, #2A2B28, transparent);
 }

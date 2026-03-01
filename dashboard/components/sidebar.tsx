@@ -73,8 +73,8 @@ export function Sidebar() {
         top: 0,
         bottom: 0,
         width: 220,
-        background: "#000",
-        borderRight: "1px solid #222",
+        background: "#0C0D0B",
+        borderRight: "1px solid #2A2B28",
         display: "flex",
         flexDirection: "column",
         zIndex: 50,
@@ -84,20 +84,10 @@ export function Sidebar() {
       <div
         style={{
           padding: "20px 16px",
-          borderBottom: "1px solid #222",
+          borderBottom: "1px solid #2A2B28",
         }}
       >
-        <span
-          style={{
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: "0.3em",
-            textTransform: "uppercase" as const,
-            color: "#fff",
-          }}
-        >
-          SBEK
-        </span>
+        <img src="/sbek-logo.svg" alt="SBEK" style={{ height: 20 }} />
       </div>
 
       {/* Navigation */}
@@ -114,17 +104,17 @@ export function Sidebar() {
                 gap: 12,
                 padding: "10px 20px",
                 fontSize: 14,
-                color: active ? "#fff" : "#777",
+                color: active ? "#C5A572" : "#7A7968",
                 textDecoration: "none",
-                borderLeft: active ? "2px solid #fff" : "2px solid transparent",
-                background: active ? "#0a0a0a" : "transparent",
+                borderLeft: active ? "2px solid #C5A572" : "2px solid transparent",
+                background: active ? "#141513" : "transparent",
                 transition: "all 0.15s ease",
               }}
               onMouseEnter={(e) => {
-                if (!active) e.currentTarget.style.color = "#ccc";
+                if (!active) e.currentTarget.style.color = "#d4d3cc";
               }}
               onMouseLeave={(e) => {
-                if (!active) e.currentTarget.style.color = "#777";
+                if (!active) e.currentTarget.style.color = "#7A7968";
               }}
             >
               <span style={{ flexShrink: 0, opacity: active ? 1 : 0.6 }}>{item.icon}</span>
@@ -137,7 +127,7 @@ export function Sidebar() {
       {/* Bottom: system status */}
       <div
         style={{
-          borderTop: "1px solid #222",
+          borderTop: "1px solid #2A2B28",
           padding: "16px",
         }}
       >
@@ -148,12 +138,12 @@ export function Sidebar() {
               width: 6,
               height: 6,
               borderRadius: "50%",
-              background: "#4ade80",
+              background: "#C5A572",
             }}
           />
-          <span style={{ fontSize: 11, color: "#777" }}>All systems operational</span>
+          <span style={{ fontSize: 11, color: "#7A7968" }}>All systems operational</span>
         </div>
-        <p style={{ fontSize: 10, fontFamily: "monospace", color: "#555", margin: 0 }}>v1.0.0</p>
+        <p style={{ fontSize: 10, fontFamily: "monospace", color: "#656453", margin: 0 }}>v1.0.0</p>
       </div>
     </aside>
   );

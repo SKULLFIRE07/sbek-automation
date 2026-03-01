@@ -1,7 +1,9 @@
+import sharp from 'sharp';
 import { logger } from '../config/logger.js';
 import { nanobanana, type AspectRatio } from '../services/nanobanana.service.js';
 import { openai } from '../services/openai.service.js';
 import { sheets } from '../services/googlesheets.service.js';
+import { gdrive } from '../services/googledrive.service.js';
 import type { CreativeGenerationPayload } from '../queues/types.js';
 
 // ── Variant Prompt Builders ──────────────────────────────────────────────────
@@ -43,6 +45,40 @@ const VARIANT_ASPECT: Record<string, AspectRatio> = {
   story_format: '9:16',
 };
 
+// ── Platform Size Presets ────────────────────────────────────────────────────
+
+interface SizePreset {
+  name: string;
+  width: number;
+  height: number;
+  suffix: string;
+}
+
+const PLATFORM_SIZES: Record<string, SizePreset[]> = {
+  '1:1': [
+    { name: 'Instagram Square', width: 1080, height: 1080, suffix: 'ig-square' },
+    { name: 'Facebook Feed', width: 1200, height: 628, suffix: 'fb-feed' },
+    { name: 'Google Display', width: 300, height: 250, suffix: 'gdn-medium' },
+  ],
+  '9:16': [
+    { name: 'Stories', width: 1080, height: 1920, suffix: 'stories' },
+  ],
+};
+
+/**
+ * Resize an image buffer to a target size using sharp.
+ */
+async function resizeImage(
+  buffer: Buffer,
+  width: number,
+  height: number,
+): Promise<Buffer> {
+  return sharp(buffer)
+    .resize(width, height, { fit: 'cover', position: 'centre' })
+    .png()
+    .toBuffer();
+}
+
 // ── Workflow ─────────────────────────────────────────────────────────────────
 
 /**
@@ -53,10 +89,11 @@ const VARIANT_ASPECT: Record<string, AspectRatio> = {
  * For each requested variant:
  * 1. Build a prompt from the product info and variant type
  * 2. Generate the image via Nano Banana (Gemini image generation)
- * 3. Save the image to disk and log to the Creatives tab in Google Sheets
+ * 3. Resize to platform-specific dimensions (Instagram, Facebook, Google Display, Stories)
+ * 4. Upload all sizes to Google Drive
+ * 5. Save locally and log to Creatives tab in Google Sheets
  *
  * After all variants, generate an Instagram caption for the product.
- * Returns an array of saved file paths.
  */
 export async function processCreativeGeneration(
   payload: CreativeGenerationPayload,
@@ -65,7 +102,7 @@ export async function processCreativeGeneration(
 
   logger.info(
     { productId, productName, variantCount: variants.length },
-    'Starting creative generation workflow (Nano Banana)',
+    'Starting creative generation workflow (Nano Banana + Drive upload)',
   );
 
   const filePaths: string[] = [];
@@ -110,14 +147,51 @@ export async function processCreativeGeneration(
 
       logger.info({ productId, variant, filePath: result.filePath }, 'Creative image generated via Nano Banana');
 
-      // Log to Creatives tab in Sheets
+      // Resize to platform-specific sizes and upload each to Google Drive
+      const sizes = PLATFORM_SIZES[aspectRatio] ?? [];
+      let driveLink = result.filePath; // fallback to local path
+
+      // Upload original to Google Drive
+      try {
+        const originalUpload = await gdrive.uploadFile(
+          result.buffer,
+          `${filename}-original.${result.mimeType.split('/')[1] ?? 'png'}`,
+          result.mimeType,
+        );
+        driveLink = originalUpload.webViewLink;
+        logger.info({ productId, variant, driveLink }, 'Original uploaded to Google Drive');
+      } catch (driveErr) {
+        logger.warn({ err: driveErr, variant }, 'Failed to upload original to Drive — using local path');
+      }
+
+      // Generate and upload platform-specific resized versions
+      for (const size of sizes) {
+        try {
+          const resizedBuffer = await resizeImage(result.buffer, size.width, size.height);
+          const resizedFilename = `${filename}-${size.suffix}.png`;
+
+          await gdrive.uploadFile(resizedBuffer, resizedFilename, 'image/png');
+
+          logger.info(
+            { productId, variant, size: size.name, dimensions: `${size.width}x${size.height}` },
+            'Resized variant uploaded to Google Drive',
+          );
+        } catch (resizeErr) {
+          logger.warn(
+            { err: resizeErr, variant, size: size.name },
+            'Failed to resize/upload variant — continuing',
+          );
+        }
+      }
+
+      // Log to Creatives tab in Sheets with Drive link
       await sheets.appendCreative({
         'Product ID': String(productId),
         'Product Name': productName,
         'Variant': variant,
         'Creative Type': 'AI Generated (Nano Banana)',
         'Image URL': '',
-        'Drive Link': result.filePath,
+        'Drive Link': driveLink,
         'Generated Date': now,
         'Status': 'Generated',
         'Approved By': '',

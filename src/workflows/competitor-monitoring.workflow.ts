@@ -1,5 +1,8 @@
 import { logger } from '../config/logger.js';
 import { env } from '../config/env.js';
+import { db } from '../config/database.js';
+import { competitorSnapshots } from '../db/schema.js';
+import { eq, desc } from 'drizzle-orm';
 import { crawler } from '../services/crawler.service.js';
 import { openai } from '../services/openai.service.js';
 import { sheets } from '../services/googlesheets.service.js';
@@ -12,10 +15,12 @@ import type { CompetitorCrawlPayload } from '../queues/types.js';
  * Triggered by: competitor-crawl queue worker
  *
  * Flow:
- * 1. Crawl the competitor website via the crawler microservice
- * 2. Analyse the crawl data with OpenAI for competitive insights
- * 3. Log the analysis to the "System Logs" sheet
- * 4. If significant changes are detected, send an internal WhatsApp alert
+ * 1. Fetch previous snapshot from DB for delta comparison
+ * 2. Crawl the competitor website via the crawler microservice
+ * 3. Store new snapshot in DB for future comparison
+ * 4. Analyse with OpenAI (including messaging/brand voice + technical SEO)
+ * 5. Log results to Sheets
+ * 6. If significant changes detected, send WhatsApp alert
  */
 export async function processCompetitorCrawl(
   payload: CompetitorCrawlPayload,
@@ -24,20 +29,57 @@ export async function processCompetitorCrawl(
 
   logger.info({ competitorName, url }, 'Starting competitor monitoring workflow');
 
-  // 1. Crawl the competitor site
-  const crawlData = await crawler.analyzeSite(url);
+  // 1. Fetch previous snapshot for historical comparison
+  let previousCrawlData: Record<string, unknown> | undefined;
+  try {
+    const prevSnapshots = await db
+      .select()
+      .from(competitorSnapshots)
+      .where(eq(competitorSnapshots.competitorName, competitorName))
+      .orderBy(desc(competitorSnapshots.crawledAt))
+      .limit(1);
+
+    if (prevSnapshots.length > 0) {
+      previousCrawlData = prevSnapshots[0].data as Record<string, unknown>;
+      logger.info(
+        { competitorName, previousCrawlDate: prevSnapshots[0].crawledAt },
+        'Previous snapshot found for delta comparison',
+      );
+    }
+  } catch (err) {
+    logger.warn({ err, competitorName }, 'Failed to fetch previous snapshot — proceeding without delta');
+  }
+
+  // 2. Crawl the competitor site (pass previous data for delta analysis)
+  const crawlData = await crawler.analyzeSite(url, previousCrawlData);
 
   logger.info(
     { competitorName, productsFound: crawlData.products?.length ?? 0 },
     'Competitor site crawled',
   );
 
-  // 2. Analyse with OpenAI
-  const analysis = await openai.analyzeCompetitor(competitorName, crawlData as unknown as Record<string, unknown>);
+  // 3. Store new snapshot in DB for future comparisons
+  try {
+    await db.insert(competitorSnapshots).values({
+      competitorName,
+      url,
+      data: crawlData as unknown as Record<string, unknown>,
+    });
+    logger.info({ competitorName }, 'Competitor snapshot stored in database');
+  } catch (err) {
+    logger.warn({ err, competitorName }, 'Failed to store competitor snapshot');
+  }
 
-  logger.info({ competitorName }, 'Competitor analysis completed');
+  // 4. Analyse with OpenAI — enhanced with messaging analysis + technical SEO
+  const analysis = await openai.analyzeCompetitorEnhanced(
+    competitorName,
+    crawlData as unknown as Record<string, unknown>,
+    previousCrawlData,
+  );
 
-  // 3. Log results to Sheets
+  logger.info({ competitorName }, 'Enhanced competitor analysis completed');
+
+  // 5. Log results to Sheets
   await sheets.logEvent(
     'info',
     'competitor-monitoring',
@@ -45,7 +87,7 @@ export async function processCompetitorCrawl(
     analysis,
   );
 
-  // 4. Check for significant changes and send WhatsApp alert if needed
+  // 6. Check for significant changes and send WhatsApp alert if needed
   const hasSignificantChanges = detectSignificantChanges(analysis);
 
   if (hasSignificantChanges) {
@@ -88,6 +130,9 @@ function detectSignificantChanges(analysis: string): boolean {
     'significant change',
     'urgent',
     'aggressive pricing',
+    'rebranding',
+    'new campaign',
+    'market shift',
   ];
 
   const lower = analysis.toLowerCase();
