@@ -8,11 +8,57 @@ const navItems = [
     label: "Dashboard",
     href: "/",
     icon: (
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <rect x="1" y="1" width="6" height="6" />
-        <rect x="9" y="1" width="6" height="6" />
-        <rect x="1" y="9" width="6" height="6" />
-        <rect x="9" y="9" width="6" height="6" />
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 20 20"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <rect
+          x="1.5"
+          y="1.5"
+          width="7"
+          height="7"
+          rx="1.5"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <rect
+          x="11.5"
+          y="1.5"
+          width="7"
+          height="7"
+          rx="1.5"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <rect
+          x="1.5"
+          y="11.5"
+          width="7"
+          height="7"
+          rx="1.5"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <rect
+          x="11.5"
+          y="11.5"
+          width="7"
+          height="7"
+          rx="1.5"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     ),
   },
@@ -20,8 +66,31 @@ const navItems = [
     label: "Queues",
     href: "/queues",
     icon: (
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path d="M2 4h12M2 8h12M2 12h12" />
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 20 20"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M3 5h14"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        />
+        <path
+          d="M5 10h10"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        />
+        <path
+          d="M4 15h12"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        />
       </svg>
     ),
   },
@@ -29,9 +98,27 @@ const navItems = [
     label: "System",
     href: "/system",
     icon: (
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <rect x="2" y="2" width="12" height="10" />
-        <path d="M5 14h6M8 12v2" />
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 20 20"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <circle
+          cx="10"
+          cy="10"
+          r="3"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        />
+        <path
+          d="M10 1.5v2M10 16.5v2M18.5 10h-2M3.5 10h-2M15.95 4.05l-1.41 1.41M5.46 14.54l-1.41 1.41M15.95 15.95l-1.41-1.41M5.46 5.46L4.05 4.05"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        />
       </svg>
     ),
   },
@@ -39,9 +126,20 @@ const navItems = [
     label: "Activity",
     href: "/activity",
     icon: (
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <circle cx="8" cy="8" r="6.5" />
-        <path d="M8 4v4l3 2" />
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 20 20"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M1.5 10h3.5l2.5-6 4 12 2.5-6h4.5"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     ),
   },
@@ -49,9 +147,43 @@ const navItems = [
     label: "Settings",
     href: "/settings",
     icon: (
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <circle cx="8" cy="8" r="2" />
-        <path d="M8 1v2M8 13v2M1 8h2M13 8h2M2.93 2.93l1.41 1.41M11.66 11.66l1.41 1.41M2.93 13.07l1.41-1.41M11.66 4.34l1.41-1.41" />
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 20 20"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <line
+          x1="3"
+          y1="4"
+          x2="17"
+          y2="4"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        />
+        <circle cx="7" cy="4" r="1.5" fill="currentColor" />
+        <line
+          x1="3"
+          y1="10"
+          x2="17"
+          y2="10"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        />
+        <circle cx="13" cy="10" r="1.5" fill="currentColor" />
+        <line
+          x1="3"
+          y1="16"
+          x2="17"
+          y2="16"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        />
+        <circle cx="9" cy="16" r="1.5" fill="currentColor" />
       </svg>
     ),
   },
@@ -72,7 +204,7 @@ export function Sidebar() {
         left: 0,
         top: 0,
         bottom: 0,
-        width: 220,
+        width: 260,
         background: "#0C0D0B",
         borderRight: "1px solid #2A2B28",
         display: "flex",
@@ -83,15 +215,27 @@ export function Sidebar() {
       {/* Brand */}
       <div
         style={{
-          padding: "20px 16px",
-          borderBottom: "1px solid #2A2B28",
+          padding: "24px 24px 20px",
+          position: "relative",
         }}
       >
-        <img src="/sbek-logo.svg" alt="SBEK" style={{ height: 20 }} />
+        <img src="/sbek-logo.svg" alt="SBEK" style={{ height: 22 }} />
+        {/* Gold gradient underline */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 24,
+            right: 24,
+            height: 1,
+            background:
+              "linear-gradient(90deg, #C5A572 0%, rgba(197, 165, 114, 0.3) 60%, transparent 100%)",
+          }}
+        />
       </div>
 
       {/* Navigation */}
-      <nav style={{ flex: 1, paddingTop: 16, paddingBottom: 16 }}>
+      <nav style={{ flex: 1, paddingTop: 12, paddingBottom: 16 }}>
         {navItems.map((item) => {
           const active = isActive(item.href);
           return (
@@ -101,50 +245,58 @@ export function Sidebar() {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 12,
-                padding: "10px 20px",
-                fontSize: 14,
+                gap: 14,
+                padding: "12px 24px",
+                fontSize: 13,
+                fontWeight: active ? 500 : 400,
                 color: active ? "#C5A572" : "#7A7968",
                 textDecoration: "none",
-                borderLeft: active ? "2px solid #C5A572" : "2px solid transparent",
-                background: active ? "#141513" : "transparent",
-                transition: "all 0.15s ease",
+                borderLeft: active
+                  ? "2px solid #C5A572"
+                  : "2px solid transparent",
+                background: active
+                  ? "rgba(197, 165, 114, 0.10)"
+                  : "transparent",
+                borderRadius: "0 8px 8px 0",
+                marginRight: 12,
+                transition:
+                  "color 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease",
+                letterSpacing: "0.01em",
               }}
               onMouseEnter={(e) => {
-                if (!active) e.currentTarget.style.color = "#d4d3cc";
+                if (!active) {
+                  e.currentTarget.style.color = "#d4d3cc";
+                  e.currentTarget.style.background =
+                    "rgba(197, 165, 114, 0.05)";
+                  e.currentTarget.style.boxShadow =
+                    "inset 0 0 20px rgba(197, 165, 114, 0.03)";
+                }
               }}
               onMouseLeave={(e) => {
-                if (!active) e.currentTarget.style.color = "#7A7968";
+                if (!active) {
+                  e.currentTarget.style.color = "#7A7968";
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.boxShadow = "none";
+                }
               }}
             >
-              <span style={{ flexShrink: 0, opacity: active ? 1 : 0.6 }}>{item.icon}</span>
+              <span
+                style={{
+                  flexShrink: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: active ? 1 : 0.65,
+                  transition: "opacity 0.2s ease",
+                }}
+              >
+                {item.icon}
+              </span>
               <span>{item.label}</span>
             </Link>
           );
         })}
       </nav>
-
-      {/* Bottom: system status */}
-      <div
-        style={{
-          borderTop: "1px solid #2A2B28",
-          padding: "16px",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-          <span
-            style={{
-              display: "inline-block",
-              width: 6,
-              height: 6,
-              borderRadius: "50%",
-              background: "#C5A572",
-            }}
-          />
-          <span style={{ fontSize: 11, color: "#7A7968" }}>All systems operational</span>
-        </div>
-        <p style={{ fontSize: 10, fontFamily: "monospace", color: "#656453", margin: 0 }}>v1.0.0</p>
-      </div>
     </aside>
   );
 }

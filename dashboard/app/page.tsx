@@ -12,19 +12,32 @@ import { formatNumber } from "@/lib/utils";
 
 const GLOBAL_STYLES = `
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(18px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.97) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 @keyframes livePulse {
   0%, 100% { opacity: 1; }
-  50%      { opacity: 0.3; }
+  50%      { opacity: 0.25; }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes gentleFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 .fade-in-section {
-  animation: fadeInUp 0.5s ease-out both;
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-.fade-in-section-delay-1 { animation-delay: 0.08s; }
-.fade-in-section-delay-2 { animation-delay: 0.16s; }
-.fade-in-section-delay-3 { animation-delay: 0.24s; }
+.fade-in-section-delay-1 { animation-delay: 0.12s; }
+.fade-in-section-delay-2 { animation-delay: 0.28s; }
+.fade-in-section-delay-3 { animation-delay: 0.44s; }
+.fade-in-section-delay-4 { animation-delay: 0.60s; }
 `;
 
 /* ── Skeleton primitives ─────────────────────────────────────────────── */
@@ -32,8 +45,13 @@ const GLOBAL_STYLES = `
 function Skeleton({ className }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse ${className ?? ""}`}
-      style={{ background: "#1A1B19" }}
+      className={`rounded ${className ?? ""}`}
+      style={{
+        background:
+          "linear-gradient(90deg, #1A1B19 25%, #222320 50%, #1A1B19 75%)",
+        backgroundSize: "200% 100%",
+        animation: "shimmer 1.8s ease-in-out infinite",
+      }}
     />
   );
 }
@@ -41,13 +59,13 @@ function Skeleton({ className }: { className?: string }) {
 function StatSkeleton() {
   return (
     <div
-      className="px-6 py-8 border min-h-[160px] flex flex-col justify-between"
-      style={{ background: "#141513", borderColor: "#2A2B28" }}
+      className="px-6 py-8 rounded-lg min-h-[170px] flex flex-col justify-between"
+      style={{ background: "#141513", border: "1px solid #1E1F1C" }}
     >
-      <Skeleton className="h-3 w-20 mb-3" />
+      <Skeleton className="h-3 w-24 mb-3 rounded-full" />
       <div>
-        <Skeleton className="h-12 w-32 mb-3" />
-        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-12 w-32 mb-3 rounded" />
+        <Skeleton className="h-3 w-20 rounded-full" />
       </div>
     </div>
   );
@@ -56,26 +74,32 @@ function StatSkeleton() {
 function QueueCardSkeleton() {
   return (
     <div
-      className="p-4 border"
-      style={{ background: "#141513", borderColor: "#2A2B28" }}
+      className="p-5 rounded-lg"
+      style={{ background: "#141513", border: "1px solid #1E1F1C" }}
     >
-      <div className="flex items-center justify-between mb-3">
-        <Skeleton className="h-4 w-32" />
-        <Skeleton className="h-1.5 w-1.5" />
+      <div className="flex items-center justify-between mb-4">
+        <Skeleton className="h-4 w-32 rounded-full" />
+        <Skeleton className="h-2 w-2 rounded-full" />
       </div>
-      <Skeleton className="h-1 w-full mb-3" />
-      <Skeleton className="h-3 w-40" />
+      <Skeleton className="h-1 w-full mb-4 rounded-full" />
+      <Skeleton className="h-3 w-36 rounded-full" />
     </div>
   );
 }
 
 function ActivitySkeleton() {
   return (
-    <div className="p-4 space-y-3">
+    <div className="p-5 space-y-4">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="flex gap-4 items-center">
-          <Skeleton className="h-3 w-14 shrink-0" />
-          <Skeleton className="h-3 w-full" />
+        <div
+          key={i}
+          className="flex gap-4 items-center"
+          style={{
+            animation: `gentleFadeIn 0.4s ease-out ${i * 0.06}s both`,
+          }}
+        >
+          <Skeleton className="h-3 w-14 shrink-0 rounded-full" />
+          <Skeleton className="h-3 w-full rounded-full" />
         </div>
       ))}
     </div>
@@ -87,10 +111,10 @@ function ActivitySkeleton() {
 function EmptyState({ message }: { message: string }) {
   return (
     <div
-      className="border py-12 text-center"
-      style={{ background: "#141513", borderColor: "#2A2B28" }}
+      className="rounded-lg py-16 text-center"
+      style={{ background: "#141513", border: "1px solid #1E1F1C" }}
     >
-      <p className="text-sm font-mono" style={{ color: "#7A7968" }}>
+      <p className="text-sm" style={{ color: "#7A7968" }}>
         {message}
       </p>
     </div>
@@ -101,12 +125,18 @@ function EmptyState({ message }: { message: string }) {
 
 function SectionHeader({ label }: { label: string }) {
   return (
-    <h2
-      className="text-[11px] uppercase tracking-[0.15em] mb-3 font-medium"
-      style={{ color: "#7A7968", letterSpacing: "0.15em" }}
-    >
-      {label}
-    </h2>
+    <div className="flex items-center gap-4 mb-5">
+      <h2
+        className="text-sm font-medium tracking-wide whitespace-nowrap"
+        style={{ color: "#9A9880" }}
+      >
+        {label}
+      </h2>
+      <div
+        className="flex-1 h-px"
+        style={{ background: "linear-gradient(to right, #2A2B28, transparent)" }}
+      />
+    </div>
   );
 }
 
@@ -125,18 +155,20 @@ function LiveHeader({
   }, []);
 
   const secondsAgo =
-    dataTimestamp != null ? Math.max(0, Math.floor((now - dataTimestamp) / 1000)) : null;
+    dataTimestamp != null
+      ? Math.max(0, Math.floor((now - dataTimestamp) / 1000))
+      : null;
 
   return (
     <div
-      className="border-b pb-4 mb-6"
-      style={{ borderColor: "#2A2B28" }}
+      className="pb-6 mb-8"
+      style={{ borderBottom: "1px solid #1E1F1C" }}
     >
       <div className="flex items-center justify-between">
         {/* Left: title + live dot */}
         <div className="flex items-center gap-3">
           <h1
-            className="text-lg font-medium tracking-tight"
+            className="text-xl font-semibold tracking-tight"
             style={{ color: "#d4d3cc" }}
           >
             Dashboard
@@ -145,7 +177,8 @@ function LiveHeader({
             className="inline-block w-2 h-2 rounded-full"
             style={{
               background: "#C5A572",
-              animation: "livePulse 2s ease-in-out infinite",
+              boxShadow: "0 0 8px rgba(197, 165, 114, 0.4)",
+              animation: "livePulse 2.4s ease-in-out infinite",
             }}
             title="Live"
           />
@@ -154,59 +187,13 @@ function LiveHeader({
         {/* Right: last-updated ticker */}
         {secondsAgo != null && (
           <span
-            className="text-[11px] font-mono"
+            className="text-xs"
             style={{ color: "#656453" }}
           >
             Updated {secondsAgo === 0 ? "just now" : `${secondsAgo}s ago`}
           </span>
         )}
       </div>
-
-      <p className="text-xs mt-1" style={{ color: "#656453" }}>
-        System overview
-      </p>
-    </div>
-  );
-}
-
-/* ── Quick Stats bar ─────────────────────────────────────────────────── */
-
-function QuickStatsBar({ stats, queues }: { stats: StatsData; queues: QueueItem[] | null }) {
-  // Derive throughput-style metrics from available data
-  const totalActive = stats.totalActive;
-  const totalWaiting = stats.totalWaiting;
-  const totalDelayed = stats.totalDelayed;
-  const queueCount = queues?.length ?? stats.totalQueues;
-
-  const items = [
-    { label: "Throughput", value: `${formatNumber(totalActive)} active`, dot: "#C5A572" },
-    { label: "Queued", value: `${formatNumber(totalWaiting)} waiting`, dot: "#f59e0b" },
-    { label: "Delayed", value: formatNumber(totalDelayed), dot: totalDelayed > 0 ? "#f59e0b" : "#656453" },
-    { label: "Queues", value: `${queueCount} registered`, dot: null },
-    { label: "Uptime", value: `${stats.successRate.toFixed(1)}%`, dot: stats.successRate >= 99 ? "#C5A572" : stats.successRate >= 95 ? "#f59e0b" : "#ef4444" },
-  ];
-
-  return (
-    <div
-      className="flex flex-wrap gap-x-6 gap-y-2 px-4 py-3 mb-8 border"
-      style={{ background: "#141513", borderColor: "#1A1B19" }}
-    >
-      {items.map((item) => (
-        <div key={item.label} className="flex items-center gap-2">
-          {item.dot && (
-            <span
-              className="inline-block w-1.5 h-1.5 rounded-full"
-              style={{ background: item.dot }}
-            />
-          )}
-          <span className="text-[11px] font-mono" style={{ color: "#656453" }}>
-            {item.label}
-          </span>
-          <span className="text-[11px] font-mono font-medium" style={{ color: "#9A9880" }}>
-            {item.value}
-          </span>
-        </div>
-      ))}
     </div>
   );
 }
@@ -244,19 +231,9 @@ export default function DashboardPage() {
       {/* ── Header with live dot + last-updated ticker ─────────────── */}
       <LiveHeader dataTimestamp={dataTimestamp} />
 
-      {/* ── Quick Stats bar ────────────────────────────────────────── */}
-      {hasStats && (
-        <div className="fade-in-section">
-          <QuickStatsBar stats={stats} queues={queues ?? null} />
-        </div>
-      )}
-
       {/* ── Stat cards (4-up row) ──────────────────────────────────── */}
       <div className="fade-in-section fade-in-section-delay-1">
-        <div
-          className="grid grid-cols-2 lg:grid-cols-4 gap-px mb-8"
-          style={{ background: "#2A2B28" }}
-        >
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-10">
           {statsLoading || !hasStats ? (
             <>
               <StatSkeleton />
@@ -267,13 +244,13 @@ export default function DashboardPage() {
           ) : (
             <>
               <StatCard
-                label="Total Processed"
+                label="Orders Processed"
                 value={formatNumber(stats.totalProcessed)}
                 trend="up"
                 trendLabel="+12% vs last week"
               />
               <StatCard
-                label="Failed (24h)"
+                label="Failed Today"
                 value={formatNumber(stats.totalFailed)}
                 trend={stats.totalFailed > 0 ? "down" : "flat"}
                 trendLabel="last 24h"
@@ -288,7 +265,7 @@ export default function DashboardPage() {
                 trendLabel="+0.3% vs yesterday"
               />
               <StatCard
-                label="Active Jobs"
+                label="In Progress"
                 value={formatNumber(stats.totalActive)}
                 trend="flat"
                 trendLabel="right now"
@@ -298,24 +275,18 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Queues section ─────────────────────────────────────────── */}
-      <div className="mb-8 fade-in-section fade-in-section-delay-2">
-        <SectionHeader label="Queues" />
+      {/* ── Queue Status section ───────────────────────────────────── */}
+      <div className="mb-10 fade-in-section fade-in-section-delay-2">
+        <SectionHeader label="Queue Status" />
 
         {queuesLoading ? (
-          <div
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-px"
-            style={{ background: "#2A2B28" }}
-          >
-            {Array.from({ length: 8 }).map((_, i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {Array.from({ length: 6 }).map((_, i) => (
               <QueueCardSkeleton key={i} />
             ))}
           </div>
         ) : hasQueues && queues.length > 0 ? (
-          <div
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-px"
-            style={{ background: "#2A2B28" }}
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {queues.map((q: QueueItem) => (
               <QueueCard key={q.name} {...q} />
             ))}
@@ -325,16 +296,16 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* ── Activity section with bottom fade gradient ─────────────── */}
-      <div className="mb-8 fade-in-section fade-in-section-delay-3">
+      {/* ── Recent Activity section ────────────────────────────────── */}
+      <div className="mb-10 fade-in-section fade-in-section-delay-3">
         <SectionHeader label="Recent Activity" />
 
         <div
-          className="border relative"
+          className="rounded-lg relative overflow-hidden"
           style={{
-            borderColor: "#2A2B28",
+            border: "1px solid #1E1F1C",
             background: "#141513",
-            minHeight: 340,
+            minHeight: 400,
           }}
         >
           {webhooksLoading ? (
@@ -346,15 +317,15 @@ export default function DashboardPage() {
               <div
                 className="pointer-events-none absolute bottom-0 left-0 right-0"
                 style={{
-                  height: 64,
+                  height: 80,
                   background:
                     "linear-gradient(to bottom, transparent, #141513)",
                 }}
               />
             </>
           ) : (
-            <div className="py-12 text-center">
-              <p className="text-sm font-mono" style={{ color: "#7A7968" }}>
+            <div className="py-16 text-center">
+              <p className="text-sm" style={{ color: "#7A7968" }}>
                 No activity yet
               </p>
             </div>

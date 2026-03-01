@@ -72,32 +72,35 @@ export function StatCard({
 }: StatCardProps) {
   return (
     <div
-      className="px-6 py-8 flex flex-col justify-between min-h-[160px] transition-colors duration-200"
+      className="px-6 py-8 rounded-lg flex flex-col justify-between min-h-[170px]"
       style={{
         background: "#141513",
-        borderColor: "#2A2B28",
+        border: "1px solid #1E1F1C",
+        transition: "background 0.25s ease, border-color 0.25s ease",
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.background = "#1A1B19";
+        e.currentTarget.style.borderColor = "#2A2B28";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.background = "#141513";
+        e.currentTarget.style.borderColor = "#1E1F1C";
       }}
     >
       <p
-        className="text-[10px] uppercase tracking-[0.2em] mb-4 font-medium"
-        style={{ color: "#7A7968", letterSpacing: "0.2em" }}
+        className="text-[11px] uppercase tracking-[0.15em] mb-4 font-medium"
+        style={{ color: "#7A7968" }}
       >
         {label}
       </p>
       <div>
         <p
-          className="font-mono font-bold leading-none"
+          className="font-semibold leading-none"
           style={{
             color: "#d4d3cc",
             fontSize: "2.75rem",
             lineHeight: 1,
-            letterSpacing: "-0.02em",
+            letterSpacing: "-0.03em",
           }}
         >
           {value}

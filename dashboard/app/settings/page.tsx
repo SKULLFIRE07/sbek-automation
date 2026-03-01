@@ -1048,7 +1048,7 @@ export default function SettingsPage() {
     <>
       <style>{pulseKeyframes}</style>
 
-      <PageHeader title="Settings" subtitle="Configuration and API keys" />
+      <PageHeader title="Settings" />
 
       {isLoading ? (
         <SettingsSkeleton />

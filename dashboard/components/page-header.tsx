@@ -2,16 +2,26 @@
 
 interface PageHeaderProps {
   title: string;
-  subtitle?: string;
 }
 
-export function PageHeader({ title, subtitle }: PageHeaderProps) {
+export function PageHeader({ title }: PageHeaderProps) {
   return (
-    <div className="border-b border-[#2A2B28] pb-4 mb-6">
-      <h1 className="text-lg font-medium tracking-tight" style={{ color: "#d4d3cc" }}>{title}</h1>
-      {subtitle && (
-        <p className="text-xs mt-1" style={{ color: "#7A7968" }}>{subtitle}</p>
-      )}
+    <div className="mb-8">
+      <h1
+        className="text-xl font-semibold tracking-tight"
+        style={{ color: "#E8E6DF" }}
+      >
+        {title}
+      </h1>
+      <div
+        style={{
+          width: 40,
+          height: 2,
+          background: "linear-gradient(90deg, #C4A35A, #A68B3E)",
+          marginTop: 10,
+          borderRadius: 1,
+        }}
+      />
     </div>
   );
 }

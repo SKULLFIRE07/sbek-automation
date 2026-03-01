@@ -17,12 +17,21 @@ export default function RootLayout({
         <Sidebar />
         <main
           style={{
-            marginLeft: 220,
+            marginLeft: 260,
             minHeight: "100vh",
             overflowY: "auto",
           }}
         >
-          <div style={{ padding: "20px" }}>{children}</div>
+          <div
+            style={{
+              padding: "32px 40px",
+              maxWidth: 1400,
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            {children}
+          </div>
         </main>
       </body>
     </html>

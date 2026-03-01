@@ -15,7 +15,7 @@ import { timeAgo, truncate } from "@/lib/utils";
 function Skeleton({ className }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse ${className || ""}`}
+      className={`animate-pulse rounded ${className || ""}`}
       style={{ background: "#1A1B19" }}
     />
   );
@@ -42,19 +42,15 @@ function LiveIndicator({ intervalMs }: { intervalMs: number }) {
   }, [intervalMs]);
 
   return (
-    <div className="flex items-center gap-2">
-      <span
-        className="inline-block w-1.5 h-1.5 rounded-full live-dot"
-        style={{ background: "#C5A572" }}
-      />
-      <span className="text-[10px] font-mono" style={{ color: "#656453" }}>
-        live {secondsAgo > 0 ? `\u00b7 ${secondsAgo}s ago` : ""}
-      </span>
-    </div>
+    <span
+      className="inline-block w-1.5 h-1.5 rounded-full live-dot"
+      style={{ background: "#C5A572", boxShadow: "0 0 6px rgba(197,165,114,0.4)" }}
+      title={secondsAgo > 0 ? `Updated ${secondsAgo}s ago` : "Live"}
+    />
   );
 }
 
-/* ── Section Divider ──────────────────────────────────────────── */
+/* ── Section Heading ──────────────────────────────────────────── */
 function SectionHeading({
   children,
   count,
@@ -65,17 +61,17 @@ function SectionHeading({
   right?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between mb-4 mt-2">
-      <div className="section-divider flex-1">
+    <div className="flex items-center justify-between mb-3 mt-1">
+      <div className="flex items-center gap-3">
         <h2
-          className="text-xs uppercase tracking-widest font-medium shrink-0"
-          style={{ color: "#7A7968" }}
+          className="text-[13px] font-medium tracking-wide"
+          style={{ color: "#d4d3cc" }}
         >
           {children}
         </h2>
         {count !== undefined && (
           <span
-            className="text-[10px] font-mono shrink-0"
+            className="text-[11px] font-normal tabular-nums"
             style={{ color: "#656453" }}
           >
             {count}
@@ -98,22 +94,26 @@ function FilterTabs({
   onChange: (tab: string) => void;
 }) {
   return (
-    <div
-      className="flex gap-0 overflow-x-auto"
-      style={{ borderBottom: "1px solid #1A1B19" }}
-    >
-      {tabs.map((tab) => (
-        <button
-          key={tab}
-          onClick={() => onChange(tab)}
-          className={`filter-tab px-3 py-2 text-[11px] uppercase tracking-wider font-medium whitespace-nowrap ${
-            active === tab ? "filter-tab-active" : ""
-          }`}
-          style={{ color: active === tab ? "#C5A572" : "#656453" }}
-        >
-          {tab}
-        </button>
-      ))}
+    <div className="flex gap-1.5 p-2 flex-wrap">
+      {tabs.map((tab) => {
+        const isActive = active === tab;
+        return (
+          <button
+            key={tab}
+            onClick={() => onChange(tab)}
+            className="filter-tab px-3 py-1.5 text-[11px] font-medium whitespace-nowrap rounded-md transition-all duration-200"
+            style={{
+              color: isActive ? "#C5A572" : "#7A7968",
+              background: isActive ? "rgba(197,165,114,0.08)" : "transparent",
+              border: isActive
+                ? "1px solid rgba(197,165,114,0.15)"
+                : "1px solid transparent",
+            }}
+          >
+            {tab}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -163,94 +163,106 @@ export default function ActivityPage() {
 
   return (
     <>
-      <PageHeader title="Activity" subtitle="Recent webhooks and job events" />
+      <PageHeader title="Activity" />
 
-      {/* Top bar with live indicator */}
-      <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
-        <div className="flex items-center gap-4">
+      {/* Top bar: subtle summary + live dot */}
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-8">
+        <div className="flex items-center gap-3">
           {webhooks && (
-            <>
-              <span className="text-[10px] font-mono" style={{ color: "#656453" }}>
-                <span style={{ color: "#C5A572" }}>{processedCount}</span>
-                {" processed"}
+            <div className="flex items-center gap-2">
+              <span
+                className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-md"
+                style={{
+                  color: "#C5A572",
+                  background: "rgba(197,165,114,0.06)",
+                  border: "1px solid rgba(197,165,114,0.1)",
+                }}
+              >
+                {processedCount} processed
               </span>
-              <span className="text-[10px] font-mono" style={{ color: "#656453" }}>
-                <span style={{ color: "#f59e0b" }}>{unprocessedCount}</span>
-                {" pending"}
-              </span>
-            </>
+              {unprocessedCount > 0 && (
+                <span
+                  className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-md"
+                  style={{
+                    color: "#f59e0b",
+                    background: "rgba(245,158,11,0.06)",
+                    border: "1px solid rgba(245,158,11,0.08)",
+                  }}
+                >
+                  {unprocessedCount} pending
+                </span>
+              )}
+            </div>
           )}
         </div>
         <LiveIndicator intervalMs={10_000} />
       </div>
 
-      {/* ── Webhook Events ──────────────────────────────────────── */}
+      {/* ── Events ─────────────────────────────────────────────── */}
       <div className="mb-10">
         <SectionHeading count={filteredWebhooks.length}>
-          Webhook Events
+          Events
         </SectionHeading>
 
         <div
-          className="border rounded overflow-hidden"
-          style={{ borderColor: "#1A1B19", background: "#141513" }}
+          className="rounded-lg overflow-hidden"
+          style={{
+            border: "1px solid #2A2B28",
+            background: "#141513",
+          }}
         >
           {/* Filter tabs */}
           {webhooks && webhooks.length > 0 && (
-            <FilterTabs
-              tabs={sourceOptions}
-              active={sourceFilter}
-              onChange={setSourceFilter}
-            />
+            <div style={{ borderBottom: "1px solid #2A2B28" }}>
+              <FilterTabs
+                tabs={sourceOptions}
+                active={sourceFilter}
+                onChange={setSourceFilter}
+              />
+            </div>
           )}
 
           {webhooksLoading || !webhooks ? (
-            <div className="p-4 space-y-2">
+            <div className="p-5 space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-6 w-full" />
+                <Skeleton key={i} className="h-6 w-full rounded" />
               ))}
             </div>
           ) : filteredWebhooks.length === 0 ? (
             <p
-              className="p-6 text-center text-xs"
+              className="py-12 text-center text-xs"
               style={{ color: "#7A7968" }}
             >
               {sourceFilter === "All"
-                ? "No webhook events yet"
+                ? "No events yet"
                 : `No events from ${sourceFilter}`}
             </p>
           ) : (
             <div className="overflow-x-auto">
-              {/* Timeline-style list */}
               <div>
                 {filteredWebhooks.map((wh, idx) => {
                   const isProcessed = wh.processed;
                   return (
                     <div
                       key={wh.id}
-                      className={`timeline-item ${
-                        isProcessed ? "timeline-processed" : ""
-                      } flex items-center gap-4 px-4 py-3 transition-colors duration-150`}
+                      className="timeline-item flex items-center gap-5 px-5 py-4 transition-colors duration-200"
                       style={{
                         borderBottom:
                           idx < filteredWebhooks.length - 1
-                            ? "1px solid #1A1B19"
+                            ? "1px solid rgba(42,43,40,0.6)"
                             : "none",
-                        paddingLeft: "16px",
-                        marginLeft: "0",
-                        background: isProcessed ? "transparent" : "#141513",
+                        background: "transparent",
                       }}
                       onMouseEnter={(e) =>
                         (e.currentTarget.style.background = "#1A1B19")
                       }
                       onMouseLeave={(e) =>
-                        (e.currentTarget.style.background = isProcessed
-                          ? "transparent"
-                          : "#141513")
+                        (e.currentTarget.style.background = "transparent")
                       }
                     >
                       {/* ID */}
                       <span
-                        className="font-mono text-xs shrink-0 w-12"
+                        className="font-mono text-xs shrink-0 w-14"
                         style={{ color: "#656453" }}
                       >
                         {typeof wh.id === "number"
@@ -260,7 +272,7 @@ export default function ActivityPage() {
 
                       {/* Source badge */}
                       <span
-                        className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded shrink-0"
+                        className="text-[10px] font-medium tracking-wide px-2.5 py-0.5 rounded-md shrink-0"
                         style={{
                           color: "#9A9880",
                           background: "#1A1B19",
@@ -279,13 +291,13 @@ export default function ActivityPage() {
                       </span>
 
                       {/* Processed indicator */}
-                      <span className="flex items-center gap-1.5 shrink-0">
+                      <span className="flex items-center gap-2 shrink-0">
                         <StatusDot
                           status={isProcessed ? "ok" : "warn"}
                           pulse={!isProcessed}
                         />
                         <span
-                          className="text-[10px] font-mono"
+                          className="text-[10px] font-medium"
                           style={{
                             color: isProcessed ? "#656453" : "#f59e0b",
                           }}
@@ -296,7 +308,7 @@ export default function ActivityPage() {
 
                       {/* Timestamp */}
                       <span
-                        className="text-[11px] font-mono shrink-0"
+                        className="text-[11px] shrink-0"
                         style={{ color: "#656453" }}
                       >
                         {timeAgo(wh.createdAt)}
@@ -310,23 +322,26 @@ export default function ActivityPage() {
         </div>
       </div>
 
-      {/* ── Recent Logs ─────────────────────────────────────────── */}
-      <div className="mb-4">
-        <SectionHeading count={logs?.length}>Recent Logs</SectionHeading>
+      {/* ── Logs ───────────────────────────────────────────────── */}
+      <div className="mb-6">
+        <SectionHeading count={logs?.length}>Logs</SectionHeading>
 
         <div
-          className="border rounded"
-          style={{ borderColor: "#1A1B19", background: "#141513" }}
+          className="rounded-lg overflow-hidden"
+          style={{
+            border: "1px solid #2A2B28",
+            background: "#141513",
+          }}
         >
           {logsLoading || !logs ? (
-            <div className="p-4 space-y-2">
+            <div className="p-5 space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-6 w-full" />
+                <Skeleton key={i} className="h-6 w-full rounded" />
               ))}
             </div>
           ) : logs.length === 0 ? (
             <p
-              className="p-6 text-center text-xs"
+              className="py-12 text-center text-xs"
               style={{ color: "#7A7968" }}
             >
               No log entries yet
@@ -353,13 +368,13 @@ export default function ActivityPage() {
                         {log.jobId}
                       </td>
                       <td>
-                        <span className="flex items-center gap-1.5">
+                        <span className="flex items-center gap-2">
                           <StatusDot
                             status={mapLogStatus(log.status)}
                             pulse
                           />
                           <span
-                            className="text-xs font-mono"
+                            className="text-xs font-medium"
                             style={{ color: "#9A9880" }}
                           >
                             {log.status}

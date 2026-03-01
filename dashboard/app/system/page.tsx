@@ -1,14 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import {
-  useSystemHealth,
-  useCronRuns,
-  useLogs,
-  type ServiceHealth,
-  type CronRun,
-  type LogEntry,
-} from "@/lib/hooks";
+import { useSystemHealth, useCronRuns, useLogs } from "@/lib/hooks";
 import { PageHeader } from "@/components/page-header";
 import { HealthGrid } from "@/components/health-grid";
 import { CronTable } from "@/components/cron-table";
@@ -25,7 +17,7 @@ function Skeleton({ className }: { className?: string }) {
   );
 }
 
-/* ── Section Divider ──────────────────────────────────────────── */
+/* ── Section Heading ──────────────────────────────────────────── */
 function SectionHeading({
   children,
   count,
@@ -34,88 +26,25 @@ function SectionHeading({
   count?: number;
 }) {
   return (
-    <div className="section-divider mb-4 mt-2">
+    <div className="flex items-center gap-3 mb-5">
+      <div
+        className="w-[3px] h-4 rounded-full"
+        style={{ background: "#C5A572" }}
+      />
       <h2
-        className="text-xs uppercase tracking-widest font-medium shrink-0"
-        style={{ color: "#7A7968" }}
+        className="text-sm font-medium tracking-wide"
+        style={{ color: "#d4d3cc" }}
       >
         {children}
       </h2>
       {count !== undefined && (
         <span
-          className="text-[10px] font-mono shrink-0"
-          style={{ color: "#656453" }}
+          className="text-[11px] font-medium px-2 py-0.5 rounded-full"
+          style={{ color: "#7A7968", background: "#1A1B19" }}
         >
           {count}
         </span>
       )}
-    </div>
-  );
-}
-
-/* ── Uptime Counter ───────────────────────────────────────────── */
-function UptimeCounter() {
-  const mountedAt = useRef(Date.now());
-  const [elapsed, setElapsed] = useState(0);
-
-  useEffect(() => {
-    const tick = () => setElapsed(Date.now() - mountedAt.current);
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  const totalSec = Math.floor(elapsed / 1000);
-  const hrs = Math.floor(totalSec / 3600);
-  const mins = Math.floor((totalSec % 3600) / 60);
-  const secs = totalSec % 60;
-
-  const pad = (n: number) => String(n).padStart(2, "0");
-
-  return (
-    <div
-      className="flex items-center gap-3 px-4 py-2.5 rounded"
-      style={{ background: "#141513", border: "1px solid #1A1B19" }}
-    >
-      <span className="text-[10px] uppercase tracking-widest" style={{ color: "#656453" }}>
-        Session Uptime
-      </span>
-      <span className="font-mono text-sm" style={{ color: "#d4d3cc" }}>
-        {pad(hrs)}:{pad(mins)}:{pad(secs)}
-      </span>
-    </div>
-  );
-}
-
-/* ── Last Checked Indicator ───────────────────────────────────── */
-function LastChecked({ refreshIntervalMs }: { refreshIntervalMs: number }) {
-  const [secondsAgo, setSecondsAgo] = useState(0);
-  const lastRefresh = useRef(Date.now());
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setSecondsAgo(Math.floor((Date.now() - lastRefresh.current) / 1000));
-    }, 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  // Reset when the interval fires
-  useEffect(() => {
-    const id = setInterval(() => {
-      lastRefresh.current = Date.now();
-      setSecondsAgo(0);
-    }, refreshIntervalMs);
-    return () => clearInterval(id);
-  }, [refreshIntervalMs]);
-
-  return (
-    <div className="flex items-center gap-2">
-      <span
-        className="inline-block w-1.5 h-1.5 rounded-full live-dot"
-        style={{ background: "#C5A572" }}
-      />
-      <span className="text-[10px] font-mono" style={{ color: "#656453" }}>
-        checked {secondsAgo}s ago
-      </span>
     </div>
   );
 }
@@ -145,50 +74,53 @@ export default function SystemPage() {
 
   return (
     <>
-      <PageHeader title="System" subtitle="Health, cron, and logs" />
-
-      {/* Top bar: uptime + last checked */}
-      <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
-        <UptimeCounter />
-        <LastChecked refreshIntervalMs={10_000} />
+      {/* Header with live indicator */}
+      <div className="flex items-center gap-3 mb-10">
+        <PageHeader title="System" />
+        <span
+          className="inline-block w-2 h-2 rounded-full live-dot"
+          style={{ background: "#C5A572" }}
+        />
       </div>
 
-      {/* ── Health Grid ─────────────────────────────────────────── */}
-      <div className="mb-10">
-        <SectionHeading>Service Health</SectionHeading>
+      {/* ── Services ─────────────────────────────────────────────── */}
+      <div className="mb-12">
+        <SectionHeading>Services</SectionHeading>
 
         {healthLoading || !health ? (
           <div
-            className="grid grid-cols-1 md:grid-cols-3 gap-px"
+            className="grid grid-cols-1 md:grid-cols-3 gap-px rounded-lg overflow-hidden"
             style={{ background: "#2A2B28" }}
           >
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="p-5" style={{ background: "#141513" }}>
-                <Skeleton className="h-3 w-20 mb-3" />
-                <Skeleton className="h-6 w-16 mb-2" />
-                <Skeleton className="h-1 w-full" />
+              <div key={i} className="p-6" style={{ background: "#141513" }}>
+                <Skeleton className="h-3 w-20 mb-3 rounded" />
+                <Skeleton className="h-6 w-16 mb-2 rounded" />
+                <Skeleton className="h-1 w-full rounded" />
               </div>
             ))}
           </div>
         ) : (
-          <HealthGrid services={health} />
+          <div className="rounded-lg overflow-hidden">
+            <HealthGrid services={health} />
+          </div>
         )}
       </div>
 
-      {/* ── Cron Schedule ───────────────────────────────────────── */}
-      <div className="mb-10">
+      {/* ── Scheduled Tasks ──────────────────────────────────────── */}
+      <div className="mb-12">
         <SectionHeading count={cronRuns?.length}>
-          Cron Schedule
+          Scheduled Tasks
         </SectionHeading>
 
         <div
-          className="border rounded"
-          style={{ borderColor: "#1A1B19", background: "#141513" }}
+          className="border rounded-lg overflow-hidden"
+          style={{ borderColor: "#2A2B28", background: "#141513" }}
         >
           {cronLoading || !cronRuns ? (
-            <div className="p-4 space-y-2">
+            <div className="p-5 space-y-3">
               {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-6 w-full" />
+                <Skeleton key={i} className="h-6 w-full rounded" />
               ))}
             </div>
           ) : (
@@ -197,23 +129,23 @@ export default function SystemPage() {
         </div>
       </div>
 
-      {/* ── Recent Logs ─────────────────────────────────────────── */}
-      <div className="mb-4">
-        <SectionHeading count={logs?.length}>Recent Logs</SectionHeading>
+      {/* ── Recent Activity ──────────────────────────────────────── */}
+      <div className="mb-6">
+        <SectionHeading count={logs?.length}>Recent Activity</SectionHeading>
 
         <div
-          className="border rounded"
-          style={{ borderColor: "#1A1B19", background: "#141513" }}
+          className="border rounded-lg overflow-hidden"
+          style={{ borderColor: "#2A2B28", background: "#141513" }}
         >
           {logsLoading || !logs ? (
-            <div className="p-4 space-y-2">
+            <div className="p-5 space-y-3">
               {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-6 w-full" />
+                <Skeleton key={i} className="h-6 w-full rounded" />
               ))}
             </div>
           ) : logs.length === 0 ? (
             <p
-              className="p-6 text-center text-xs"
+              className="p-8 text-center text-xs"
               style={{ color: "#7A7968" }}
             >
               No log entries yet
