@@ -24,6 +24,12 @@ COPY src/templates ./dist/templates
 COPY seo/ ./seo/
 COPY creatives/ ./creatives/
 
+# Include seed script and source for dashboard seed/reset button
+COPY scripts/ ./scripts/
+COPY src/ ./src/
+COPY tsconfig.json ./
+RUN npm install tsx --save-optional --no-save 2>/dev/null || true
+
 RUN mkdir -p /app/reports
 
 EXPOSE 3000
