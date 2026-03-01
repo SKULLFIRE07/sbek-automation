@@ -1,3 +1,4 @@
+
 services:
   app:
     build:
@@ -30,10 +31,24 @@ services:
     volumes:
       - ./reports:/app/reports
 
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3000"
+    environment:
+      - API_URL=http://app:3000
+    depends_on:
+      - app
+    networks:
+      - sbek-net
+    restart: unless-stopped
+
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6380}:6379"
     volumes:
       - redis_data:/data
     networks:
@@ -48,7 +63,7 @@ services:
   postgres:
     image: postgres:16-alpine
     ports:
-      - "5432:5432"
+      - "${PG_PORT:-5433}:5432"
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-sbek}
       POSTGRES_USER: ${POSTGRES_USER:-sbek}

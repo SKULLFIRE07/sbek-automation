@@ -14,7 +14,10 @@ export function createApp() {
 
   // Security headers
   app.use(helmet());
-  app.use(cors());
+  app.use(cors({
+    origin: ['http://localhost:3002', 'http://localhost:3000', 'http://dashboard:3000'],
+    credentials: true,
+  }));
 
   // Parse JSON bodies with raw body preservation for webhook signature verification
   app.use(

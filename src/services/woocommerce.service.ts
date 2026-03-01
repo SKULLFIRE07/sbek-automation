@@ -1,4 +1,5 @@
-import WooCommerceRestApi from '@woocommerce/woocommerce-rest-api';
+import WooCommerceRestApiPkg from '@woocommerce/woocommerce-rest-api';
+const WooCommerceRestApi = (WooCommerceRestApiPkg as any).default || WooCommerceRestApiPkg;
 import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
 
@@ -137,7 +138,7 @@ export interface ParsedOrderRow {
 // ── Service ─────────────────────────────────────────────────────────────────
 
 class WooCommerceService {
-  private api: WooCommerceRestApi;
+  private api: any;
 
   constructor() {
     this.api = new WooCommerceRestApi({

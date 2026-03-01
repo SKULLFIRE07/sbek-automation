@@ -1,0 +1,38 @@
+"use client";
+
+interface StatusDotProps {
+  status: "ok" | "error" | "warn" | "unknown";
+  pulse?: boolean;
+  size?: "sm" | "md";
+}
+
+const colorMap = {
+  ok: { bg: "#22c55e", class: "bg-green-500" },
+  error: { bg: "#ef4444", class: "bg-red-500" },
+  warn: { bg: "#f59e0b", class: "bg-amber-500" },
+  unknown: { bg: "#555", class: "bg-neutral-600" },
+};
+
+export function StatusDot({ status, pulse, size = "md" }: StatusDotProps) {
+  const color = colorMap[status] || colorMap.unknown;
+  const dim = size === "md" ? "w-2 h-2" : "w-1.5 h-1.5";
+
+  // Determine animation class:
+  // - error/warn always pulse to draw attention
+  // - ok pulses only when pulse prop is true
+  const animClass =
+    status === "error"
+      ? "status-dot-error"
+      : status === "warn"
+      ? "status-dot-warn"
+      : pulse && status === "ok"
+      ? "status-dot-pulse"
+      : "";
+
+  return (
+    <span
+      className={`inline-block ${dim} rounded-full ${color.class} ${animClass}`}
+      style={animClass === "status-dot-pulse" ? { color: color.bg } : undefined}
+    />
+  );
+}

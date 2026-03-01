@@ -33,12 +33,15 @@ export interface GeneratedImage {
 // ── Service ────────────────────────────────────────────────────────────────
 
 class NanoBananaService {
-  private client: GoogleGenAI;
+  private client: GoogleGenAI | null = null;
   private readonly model = 'gemini-2.0-flash-preview-image-generation';
   private readonly outputDir: string;
 
   constructor() {
-    this.client = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY ?? '' });
+    const apiKey = env.GEMINI_API_KEY;
+    if (apiKey) {
+      this.client = new GoogleGenAI({ apiKey });
+    }
     this.outputDir = join(process.cwd(), 'creatives', 'generated');
   }
 
@@ -64,6 +67,14 @@ class NanoBananaService {
     prompt: string,
     options: NanoBananaOptions = {},
   ): Promise<GeneratedImage> {
+    // Ensure we have a client (lazy init from settings DB)
+    if (!this.client) {
+      await this.refreshClient();
+    }
+    if (!this.client) {
+      throw new Error('Nano Banana: GEMINI_API_KEY is not configured. Set it via Settings or .env');
+    }
+
     const {
       aspectRatio = '1:1',
       imageSize = '2K',

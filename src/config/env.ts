@@ -105,7 +105,8 @@ function parseEnv(): Env {
 
   // Re-parse with the raw object so we get defaults filled in for the
   // fields that *are* valid; missing required fields will be undefined.
-  return envSchema.partial().parse(process.env) as Env;
+  const fallback = envSchema.partial().safeParse(process.env);
+  return (fallback.success ? fallback.data : {}) as Env;
 }
 
 export const env: Env = parseEnv();

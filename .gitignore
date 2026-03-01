@@ -5,5 +5,7 @@ dist/
 reports/*.html
 crawler/node_modules/
 crawler/dist/
+dashboard/node_modules/
+dashboard/.next/
 .DS_Store
 *.pdf

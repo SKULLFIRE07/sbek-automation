@@ -1,15 +1,84 @@
 import OpenAI from 'openai';
+import { db } from '../config/database.js';
+import { systemConfig } from '../db/schema.js';
+import { inArray } from 'drizzle-orm';
 import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
 import { settings } from './settings.service.js';
 
 // ── Service ─────────────────────────────────────────────────────────────────
 
-class OpenAIService {
-  private client: OpenAI;
+class AIService {
+  private cachedKey: string | null = null;
+  private cachedModel: string | null = null;
+  private cachedImageModel: string | null = null;
+  private cacheTime = 0;
+  private readonly CACHE_TTL = 60_000; // 1 minute
 
-  constructor() {
-    this.client = new OpenAI({ apiKey: env.OPENAI_API_KEY });
+  /**
+   * Fetch the OpenRouter API key and model settings from the system_config
+   * database table, falling back to environment variables when nothing is
+   * stored in the DB.  Results are cached for CACHE_TTL milliseconds.
+   */
+  private async getConfig(): Promise<{ apiKey: string; model: string; imageModel: string }> {
+    const now = Date.now();
+    if (this.cachedKey && now - this.cacheTime < this.CACHE_TTL) {
+      return {
+        apiKey: this.cachedKey,
+        model: this.cachedModel || 'openai/gpt-4o',
+        imageModel: this.cachedImageModel || 'openai/dall-e-3',
+      };
+    }
+
+    try {
+      const rows = await db
+        .select()
+        .from(systemConfig)
+        .where(
+          inArray(systemConfig.key, [
+            'openrouter_api_key',
+            'openrouter_model',
+            'openrouter_image_model',
+          ]),
+        );
+
+      for (const row of rows) {
+        if (row.key === 'openrouter_api_key') {
+          this.cachedKey = row.value as string;
+        } else if (row.key === 'openrouter_model') {
+          this.cachedModel = row.value as string;
+        } else if (row.key === 'openrouter_image_model') {
+          this.cachedImageModel = row.value as string;
+        }
+      }
+
+      this.cacheTime = Date.now();
+    } catch (err) {
+      logger.warn({ err }, 'Failed to read AI config from system_config table, falling back to env');
+    }
+
+    // Final fallback to env var
+    return {
+      apiKey: this.cachedKey || env.OPENAI_API_KEY || '',
+      model: this.cachedModel || 'openai/gpt-4o',
+      imageModel: this.cachedImageModel || 'openai/dall-e-3',
+    };
+  }
+
+  /**
+   * Build an OpenAI-compatible client that points at the OpenRouter gateway.
+   */
+  private async getClient(): Promise<OpenAI> {
+    const config = await this.getConfig();
+
+    return new OpenAI({
+      apiKey: config.apiKey,
+      baseURL: 'https://openrouter.ai/api/v1',
+      defaultHeaders: {
+        'HTTP-Referer': env.BRAND_WEBSITE || 'https://sbek.com',
+        'X-Title': 'SBEK Automation',
+      },
+    });
   }
 
   /** Re-initialize the OpenAI client with the latest API key from settings */
@@ -23,15 +92,20 @@ class OpenAIService {
   // ── Generic Text Generation ────────────────────────────────────────────
 
   /**
-   * Send a system + user prompt to GPT-4o and return the text content.
+   * Send a system + user prompt to the configured model and return the text content.
    */
   async generateText(
     systemPrompt: string,
     userPrompt: string,
     options?: { maxTokens?: number; temperature?: number },
   ): Promise<string> {
-    const completion = await this.client.chat.completions.create({
-      model: 'gpt-4o',
+    const config = await this.getConfig();
+    const client = await this.getClient();
+
+    logger.info({ model: config.model, provider: 'openrouter' }, 'Starting AI text generation');
+
+    const completion = await client.chat.completions.create({
+      model: config.model,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
@@ -44,11 +118,13 @@ class OpenAIService {
 
     logger.info(
       {
+        model: config.model,
+        provider: 'openrouter',
         promptTokens: completion.usage?.prompt_tokens,
         completionTokens: completion.usage?.completion_tokens,
         totalTokens: completion.usage?.total_tokens,
       },
-      'OpenAI text generation completed',
+      'AI text generation completed',
     );
 
     return content;
@@ -57,7 +133,7 @@ class OpenAIService {
   // ── Image Generation ───────────────────────────────────────────────────
 
   /**
-   * Generate an image with DALL-E 3 and return its URL.
+   * Generate an image with the configured image model and return its URL.
    */
   async generateImage(
     prompt: string,
@@ -66,8 +142,13 @@ class OpenAIService {
       quality?: 'standard' | 'hd';
     },
   ): Promise<string> {
-    const response = await this.client.images.generate({
-      model: 'dall-e-3',
+    const config = await this.getConfig();
+    const client = await this.getClient();
+
+    logger.info({ model: config.imageModel, provider: 'openrouter' }, 'Starting AI image generation');
+
+    const response = await client.images.generate({
+      model: config.imageModel,
       prompt,
       size: options?.size ?? '1024x1024',
       quality: options?.quality ?? 'standard',
@@ -77,8 +158,13 @@ class OpenAIService {
     const imageUrl = response.data?.[0]?.url ?? '';
 
     logger.info(
-      { size: options?.size ?? '1024x1024', quality: options?.quality ?? 'standard' },
-      'OpenAI image generation completed',
+      {
+        model: config.imageModel,
+        provider: 'openrouter',
+        size: options?.size ?? '1024x1024',
+        quality: options?.quality ?? 'standard',
+      },
+      'AI image generation completed',
     );
 
     return imageUrl;
@@ -131,7 +217,7 @@ class OpenAIService {
         description: parsed.description.slice(0, 160),
       };
     } catch (err) {
-      logger.error({ err, raw, productName }, 'Failed to parse SEO meta JSON from OpenAI');
+      logger.error({ err, raw, productName }, 'Failed to parse SEO meta JSON from AI');
       return {
         title: `${productName} | SBEK Luxury Jewelry`.slice(0, 60),
         description: `Shop ${productName} from SBEK. Handcrafted luxury Indian jewelry.`.slice(0, 160),
@@ -188,7 +274,7 @@ class OpenAIService {
 
       return parsed;
     } catch (err) {
-      logger.error({ err, raw, productName }, 'Failed to parse FAQ JSON from OpenAI');
+      logger.error({ err, raw, productName }, 'Failed to parse FAQ JSON from AI');
       return [];
     }
   }
@@ -269,4 +355,4 @@ class OpenAIService {
 
 // ── Singleton Export ────────────────────────────────────────────────────────
 
-export const openai = new OpenAIService();
+export const openai = new AIService();
