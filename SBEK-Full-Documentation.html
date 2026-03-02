@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: A4; margin: 24mm 20mm 22mm 20mm;
+    @bottom-center { content: "SBEK Automation — Full Technical Documentation"; font-size: 7.5px; color: #aaa; font-family: 'Helvetica Neue', Arial, sans-serif; }
+    @bottom-right { content: "Page " counter(page); font-size: 7.5px; color: #aaa; font-family: 'Helvetica Neue', Arial, sans-serif; }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1a1a1a; font-size: 9.5px; line-height: 1.6; }
+  .cover { page-break-after: always; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 720px; text-align: center; }
+  .cover-brand { font-size: 13px; letter-spacing: 6px; text-transform: uppercase; color: #C5A572; margin-bottom: 8px; }
+  .cover-title { font-size: 32px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
+  .cover-sub { font-size: 13px; color: #777; font-weight: 300; margin-bottom: 36px; }
+  .cover-line { width: 50px; height: 3px; background: linear-gradient(90deg, #C5A572, #A68B3E); border-radius: 2px; margin-bottom: 36px; }
+  .cover-meta { font-size: 9px; color: #999; line-height: 2; }
+  h1 { font-size: 18px; font-weight: 700; color: #1a1a1a; padding-top: 6px; margin-bottom: 3px; }
+  h1 .n { color: #C5A572; margin-right: 5px; }
+  .sl { width: 36px; height: 2px; background: linear-gradient(90deg, #C5A572, #A68B3E); border-radius: 2px; margin-bottom: 14px; }
+  h2 { font-size: 11.5px; font-weight: 700; color: #333; margin-top: 16px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
+  h3 { font-size: 10.5px; font-weight: 600; color: #444; margin-top: 12px; margin-bottom: 5px; }
+  p { font-size: 9.5px; margin-bottom: 7px; color: #333; }
+  ul { padding-left: 16px; margin-bottom: 8px; }
+  li { font-size: 9.5px; margin-bottom: 2px; color: #333; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9px; }
+  th { background: #f7f5f0; color: #333; font-weight: 600; text-align: left; padding: 5px 8px; border-bottom: 2px solid #C5A572; font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.3px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  code { font-family: 'Courier New', monospace; font-size: 8.5px; background: #f5f4f0; padding: 1px 4px; border-radius: 2px; }
+  .dia { background: #1a1b19; color: #d4d3cc; padding: 12px 16px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 9px; line-height: 1.5; margin-bottom: 12px; white-space: pre; overflow: hidden; }
+  .dia .g { color: #C5A572; } .dia .d { color: #7a7968; } .dia .gr { color: #8fbc6a; }
+  .hb { background: #faf9f6; border-left: 3px solid #C5A572; padding: 8px 12px; border-radius: 0 5px 5px 0; margin-bottom: 12px; font-size: 9px; }
+  .pb { page-break-before: always; }
+  .badge { display: inline-block; padding: 1px 6px; border-radius: 8px; font-size: 8px; font-weight: 600; }
+  .bg { background: #f5ecd7; color: #8b6914; }
+  .bgr { background: #e6f4e0; color: #2d6a1e; }
+  .bb { background: #e0ecf8; color: #1a4d8c; }
+  .bgy { background: #f0f0ee; color: #555; }
+  .br { background: #fce4e4; color: #8c1a1a; }
+  .fs { display: flex; align-items: flex-start; margin-bottom: 8px; gap: 10px; }
+  .fn { width: 20px; height: 20px; background: #C5A572; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; flex-shrink: 0; }
+  .fc { flex: 1; }
+  .ft { font-weight: 600; color: #1a1a1a; font-size: 10px; }
+  .fd { color: #555; font-size: 9px; margin-top: 1px; }
+  .fx { color: #C5A572; font-size: 8px; font-weight: 600; margin-top: 1px; }
+  .cg { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .cd { flex: 1; min-width: 120px; background: #faf9f6; border: 1px solid #e8e6df; border-radius: 6px; padding: 10px 12px; }
+  .cl { font-size: 7.5px; text-transform: uppercase; letter-spacing: 1px; color: #999; margin-bottom: 3px; }
+  .cv { font-size: 16px; font-weight: 700; color: #1a1a1a; }
+  .cn { font-size: 8px; color: #777; margin-top: 1px; }
+  .two { display: flex; gap: 12px; } .two > div { flex: 1; }
+  .sig { font-family: 'Courier New', monospace; font-size: 8.5px; background: #f9f8f5; border: 1px solid #e8e6df; border-radius: 4px; padding: 6px 10px; margin-bottom: 8px; color: #333; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-brand">SBEK</div>
+  <div class="cover-title">Automation System</div>
+  <div class="cover-sub">Complete Technical Reference — Every Service, Every Function, Every Flow</div>
+  <div class="cover-line"></div>
+  <div class="cover-meta">
+    Version 1.0 · March 2026<br><br>
+    5 Services · 7 Job Queues · 4 Cron Jobs · 11 Services · 8 Workflows<br>
+    10+ External APIs · 5 Database Tables · 20+ API Endpoints<br><br>
+    TypeScript · Express · Next.js · BullMQ · Playwright · PostgreSQL · Redis<br>
+    WooCommerce · Google Sheets · Google Drive · OpenAI · Gemini<br>
+    WhatsApp (Meta + Wati + Interakt) · Nodemailer · Postiz · Sharp
+  </div>
+</div>
+
+<!-- ═══ 01 ARCHITECTURE ═══ -->
+<h1><span class="n">01</span> Architecture Overview</h1>
+<div class="sl"></div>
+
+<div class="cg">
+  <div class="cd"><div class="cl">Services</div><div class="cv">5</div><div class="cn">App, Dashboard, Crawler, PostgreSQL, Redis</div></div>
+  <div class="cd"><div class="cl">Queues</div><div class="cv">7</div><div class="cn">order-sync, notification, review-request, content-gen, creative-gen, social-posting, competitor-crawl</div></div>
+  <div class="cd"><div class="cl">Cron Jobs</div><div class="cv">4</div><div class="cn">Daily sync, daily reviews, weekly content, weekly crawl</div></div>
+  <div class="cd"><div class="cl">External APIs</div><div class="cv">10+</div><div class="cn">WooCommerce, Sheets, Drive, OpenAI, Gemini, WhatsApp ×3, SMTP, Postiz</div></div>
+</div>
+
+<div class="dia"><span class="d">Internet</span>
+    │
+    ▼
+┌──────────────────────────────────────────────────┐
+│  <span class="g">APP</span>  (Express :3000)                              │
+│                                                  │
+│  <span class="gr">Routes:</span>  /webhooks/*  /dashboard/*  /health      │
+│  <span class="gr">Workers:</span> 7 BullMQ queues (Redis-backed)          │
+│  <span class="gr">Cron:</span>    4 scheduled jobs (node-cron, IST)       │
+│  <span class="gr">Services:</span> WooCommerce, Sheets, Drive, OpenAI,    │
+│           Gemini, WhatsApp, Email, Postiz        │
+└───────┬──────────┬───────────┬───────────────────┘
+        │          │           │
+        ▼          ▼           ▼
+   <span class="g">PostgreSQL</span>    <span class="g">Redis</span>       <span class="g">Crawler</span>
+   5 tables     7 queues    Playwright+Cheerio
+   :5432        :6379       :3001
+        ▲
+        │
+┌───────┴──────────────────────────────────────────┐
+│  <span class="g">DASHBOARD</span>  (Next.js :3002)                        │
+│  Proxies /api/* → App · 5 pages · SWR polling    │
+└──────────────────────────────────────────────────┘</div>
+
+<!-- ═══ 02 TECH STACK ═══ -->
+<div class="pb"></div>
+<h1><span class="n">02</span> Complete Tech Stack</h1>
+<div class="sl"></div>
+
+<h2>Core Runtime</h2>
+<table><tr><th>Tech</th><th>Version</th><th>What It Does</th><th>Where Used</th></tr>
+<tr><td>Node.js</td><td>20 (Alpine)</td><td>JavaScript runtime</td><td>All 3 services</td></tr>
+<tr><td>TypeScript</td><td>5.7.0</td><td>Type-safe superset of JS, strict mode enabled</td><td>All source code</td></tr>
+<tr><td>Express.js</td><td>4.21.2</td><td>HTTP server, routing, middleware</td><td>App (port 3000) + Crawler (port 3001)</td></tr>
+</table>
+
+<h2>Database & ORM</h2>
+<table><tr><th>Tech</th><th>Version</th><th>What It Does</th><th>Where Used</th></tr>
+<tr><td>PostgreSQL</td><td>16 (Alpine)</td><td>Relational database, stores all persistent data</td><td>5 tables: job_logs, webhook_events, cron_runs, competitor_snapshots, system_config</td></tr>
+<tr><td>Drizzle ORM</td><td>0.38.0</td><td>Type-safe SQL query builder + schema definitions</td><td>src/db/schema.ts — defines all tables with TypeScript types</td></tr>
+<tr><td>Drizzle Kit</td><td>0.30.0</td><td>Migration generator (SQL files from schema diffs)</td><td>npm run db:generate → generates migration SQL</td></tr>
+<tr><td>pg (node-postgres)</td><td>8.13.0</td><td>PostgreSQL driver, connection pooling</td><td>src/config/database.ts — creates Pool from DATABASE_URL</td></tr>
+</table>
+
+<h2>Queue & Cache</h2>
+<table><tr><th>Tech</th><th>Version</th><th>What It Does</th><th>Where Used</th></tr>
+<tr><td>Redis</td><td>7 (Alpine)</td><td>In-memory key-value store, BullMQ backend</td><td>Stores all job queue state, job payloads, retry info</td></tr>
+<tr><td>ioredis</td><td>5.4.2</td><td>Redis client with cluster/sentinel support</td><td>src/config/redis.ts — single connection with maxRetriesPerRequest: null</td></tr>
+<tr><td>BullMQ</td><td>5.34.0</td><td>Redis-backed distributed job queue with retries, backoff, rate limiting</td><td>7 queues in src/queues/ — each with dedicated worker</td></tr>
+<tr><td>Bull Board</td><td>6.5.0</td><td>Web UI for monitoring queues</td><td>@bull-board/api + @bull-board/express mounted on App</td></tr>
+<tr><td>node-cron</td><td>3.0.3</td><td>Cron-style scheduled task runner</td><td>src/cron/scheduler.ts — 4 jobs, timezone: Asia/Kolkata</td></tr>
+</table>
+
+<h2>Frontend (Dashboard)</h2>
+<table><tr><th>Tech</th><th>Version</th><th>What It Does</th><th>Where Used</th></tr>
+<tr><td>Next.js</td><td>15.5.12</td><td>React framework, standalone output, API rewrites</td><td>dashboard/ — proxies /api/* to Express backend</td></tr>
+<tr><td>React</td><td>18.3.1</td><td>UI component library</td><td>All dashboard pages and components</td></tr>
+<tr><td>TailwindCSS</td><td>3.4.17</td><td>Utility-first CSS framework</td><td>All component styling + custom brand colors</td></tr>
+<tr><td>SWR</td><td>2.4.1</td><td>Stale-while-revalidate data fetching with polling</td><td>lib/hooks.ts — 8 hooks with 5s-30s polling intervals</td></tr>
+</table>
+
+<h2>AI & Content Generation</h2>
+<table><tr><th>Tech</th><th>Version</th><th>What It Does</th><th>Where Used</th></tr>
+<tr><td>OpenAI SDK</td><td>4.77.0</td><td>LLM text generation + DALL-E image generation</td><td>Via OpenRouter gateway (openrouter.ai/api/v1). Model: gpt-4o</td></tr>
+<tr><td>Google Gemini</td><td>@google/genai 1.43.0</td><td>AI image generation (text→image, image→image)</td><td>Model: gemini-2.0-flash-preview-image-generation. 5 variants per product</td></tr>
+<tr><td>Sharp</td><td>0.34.5</td><td>Image resize, crop, format conversion</td><td>Resize AI images for platform-specific sizes (1080×1080, 1080×1920, etc.)</td></tr>
+</table>
+
+<h2>Communication</h2>
+<table><tr><th>Tech</th><th>Version</th><th>What It Does</th><th>Where Used</th></tr>
+<tr><td>Meta WhatsApp Cloud API</td><td>v21.0</td><td>Primary WhatsApp: templates, text, images</td><td>whatsapp.service.ts — sendTemplate(), sendText(), sendImage()</td></tr>
+<tr><td>Wati API</td><td>—</td><td>WhatsApp fallback #1</td><td>wati.service.ts — triggers if Meta fails</td></tr>
+<tr><td>Interakt API</td><td>—</td><td>WhatsApp fallback #2</td><td>wati.service.ts — triggers if Wati fails</td></tr>
+<tr><td>Nodemailer</td><td>6.9.16</td><td>SMTP email client</td><td>email.service.ts — sendEmail() with Handlebars templates</td></tr>
+<tr><td>Handlebars</td><td>4.7.8</td><td>Email template engine (.hbs files)</td><td>5 templates: order-confirmation, production-started, shipped, delivered, review-request</td></tr>
+</table>
+
+<h2>External Services</h2>
+<table><tr><th>Tech</th><th>Version</th><th>What It Does</th><th>Where Used</th></tr>
+<tr><td>WooCommerce REST API</td><td>@woocommerce/woocommerce-rest-api 1.0.1</td><td>E-commerce: orders, products, customers, webhooks, WordPress pages</td><td>woocommerce.service.ts — 15+ methods</td></tr>
+<tr><td>Google Sheets API</td><td>google-spreadsheet 4.1.4</td><td>7-tab spreadsheet: Orders, Production, QC, Customers, Creatives, Competitors, Logs</td><td>googlesheets.service.ts — JWT auth, conditional formatting, data validation</td></tr>
+<tr><td>Google Drive API</td><td>googleapis 144.0.0</td><td>Upload creatives to "SBEK Creatives" folder</td><td>googledrive.service.ts — uploadFile() with shareable links</td></tr>
+<tr><td>Google Auth</td><td>google-auth-library 9.15.0</td><td>JWT service account authentication for Sheets + Drive</td><td>Shared auth across Google services</td></tr>
+<tr><td>Postiz API</td><td>custom client</td><td>Social media scheduling: Instagram, Facebook, LinkedIn, Twitter, Pinterest</td><td>postiz.service.ts — uploadMedia(), createPost() with optimal timing</td></tr>
+</table>
+
+<h2>Web Scraping (Crawler)</h2>
+<table><tr><th>Tech</th><th>Version</th><th>What It Does</th><th>Where Used</th></tr>
+<tr><td>Playwright</td><td>1.49.0</td><td>Headless Chromium browser automation</td><td>crawler/src/crawler.ts — navigates pages, waits for JS, extracts DOM</td></tr>
+<tr><td>Cheerio</td><td>1.0.0</td><td>Server-side HTML parsing (jQuery-like)</td><td>crawler/src/crawler.ts — CSS selector queries on rendered HTML</td></tr>
+</table>
+
+<h2>Security & Middleware</h2>
+<table><tr><th>Tech</th><th>Version</th><th>What It Does</th><th>Where Used</th></tr>
+<tr><td>Helmet</td><td>8.0.0</td><td>Sets security HTTP headers (CSP, HSTS, X-Frame, etc.)</td><td>Express middleware on App</td></tr>
+<tr><td>cors</td><td>2.8.5</td><td>Cross-Origin Resource Sharing headers</td><td>Express middleware on App</td></tr>
+<tr><td>express-rate-limit</td><td>7.5.0</td><td>Rate limiting per IP</td><td>Webhook routes (10/min), API routes, Crawler (10/min)</td></tr>
+<tr><td>Zod</td><td>3.24.0</td><td>Runtime schema validation for env vars</td><td>src/config/env.ts — validates all env vars at startup</td></tr>
+<tr><td>Pino</td><td>9.6.0</td><td>Structured JSON logging</td><td>All services — pino-http for request logs, pino-pretty in dev</td></tr>
+</table>
+
+<h2>DevOps</h2>
+<table><tr><th>Tech</th><th>Version</th><th>What It Does</th><th>Where Used</th></tr>
+<tr><td>Docker</td><td>Multi-stage</td><td>Container builds — builder compiles TS, runner has prod deps only</td><td>3 Dockerfiles: App (node:20-alpine), Dashboard (node:20-alpine), Crawler (playwright:v1.49.0-noble)</td></tr>
+<tr><td>Docker Compose</td><td>—</td><td>Orchestrates 5 services on sbek-net bridge network</td><td>docker-compose.yml — health checks, volumes (pg_data, redis_data)</td></tr>
+<tr><td>Railway</td><td>—</td><td>Cloud hosting, auto-deploy on git push to main</td><td>railway.toml — health check /health, 120s timeout, ON_FAILURE restart ×5</td></tr>
+<tr><td>GitHub</td><td>—</td><td>Source code repository</td><td>github.com/SKULLFIRE07/sbek-automation</td></tr>
+</table>
+
+<!-- ═══ 03 ALL SERVICES ═══ -->
+<div class="pb"></div>
+<h1><span class="n">03</span> All 11 Services — Every Method, Every Parameter</h1>
+<div class="sl"></div>
+
+<h2>3.1 WooCommerce Service</h2>
+<p><strong>File:</strong> <code>src/services/woocommerce.service.ts</code> · <strong>SDK:</strong> @woocommerce/woocommerce-rest-api · <strong>Auth:</strong> OAuth 1.0 (Consumer Key + Secret) · <strong>API Version:</strong> wc/v3 · <strong>Timeout:</strong> 30s</p>
+
+<h3>Order Methods</h3>
+<table><tr><th>Method</th><th>Parameters</th><th>Returns</th><th>What It Does</th></tr>
+<tr><td><code>getOrder()</code></td><td>orderId: number</td><td>WooOrder</td><td>Fetches full order with billing, shipping, line items, meta</td></tr>
+<tr><td><code>listOrders()</code></td><td>{ status?, per_page?, page? }</td><td>WooOrder[]</td><td>Paginated order list, filterable by status</td></tr>
+<tr><td><code>updateOrder()</code></td><td>orderId, data: Record</td><td>WooOrder</td><td>Updates order fields (status, meta, notes)</td></tr>
+<tr><td><code>getOrderNotes()</code></td><td>orderId: number</td><td>OrderNote[]</td><td>Fetches all notes attached to order</td></tr>
+<tr><td><code>addOrderNote()</code></td><td>orderId, note, customerNote?</td><td>OrderNote</td><td>Adds internal or customer-visible note</td></tr>
+</table>
+
+<h3>Product Methods</h3>
+<table><tr><th>Method</th><th>Parameters</th><th>Returns</th><th>What It Does</th></tr>
+<tr><td><code>getProduct()</code></td><td>productId: number</td><td>WooProduct</td><td>Full product with categories, images, attributes</td></tr>
+<tr><td><code>listProducts()</code></td><td>{ category?, per_page?, page?, status? }</td><td>WooProduct[]</td><td>Paginated product list</td></tr>
+<tr><td><code>updateProduct()</code></td><td>productId, data: Record</td><td>WooProduct</td><td>Updates product fields, meta, attributes</td></tr>
+<tr><td><code>getProductMedia()</code></td><td>productId: number</td><td>string[]</td><td>Returns array of all product image URLs</td></tr>
+<tr><td><code>getRelatedProducts()</code></td><td>productId, limit=5</td><td>RelatedProduct[]</td><td>Fetches related products for internal linking</td></tr>
+</table>
+
+<h3>WordPress/SEO Methods</h3>
+<table><tr><th>Method</th><th>Parameters</th><th>Returns</th><th>What It Does</th></tr>
+<tr><td><code>upsertPage()</code></td><td>slug, title, content, status</td><td>{ id, slug, link }</td><td>Creates or updates a WordPress page (for AEO knowledge base)</td></tr>
+<tr><td><code>createPost()</code></td><td>title, content, status?, categories?</td><td>{ id, slug, link }</td><td>Creates a blog post (for comparison articles)</td></tr>
+<tr><td><code>pingSitemap()</code></td><td>—</td><td>void</td><td>Pings Google + Bing to re-crawl sitemap after content changes</td></tr>
+</table>
+
+<h3>Helper Methods</h3>
+<table><tr><th>Method</th><th>What It Does</th></tr>
+<tr><td><code>extractJewelryMeta(lineItem)</code></td><td>Extracts ringSize, metalType, stoneType, engravingText, engravingFont from line item meta/attributes</td></tr>
+<tr><td><code>parseOrderForSheets(order)</code></td><td>Flattens a WooOrder into a flat row object compatible with Google Sheets columns</td></tr>
+</table>
+
+<h2>3.2 Google Sheets Service</h2>
+<p><strong>File:</strong> <code>src/services/googlesheets.service.ts</code> · <strong>SDK:</strong> google-spreadsheet 4.1.4 · <strong>Auth:</strong> JWT Service Account · <strong>Tabs:</strong> 7</p>
+
+<h3>7 Spreadsheet Tabs</h3>
+<table><tr><th>Tab</th><th>Key Columns</th><th>Purpose</th></tr>
+<tr><td><strong>Orders</strong></td><td>Order ID, Customer Name, Phone, Email, Product, Variant, Size, Metal, Stones, Engraving, Amount, Order Date, Promised Delivery, Status, Production Assignee, Notes</td><td>Master order tracking</td></tr>
+<tr><td><strong>Production</strong></td><td>Order ID, Product, Customer, Ring Size, Metal Type, Stones, Engraving, Reference Image URL, Assigned To, Due Date, Started/Completed Date, Status</td><td>Workshop task management</td></tr>
+<tr><td><strong>QC</strong></td><td>Order ID, Product, QC Date, Checklist Item, Pass/Fail, Photo URL, Inspector, Notes, Action Taken</td><td>Quality control checklist</td></tr>
+<tr><td><strong>Customers</strong></td><td>Customer ID, Name, Email, Phone, Total Orders, Total Spend, Last Order Date, Tags</td><td>Customer master data</td></tr>
+<tr><td><strong>Creatives</strong></td><td>Product ID, Product Name, Variant, Creative Type, Image URL, Drive Link, Generated Date, Status, Approved By</td><td>AI-generated creative tracking</td></tr>
+<tr><td><strong>Competitors</strong></td><td>Name, URL, Active</td><td>Competitor list for crawler</td></tr>
+<tr><td><strong>System Logs</strong></td><td>Timestamp, Level, Source, Message, Details</td><td>Audit trail</td></tr>
+</table>
+
+<h3>All Methods</h3>
+<table><tr><th>Method</th><th>Parameters</th><th>What It Does</th></tr>
+<tr><td><code>init()</code></td><td>—</td><td>JWT auth → load spreadsheet → ensure all 7 tabs exist with headers → apply formatting</td></tr>
+<tr><td><code>findOrderRow()</code></td><td>orderId: string</td><td>Returns 0-based row index or null</td></tr>
+<tr><td><code>appendOrder()</code></td><td>data: Record</td><td>Adds new row to Orders tab</td></tr>
+<tr><td><code>updateOrder()</code></td><td>orderId, updates: Record</td><td>Updates existing row by Order ID</td></tr>
+<tr><td><code>getOrdersByStatus()</code></td><td>status: string</td><td>Returns all rows matching status</td></tr>
+<tr><td><code>appendProductionTask()</code></td><td>data: Record</td><td>Adds row to Production tab</td></tr>
+<tr><td><code>updateProductionStatus()</code></td><td>orderId, status, extraData?</td><td>Updates Production row status</td></tr>
+<tr><td><code>appendQCItems()</code></td><td>items: Array&lt;Record&gt;</td><td>Adds multiple QC checklist rows</td></tr>
+<tr><td><code>getQCItems()</code></td><td>orderId: string</td><td>Returns all QC rows for an order</td></tr>
+<tr><td><code>updateQCItem()</code></td><td>orderId, checklistItem, passFail, notes?</td><td>Updates a specific QC checklist row</td></tr>
+<tr><td><code>findCustomer()</code></td><td>email: string</td><td>Finds customer row by email</td></tr>
+<tr><td><code>upsertCustomer()</code></td><td>data: Record</td><td>Insert or update customer by email</td></tr>
+<tr><td><code>appendCreative()</code></td><td>data: Record</td><td>Adds row to Creatives tab</td></tr>
+<tr><td><code>getCompetitors()</code></td><td>—</td><td>Returns [{name, url}] from Competitors tab</td></tr>
+<tr><td><code>logEvent()</code></td><td>level, source, message, details?</td><td>Adds row to System Logs tab</td></tr>
+<tr><td><code>applyFormatting()</code></td><td>—</td><td>Conditional formatting (status colors) + data validation dropdowns</td></tr>
+</table>
+
+<p><strong>Formula injection prevention:</strong> All writes go through <code>sanitizeForSheets()</code> which blocks leading <code>=</code>, <code>+</code>, <code>-</code>, <code>@</code>, tab, newline characters.</p>
+
+<h2>3.3 Google Drive Service</h2>
+<p><strong>File:</strong> <code>src/services/googledrive.service.ts</code> · <strong>SDK:</strong> googleapis 144.0.0 · <strong>Auth:</strong> Same JWT service account · <strong>Scope:</strong> drive.file</p>
+<table><tr><th>Method</th><th>Parameters</th><th>Returns</th><th>What It Does</th></tr>
+<tr><td><code>init()</code></td><td>—</td><td>void</td><td>Auth → ensure "SBEK Creatives" folder exists → store folderId</td></tr>
+<tr><td><code>uploadFile()</code></td><td>buffer: Buffer, filename: string, mimeType: string</td><td>{ fileId, webViewLink, webContentLink }</td><td>Uploads to folder → sets "anyone with link" permission → returns shareable URL</td></tr>
+</table>
+
+<h2>3.4 OpenAI Service (via OpenRouter)</h2>
+<p><strong>File:</strong> <code>src/services/openai.service.ts</code> · <strong>SDK:</strong> openai 4.77.0 · <strong>Gateway:</strong> openrouter.ai/api/v1 · <strong>Default model:</strong> openai/gpt-4o · <strong>Image model:</strong> openai/dall-e-3</p>
+
+<table><tr><th>Method</th><th>Parameters</th><th>Temp</th><th>Tokens</th><th>What It Does</th></tr>
+<tr><td><code>generateText()</code></td><td>systemPrompt, userPrompt, options?</td><td>0.7</td><td>1024</td><td>Generic text completion</td></tr>
+<tr><td><code>generateImage()</code></td><td>prompt, { size?, quality? }</td><td>—</td><td>—</td><td>DALL-E 3 image generation, returns URL</td></tr>
+<tr><td><code>generateSEOMeta()</code></td><td>productName, category, attributes</td><td>0.6</td><td>256</td><td>Returns { title: &lt;60 chars, description: &lt;160 chars } — luxury jewelry positioning</td></tr>
+<tr><td><code>generateFAQs()</code></td><td>productName, category, description</td><td>0.6</td><td>1024</td><td>Returns 5 Q&A pairs covering care, customization, delivery, materials, gifting</td></tr>
+<tr><td><code>generateCaption()</code></td><td>productName, category, tone</td><td>0.8</td><td>512</td><td>Instagram caption: 100-200 words, hook + CTA + 10-15 hashtags</td></tr>
+<tr><td><code>analyzeCompetitor()</code></td><td>competitorName, crawlData</td><td>0.5</td><td>2000</td><td>Basic competitor analysis from crawl data</td></tr>
+<tr><td><code>analyzeCompetitorEnhanced()</code></td><td>competitorName, currentData, previousData?</td><td>0.5</td><td>3000</td><td>Enhanced: pricing, product range, SEO, technical SEO, messaging, trends, recommendations</td></tr>
+</table>
+
+<p><strong>Token tracking:</strong> Every call logs promptTokens, completionTokens, totalTokens via Pino logger.</p>
+
+<h2>3.5 Gemini / Nano Banana Service</h2>
+<p><strong>File:</strong> <code>src/services/nanobanana.service.ts</code> · <strong>SDK:</strong> @google/genai 1.43.0 · <strong>Model:</strong> gemini-2.0-flash-preview-image-generation</p>
+<table><tr><th>Method</th><th>Parameters</th><th>Returns</th><th>What It Does</th></tr>
+<tr><td><code>generateImage()</code></td><td>prompt, { aspectRatio?, imageSize?, referenceImageBase64?, referenceImageMimeType? }</td><td>{ buffer, mimeType, filePath }</td><td>Text→image or image+text→image generation</td></tr>
+<tr><td><code>generateAndSave()</code></td><td>prompt, filename, options?</td><td>{ buffer, mimeType, filePath }</td><td>Generate + save to creatives/generated/ directory</td></tr>
+</table>
+<p><strong>Aspect ratios:</strong> 1:1, 9:16, 16:9, 4:3, 3:4. <strong>Sizes:</strong> 1K, 2K, 4K. Default: 1:1 at 2K.</p>
+
+<h2>3.6 WhatsApp Service (Meta Cloud API)</h2>
+<p><strong>File:</strong> <code>src/services/whatsapp.service.ts</code> · <strong>Base URL:</strong> graph.facebook.com/{version}/{phoneNumberId} · <strong>Timeout:</strong> 30s</p>
+<table><tr><th>Method</th><th>Parameters</th><th>Returns</th><th>What It Does</th></tr>
+<tr><td><code>sendTemplate()</code></td><td>to, templateName, languageCode, components?</td><td>messageId</td><td>Sends pre-approved WhatsApp Business template</td></tr>
+<tr><td><code>sendText()</code></td><td>to, text</td><td>messageId</td><td>Sends plain text message</td></tr>
+<tr><td><code>sendImage()</code></td><td>to, imageUrl, caption?</td><td>messageId</td><td>Sends image with optional caption</td></tr>
+<tr><td><code>refreshClient()</code></td><td>—</td><td>void</td><td>Re-fetches credentials from settings DB</td></tr>
+</table>
+
+<h2>3.7 Wati Service (WhatsApp Fallback)</h2>
+<p><strong>File:</strong> <code>src/services/wati.service.ts</code> · <strong>Fallback chain:</strong> Wati → Interakt</p>
+<table><tr><th>Method</th><th>Parameters</th><th>Returns</th><th>What It Does</th></tr>
+<tr><td><code>sendTemplate()</code></td><td>to, templateName, params</td><td>{ provider, messageId }</td><td>Tries Wati first, falls back to Interakt</td></tr>
+<tr><td><code>sendText()</code></td><td>to, text</td><td>{ provider, messageId }</td><td>Tries Wati text first, falls back to Interakt</td></tr>
+<tr><td><code>isConfigured()</code></td><td>—</td><td>boolean</td><td>Checks if any backup provider has API keys</td></tr>
+</table>
+
+<h2>3.8 Email Service</h2>
+<p><strong>File:</strong> <code>src/services/email.service.ts</code> · <strong>SDK:</strong> Nodemailer 6.9.16 + Handlebars 4.7.8 · <strong>Transport:</strong> SMTP</p>
+<table><tr><th>Method</th><th>Parameters</th><th>What It Does</th></tr>
+<tr><td><code>sendEmail()</code></td><td>to, subject, templateName, data</td><td>Compiles Handlebars template → sends via SMTP. Injects brand defaults (name, website, phone, socials).</td></tr>
+<tr><td><code>sendRawHtml()</code></td><td>to, subject, html</td><td>Sends raw HTML email (no template)</td></tr>
+<tr><td><code>verifyConnection()</code></td><td>—</td><td>Tests SMTP connection, returns boolean</td></tr>
+</table>
+<p><strong>Handlebars helpers:</strong> <code>{{formatDate date}}</code> → "27 Feb 2026" · <code>{{formatCurrency amount}}</code> → "₹1,234"</p>
+<p><strong>5 email templates:</strong> order-confirmation.hbs, production-started.hbs, shipped.hbs, delivered.hbs, review-request.hbs</p>
+
+<h2>3.9 Postiz Service (Social Media)</h2>
+<p><strong>File:</strong> <code>src/services/postiz.service.ts</code> · <strong>Base URL:</strong> app.postiz.com/api/v1 · <strong>Auth:</strong> X-API-KEY header · <strong>Timeout:</strong> 30s</p>
+<table><tr><th>Method</th><th>Parameters</th><th>Returns</th><th>What It Does</th></tr>
+<tr><td><code>uploadMedia()</code></td><td>imageUrl, filename</td><td>mediaId</td><td>Uploads image to Postiz media library</td></tr>
+<tr><td><code>createPost()</code></td><td>{ content, mediaIds?, platforms, scheduledAt? }</td><td>postId</td><td>Creates draft or scheduled post. Platforms: instagram, facebook, linkedin, twitter, pinterest</td></tr>
+<tr><td><code>listPosts()</code></td><td>{ status? }</td><td>Post[]</td><td>Lists all posts, filterable by status</td></tr>
+<tr><td><code>getAnalytics()</code></td><td>—</td><td>analytics data</td><td>Fetches post performance metrics</td></tr>
+</table>
+<p><strong>Optimal posting times (IST):</strong> Instagram 10AM/2PM/7PM · Facebook 9AM/1PM/5PM · LinkedIn 8AM/12PM/5PM · Twitter 9AM/12PM/6PM · Pinterest 2PM/8PM/9PM</p>
+
+<h2>3.10 Crawler Service (client)</h2>
+<p><strong>File:</strong> <code>src/services/crawler.service.ts</code> · <strong>Base URL:</strong> http://crawler:3001 · <strong>Timeout:</strong> 60s</p>
+<table><tr><th>Method</th><th>Parameters</th><th>Returns</th><th>What It Does</th></tr>
+<tr><td><code>analyzeSite()</code></td><td>url, previousCrawl?</td><td>CrawlResult</td><td>POST /crawl to crawler microservice. Returns products, blog posts, SEO score, analysis</td></tr>
+<tr><td><code>getHealth()</code></td><td>—</td><td>{ status }</td><td>GET /health on crawler</td></tr>
+<tr><td><code>listReports()</code></td><td>—</td><td>Report[]</td><td>GET /reports — lists all generated HTML reports</td></tr>
+</table>
+
+<h2>3.11 Settings Service</h2>
+<p><strong>File:</strong> <code>src/services/settings.service.ts</code> · <strong>Storage:</strong> system_config table (PostgreSQL)</p>
+<table><tr><th>Method</th><th>Parameters</th><th>What It Does</th></tr>
+<tr><td><code>get(key)</code></td><td>ConfigurableKey</td><td>Returns DB value → env fallback → undefined</td></tr>
+<tr><td><code>set(key, value)</code></td><td>key, value (null = remove)</td><td>Upsert to DB. null removes DB override, reverts to env</td></tr>
+<tr><td><code>setMany(entries)</code></td><td>Record&lt;key, value|null&gt;</td><td>Batch update multiple settings</td></tr>
+<tr><td><code>list()</code></td><td>—</td><td>All settings with source (database/env/none) + masked value</td></tr>
+<tr><td><code>refresh()</code></td><td>—</td><td>Force reload in-memory cache from DB</td></tr>
+</table>
+<p><strong>Masking:</strong> SECRET/KEY/PASSWORD → fully masked. URLs/names → shown in full. Others → first 4 + last 4 chars.</p>
+
+<!-- ═══ 04 WORKFLOWS ═══ -->
+<div class="pb"></div>
+<h1><span class="n">04</span> All 8 Workflows — Step-by-Step Logic</h1>
+<div class="sl"></div>
+
+<h2>4.1 Order Processing Workflow</h2>
+<p><strong>File:</strong> <code>src/workflows/order-processing.workflow.ts</code> · <strong>Trigger:</strong> order-sync queue · <strong>Payload:</strong> { orderId, event, rawPayload }</p>
+
+<div class="fs"><div class="fn">1</div><div class="fc"><div class="ft">Parse Order</div><div class="fd">Extract customer (name, phone, email from billing), flatten line items, extract jewelry meta (ring size, metal type, stones, engraving from line item meta/attributes), calculate promised delivery (order date + 14 days)</div><div class="fx">WooCommerce API → parseOrderForSheets()</div></div></div>
+<div class="fs"><div class="fn">2</div><div class="fc"><div class="ft">Check Existence</div><div class="fd">findOrderRow() in Sheets — if row exists, it's an update; if not, it's new</div><div class="fx">Google Sheets API</div></div></div>
+<div class="fs"><div class="fn">3</div><div class="fc"><div class="ft">If New Order</div><div class="fd">appendOrder() to Sheets with status "New" → send order_confirmation template via notification queue (WhatsApp + Email with customer_name, order_id, product_name, amount, delivery_date)</div><div class="fx">Google Sheets + BullMQ notification queue</div></div></div>
+<div class="fs"><div class="fn">4</div><div class="fc"><div class="ft">If Existing Order</div><div class="fd">Map WooCommerce status to sheet status: pending/processing/on-hold → "New", completed → "Delivered", cancelled → "Cancelled", refunded → "Refunded", failed → "Failed". Update row in Sheets.</div><div class="fx">Google Sheets</div></div></div>
+<div class="fs"><div class="fn">5</div><div class="fc"><div class="ft">Upsert Customer</div><div class="fd">Insert or update Customers tab (keyed by email) with order count, total spend, last order date</div><div class="fx">Google Sheets</div></div></div>
+
+<h2>4.2 Creative Pipeline Workflow</h2>
+<p><strong>File:</strong> <code>src/workflows/creative-pipeline.workflow.ts</code> · <strong>Trigger:</strong> creative-generation queue</p>
+
+<h3>5 Creative Variants Generated Per Product</h3>
+<table><tr><th>Variant</th><th>Aspect</th><th>Prompt Focus</th></tr>
+<tr><td>white_bg</td><td>1:1</td><td>Professional studio product photo, white background, e-commerce style</td></tr>
+<tr><td>lifestyle</td><td>1:1</td><td>Woman wearing jewelry at luxury event, golden-hour lighting, editorial</td></tr>
+<tr><td>festive</td><td>1:1</td><td>Diwali setting with diyas & marigolds, warm golden lighting</td></tr>
+<tr><td>minimal_text</td><td>1:1</td><td>Centered on cream background, ample negative space, magazine layout</td></tr>
+<tr><td>story_format</td><td>9:16</td><td>Vertical macro photography, dramatic studio lighting, cinematic</td></tr>
+</table>
+
+<div class="fs"><div class="fn">1</div><div class="fc"><div class="ft">Fetch reference image</div><div class="fd">Download product image from WooCommerce, convert to base64 for style-transfer</div><div class="fx">WooCommerce API + HTTP fetch</div></div></div>
+<div class="fs"><div class="fn">2</div><div class="fc"><div class="ft">Generate per variant</div><div class="fd">Build prompt from variant template + product details → call Gemini (or DALL-E fallback) → save locally to creatives/generated/</div><div class="fx">Gemini / DALL-E + filesystem</div></div></div>
+<div class="fs"><div class="fn">3</div><div class="fc"><div class="ft">Resize for platforms</div><div class="fd">1:1 → 1080×1080 (Instagram), 1200×628 (Facebook), 300×250 (Google Display). 9:16 → 1080×1920 (Stories)</div><div class="fx">Sharp image processing</div></div></div>
+<div class="fs"><div class="fn">4</div><div class="fc"><div class="ft">Upload to Google Drive</div><div class="fd">Upload original + resized variants to "SBEK Creatives" folder, get shareable links</div><div class="fx">Google Drive API</div></div></div>
+<div class="fs"><div class="fn">5</div><div class="fc"><div class="ft">Log to Sheets + generate caption</div><div class="fd">Append Creatives tab with product ID, variant, drive link, status='Generated'. Generate Instagram caption via OpenAI.</div><div class="fx">Google Sheets + OpenAI</div></div></div>
+
+<h2>4.3 Content Pipeline Workflow</h2>
+<p><strong>File:</strong> <code>src/workflows/content-pipeline.workflow.ts</code> · <strong>Trigger:</strong> content-generation queue · <strong>6 content types per product</strong></p>
+
+<table><tr><th>Type</th><th>What AI Generates</th><th>Where It Goes</th></tr>
+<tr><td><code>seo_meta</code></td><td>Title (&lt;60 chars) + meta description (&lt;160 chars)</td><td>WooCommerce product meta: _yoast_wpseo_title, _yoast_wpseo_metadesc</td></tr>
+<tr><td><code>faq</code></td><td>5 Q&A pairs (care, customization, delivery, materials, gifting)</td><td>WooCommerce product meta: _sbek_faq_json_ld as FAQPage schema</td></tr>
+<tr><td><code>schema_inject</code></td><td>Product + Organization JSON-LD schemas</td><td>WooCommerce product meta: _sbek_schema_json_ld → output as &lt;script type="application/ld+json"&gt;</td></tr>
+<tr><td><code>internal_links</code></td><td>"You May Also Like" HTML section with related product links</td><td>Appended to product description in WooCommerce</td></tr>
+<tr><td><code>aeo_kb</code></td><td>Comprehensive knowledge-base document (Brand Overview, Highlights, Materials, Customization, Pricing, CX)</td><td>Published as WordPress page: brand-knowledge-{product-slug}</td></tr>
+<tr><td><code>comparison</code></td><td>800-1200 word comparison article with HTML table</td><td>Published as WordPress blog post</td></tr>
+</table>
+<p><strong>Post-processing:</strong> After any content type, pingSitemap() fires to notify Google + Bing of new content.</p>
+
+<h2>4.4 Competitor Monitoring Workflow</h2>
+<p><strong>File:</strong> <code>src/workflows/competitor-monitoring.workflow.ts</code> · <strong>Trigger:</strong> competitor-crawl queue</p>
+
+<div class="fs"><div class="fn">1</div><div class="fc"><div class="ft">Fetch previous snapshot</div><div class="fd">Query competitor_snapshots table for last crawl of this competitor</div><div class="fx">PostgreSQL (Drizzle)</div></div></div>
+<div class="fs"><div class="fn">2</div><div class="fc"><div class="ft">Crawl site</div><div class="fd">POST to crawler:3001/crawl with URL + previous data. Crawler launches headless Chromium, extracts products, blog, SEO.</div><div class="fx">Crawler microservice (Playwright + Cheerio)</div></div></div>
+<div class="fs"><div class="fn">3</div><div class="fc"><div class="ft">Store snapshot</div><div class="fd">Insert full crawl result into competitor_snapshots table</div><div class="fx">PostgreSQL</div></div></div>
+<div class="fs"><div class="fn">4</div><div class="fc"><div class="ft">AI analysis</div><div class="fd">Enhanced analysis covering: Pricing, Product Range, SEO/Content, Technical SEO, Messaging, Historical Trends, 3-5 Recommendations</div><div class="fx">OpenAI GPT-4o (temp 0.5, 3000 tokens)</div></div></div>
+<div class="fs"><div class="fn">5</div><div class="fc"><div class="ft">Alert if significant</div><div class="fd">Checks for keywords: "new product", "price drop", "rebranding", "aggressive pricing". If found → WhatsApp alert to admin.</div><div class="fx">WhatsApp API</div></div></div>
+
+<h2>4.5 Production Tracking Workflow</h2>
+<p><strong>File:</strong> <code>src/workflows/production-tracking.workflow.ts</code> · <strong>Trigger:</strong> Order status → "In Production"</p>
+
+<p><strong>Auto-assignment by product type:</strong></p>
+<table><tr><th>Product Keywords</th><th>Assigned To</th></tr>
+<tr><td>ring</td><td>Ring Team</td></tr>
+<tr><td>necklace, pendant, chain</td><td>Necklace Team</td></tr>
+<tr><td>bracelet, bangle, anklet</td><td>Bracelet Team</td></tr>
+<tr><td>earring, stud, jhumka</td><td>Earring Team</td></tr>
+<tr><td>brooch, cufflink</td><td>Specialty Team</td></tr>
+<tr><td>(default)</td><td>General Team</td></tr>
+</table>
+
+<div class="fs"><div class="fn">1</div><div class="fc"><div class="ft">Fetch order + auto-assign team</div><div class="fd">Look up order in Sheets, match product name to team keyword map</div></div></div>
+<div class="fs"><div class="fn">2</div><div class="fc"><div class="ft">Get reference images</div><div class="fd">Query WooCommerce for matching product → return all image URLs (pipe-separated)</div></div></div>
+<div class="fs"><div class="fn">3</div><div class="fc"><div class="ft">Create Production task in Sheets</div><div class="fd">Append Production tab: Order ID, product specs, ring size, metal, stones, engraving, ref images, assignee, due date (promised - 2 days)</div></div></div>
+<div class="fs"><div class="fn">4</div><div class="fc"><div class="ft">Notify</div><div class="fd">Internal WhatsApp to admin (production_brief template). Customer WhatsApp + Email (production_started template).</div></div></div>
+
+<h2>4.6 QC Tracking Workflow</h2>
+<p><strong>File:</strong> <code>src/workflows/qc-tracking.workflow.ts</code> · <strong>Trigger:</strong> Production status → "Completed"</p>
+
+<p><strong>Default QC checklist items:</strong> Dimensions match specs · Metal finish quality · Stone setting secure · Engraving accuracy · Surface polish · Packaging condition</p>
+
+<div class="fs"><div class="fn">1</div><div class="fc"><div class="ft">Create checklist</div><div class="fd">Insert 6 rows into QC tab, all set to "Pending"</div></div></div>
+<div class="fs"><div class="fn">2</div><div class="fc"><div class="ft">Evaluate results (when all checked)</div><div class="fd"><strong>All PASS:</strong> Status → "Ready to Ship", customer notified (qc_passed template), ship date = now + 2 business days (skip Sundays)<br><strong>Any FAIL:</strong> Status → "In Production" (rework), admin alerted (qc_failed_alert), failed items noted</div></div></div>
+
+<h2>4.7 Review Collection Workflow</h2>
+<p><strong>File:</strong> <code>src/workflows/review-collection.workflow.ts</code> · <strong>Trigger:</strong> review-request queue (5-day delay after delivery)</p>
+<p>Sends review_request template via WhatsApp + Email with: customer_name, order_id, product_name, review_url. Sheets Notes updated to "Review Sent [date]" to prevent duplicates.</p>
+
+<h2>4.8 Customer Communications Workflow</h2>
+<p><strong>File:</strong> <code>src/workflows/customer-comms.workflow.ts</code> · <strong>Trigger:</strong> Order status changes</p>
+<table><tr><th>New Status</th><th>Template</th><th>Channel</th><th>Special Data</th></tr>
+<tr><td>In Production</td><td>production_started</td><td>WhatsApp + Email</td><td>—</td></tr>
+<tr><td>Shipped</td><td>order_shipped</td><td>WhatsApp + Email</td><td>tracking_number, tracking_url, carrier_name</td></tr>
+<tr><td>Delivered</td><td>delivered</td><td>WhatsApp + Email</td><td>Care instructions included</td></tr>
+<tr><td>Delivered + 5 days</td><td>review_request</td><td>WhatsApp + Email</td><td>review_url</td></tr>
+</table>
+
+<!-- ═══ 05 CRAWLER ═══ -->
+<div class="pb"></div>
+<h1><span class="n">05</span> Crawler Microservice — Complete Internals</h1>
+<div class="sl"></div>
+
+<p><strong>Location:</strong> <code>crawler/</code> · <strong>Tech:</strong> Express + Playwright + Cheerio · <strong>Docker:</strong> mcr.microsoft.com/playwright:v1.49.0-noble (~1.3 GB) · <strong>Port:</strong> 3001</p>
+
+<h2>Browser Configuration</h2>
+<table><tr><th>Setting</th><th>Value</th><th>Why</th></tr>
+<tr><td>Engine</td><td>Chromium (headless)</td><td>Full browser rendering for JS-heavy sites</td></tr>
+<tr><td>User Agent</td><td>Chrome 120 on Windows 10</td><td>Realistic UA avoids bot detection</td></tr>
+<tr><td>Viewport</td><td>1920 × 1080</td><td>Standard desktop resolution</td></tr>
+<tr><td>Navigation timeout</td><td>30 seconds</td><td>Handles slow sites</td></tr>
+<tr><td>Post-load wait</td><td>2 seconds</td><td>Allows JS frameworks (React, Vue) to render</td></tr>
+<tr><td>Polite delay</td><td>2-3s random</td><td>Avoids hammering servers between page navigations</td></tr>
+</table>
+
+<h2>Crawl Process (8 Steps)</h2>
+<div class="fs"><div class="fn">1</div><div class="fc"><div class="ft">robots.txt check</div><div class="fd">Fetches {site}/robots.txt (5s timeout). Parses User-agent: * sections. If path is in Disallow rules → returns error, doesn't crawl.</div></div></div>
+<div class="fs"><div class="fn">2</div><div class="fc"><div class="ft">Launch Chromium + navigate</div><div class="fd">Opens headless browser → navigates to URL (30s timeout) → waits 2s for JS rendering</div></div></div>
+<div class="fs"><div class="fn">3</div><div class="fc"><div class="ft">Extract homepage metadata</div><div class="fd">title, meta description, all H1 tags, meta keywords, og:image, navigation links from &lt;nav&gt;/&lt;header&gt;/.main-nav</div></div></div>
+<div class="fs"><div class="fn">4</div><div class="fc"><div class="ft">Calculate SEO score</div><div class="fd">4 booleans: hasMetaDescription, hasH1, hasOgTags (og:title or og:image), hasStructuredData (JSON-LD scripts)</div></div></div>
+<div class="fs"><div class="fn">5</div><div class="fc"><div class="ft">Extract products (3 strategies)</div><div class="fd"><strong>S1:</strong> 23 CSS selectors for product names + 15 for prices + 8 for links. Finds parent card container, extracts name/price/URL.<br><strong>S2:</strong> Direct product links matching /products/, /product/, /shop/ patterns.<br><strong>S3:</strong> JSON-LD schema.org Product/@type structures.<br>If no products found on homepage → follows link to /collections or /shop page (with polite delay).</div></div></div>
+<div class="fs"><div class="fn">6</div><div class="fc"><div class="ft">Extract blog posts (2 strategies)</div><div class="fd"><strong>S1:</strong> 11 CSS selectors for blog containers (.blog-post, .article-card, etc.).<br><strong>S2:</strong> URL patterns matching /blog/, /journal/, /news/, /articles/, /stories/.<br>If none on homepage → follows link to blog page.</div></div></div>
+<div class="fs"><div class="fn">7</div><div class="fc"><div class="ft">Compare with previous crawl</div><div class="fd">New/removed products (case-insensitive name match). Price changes >10% threshold. New blog posts (URL-based match). Content freshness score 0-100.</div></div></div>
+<div class="fs"><div class="fn">8</div><div class="fc"><div class="ft">Generate HTML report</div><div class="fd">Styled report with: summary cards, SEO health grid (4 checkmarks), freshness bar (color-coded), product/price change tables, full product list, blog posts, navigation. Saved to /app/reports/{date}-{domain}.html</div></div></div>
+
+<h2>Freshness Score Calculation (0-100)</h2>
+<table><tr><th>Factor</th><th>Points</th></tr>
+<tr><td>Baseline</td><td>50</td></tr>
+<tr><td>Has blog posts</td><td>+10</td></tr>
+<tr><td>Recent blog (&lt;90 days)</td><td>+5</td></tr>
+<tr><td>Has meta description</td><td>+5</td></tr>
+<tr><td>Has H1</td><td>+5</td></tr>
+<tr><td>Has OG tags</td><td>+5</td></tr>
+<tr><td>Has structured data</td><td>+5</td></tr>
+<tr><td>Products > 0</td><td>+5</td></tr>
+<tr><td>Products > 10</td><td>+5</td></tr>
+<tr><td>Products > 50</td><td>+5</td></tr>
+<tr><td>New products vs previous</td><td>+5</td></tr>
+<tr><td>New blog posts vs previous</td><td>+5</td></tr>
+</table>
+
+<!-- ═══ 06 DATABASE ═══ -->
+<div class="pb"></div>
+<h1><span class="n">06</span> Database Schema — Every Column</h1>
+<div class="sl"></div>
+
+<h2>Table 1: job_logs</h2>
+<table><tr><th>Column</th><th>Type</th><th>Default</th><th>Purpose</th></tr>
+<tr><td>id</td><td>serial PK</td><td>auto</td><td>Auto-increment ID</td></tr>
+<tr><td>queueName</td><td>varchar(100) NOT NULL</td><td>—</td><td>"order-sync", "notification", etc.</td></tr>
+<tr><td>jobId</td><td>varchar(100) NOT NULL</td><td>—</td><td>BullMQ job ID (e.g. "order-12345-1709380800")</td></tr>
+<tr><td>status</td><td>text</td><td>'queued'</td><td>queued → active → completed / failed / retrying</td></tr>
+<tr><td>payload</td><td>jsonb</td><td>NULL</td><td>Full job input data as JSON</td></tr>
+<tr><td>result</td><td>jsonb</td><td>NULL</td><td>Job output on success</td></tr>
+<tr><td>error</td><td>text</td><td>NULL</td><td>Error message + stack if failed</td></tr>
+<tr><td>attempts</td><td>integer</td><td>0</td><td>Number of retry attempts made</td></tr>
+<tr><td>createdAt</td><td>timestamp</td><td>now()</td><td>When job was first created</td></tr>
+<tr><td>completedAt</td><td>timestamp</td><td>NULL</td><td>When job finished (success or final failure)</td></tr>
+</table>
+
+<h2>Table 2: webhook_events</h2>
+<table><tr><th>Column</th><th>Type</th><th>Default</th><th>Purpose</th></tr>
+<tr><td>id</td><td>serial PK</td><td>auto</td><td></td></tr>
+<tr><td>source</td><td>varchar(50) NOT NULL</td><td>—</td><td>"woocommerce"</td></tr>
+<tr><td>event</td><td>varchar(100) NOT NULL</td><td>—</td><td>"order.created", "order.updated", "product.updated"</td></tr>
+<tr><td>payload</td><td>jsonb NOT NULL</td><td>—</td><td>Full webhook request body</td></tr>
+<tr><td>processed</td><td>boolean</td><td>false</td><td>Has the event been successfully processed?</td></tr>
+<tr><td>processedAt</td><td>timestamp</td><td>NULL</td><td>When processing completed</td></tr>
+<tr><td>createdAt</td><td>timestamp</td><td>now()</td><td>When webhook was received</td></tr>
+</table>
+
+<h2>Table 3: cron_runs</h2>
+<table><tr><th>Column</th><th>Type</th><th>Default</th><th>Purpose</th></tr>
+<tr><td>id</td><td>serial PK</td><td>auto</td><td></td></tr>
+<tr><td>jobName</td><td>varchar(100) NOT NULL</td><td>—</td><td>"daily-sheets-sync", "weekly-competitor-crawl", etc.</td></tr>
+<tr><td>startedAt</td><td>timestamp</td><td>now()</td><td></td></tr>
+<tr><td>completedAt</td><td>timestamp</td><td>NULL</td><td></td></tr>
+<tr><td>itemsProcessed</td><td>integer</td><td>0</td><td>How many orders/products/competitors handled</td></tr>
+<tr><td>error</td><td>text</td><td>NULL</td><td>Error message if cron failed</td></tr>
+</table>
+
+<h2>Table 4: competitor_snapshots</h2>
+<table><tr><th>Column</th><th>Type</th><th>Default</th><th>Purpose</th></tr>
+<tr><td>id</td><td>serial PK</td><td>auto</td><td></td></tr>
+<tr><td>competitorName</td><td>varchar(200) NOT NULL</td><td>—</td><td>Brand name</td></tr>
+<tr><td>url</td><td>varchar(500) NOT NULL</td><td>—</td><td>URL crawled</td></tr>
+<tr><td>data</td><td>jsonb NOT NULL</td><td>—</td><td>Full crawl result: products, blog posts, SEO score, navigation, metadata</td></tr>
+<tr><td>crawledAt</td><td>timestamp</td><td>now()</td><td></td></tr>
+</table>
+
+<h2>Table 5: system_config</h2>
+<table><tr><th>Column</th><th>Type</th><th>Default</th><th>Purpose</th></tr>
+<tr><td>id</td><td>serial PK</td><td>auto</td><td></td></tr>
+<tr><td>key</td><td>varchar(100) NOT NULL UNIQUE</td><td>—</td><td>Setting name (e.g. "OPENAI_API_KEY")</td></tr>
+<tr><td>value</td><td>jsonb NOT NULL</td><td>—</td><td>Setting value (JSON-encoded)</td></tr>
+<tr><td>updatedAt</td><td>timestamp</td><td>now()</td><td></td></tr>
+</table>
+
+<!-- ═══ 07 API ENDPOINTS ═══ -->
+<div class="pb"></div>
+<h1><span class="n">07</span> All API Endpoints — Complete Reference</h1>
+<div class="sl"></div>
+
+<h2>Health (no auth)</h2>
+<table><tr><th>Method</th><th>Path</th><th>Response</th></tr>
+<tr><td><span class="badge bgr">GET</span></td><td>/health</td><td>{ status: "ok", timestamp }</td></tr>
+<tr><td><span class="badge bgr">GET</span></td><td>/health/ready</td><td>{ status, services: { redis: {status, latency}, postgres: {status, latency} } }</td></tr>
+</table>
+
+<h2>Webhooks (HMAC auth, rate limited 10/min)</h2>
+<table><tr><th>Method</th><th>Path</th><th>Auth</th><th>What Happens</th></tr>
+<tr><td><span class="badge bg">POST</span></td><td>/webhooks/woocommerce/order</td><td>x-wc-webhook-signature (HMAC-SHA256)</td><td>Verifies signature → logs to webhook_events → enqueues order-sync job → returns 200. Handles ping events.</td></tr>
+<tr><td><span class="badge bg">POST</span></td><td>/webhooks/woocommerce/product</td><td>x-wc-webhook-signature (HMAC-SHA256)</td><td>Only processes status='publish'. Auto-creates 7 jobs: 6 content-generation + 1 creative-generation → returns 200 with jobCount.</td></tr>
+</table>
+
+<h2>Dashboard API (no auth, consumed by Next.js frontend)</h2>
+<table><tr><th>Method</th><th>Path</th><th>Response</th></tr>
+<tr><td><span class="badge bgr">GET</span></td><td>/dashboard/stats</td><td>{ totalProcessed, totalCompleted, totalFailed, totalActive, totalWaiting, totalDelayed, successRate, activeQueues, totalQueues }</td></tr>
+<tr><td><span class="badge bgr">GET</span></td><td>/dashboard/queues</td><td>{ queues: [{ name, completed, failed, active, waiting, delayed }] }</td></tr>
+<tr><td><span class="badge bgr">GET</span></td><td>/dashboard/queues/:name</td><td>Queue detail + recent jobs (20 per status: completed, failed, active, waiting, delayed)</td></tr>
+<tr><td><span class="badge bgr">GET</span></td><td>/dashboard/queues/:name/jobs</td><td>Paginated jobs. Query: ?status=completed&start=0&limit=50 (max 100)</td></tr>
+<tr><td><span class="badge bg">POST</span></td><td>/dashboard/queues/:name/retry-all</td><td>{ queue, retried: count }</td></tr>
+<tr><td><span class="badge bg">POST</span></td><td>/dashboard/queues/:name/clean</td><td>{ queue, cleaned: { completed, failed } }</td></tr>
+<tr><td><span class="badge bgr">GET</span></td><td>/dashboard/system/health</td><td>{ status, services: { redis, postgres, crawler } } with latency (ms)</td></tr>
+<tr><td><span class="badge bgr">GET</span></td><td>/dashboard/system/cron</td><td>{ runs: [...last 50 cron executions] }</td></tr>
+<tr><td><span class="badge bgr">GET</span></td><td>/dashboard/system/logs</td><td>{ logs: [...] }. Query: ?limit=50&queue=content-generation</td></tr>
+<tr><td><span class="badge bgr">GET</span></td><td>/dashboard/webhooks/recent</td><td>{ events: [...last 50 webhook events] }</td></tr>
+<tr><td><span class="badge bgr">GET</span></td><td>/dashboard/competitors</td><td>{ snapshots: [...last 20 competitor crawl snapshots] }</td></tr>
+<tr><td><span class="badge bgr">GET</span></td><td>/dashboard/settings</td><td>{ settings: [{ key, configured, source, maskedValue }], configurableKeys: [...] }</td></tr>
+<tr><td><span class="badge bb">PUT</span></td><td>/dashboard/settings</td><td>Body: { keys: { KEY: "value" | null } }. null removes DB override.</td></tr>
+<tr><td><span class="badge bg">POST</span></td><td>/dashboard/settings/validate</td><td>Body: { section, values }. Returns { valid, message, results? }. Sections: woocommerce, google-sheets, whatsapp-meta, email-smtp, ai, social-media, crawler</td></tr>
+<tr><td><span class="badge bg">POST</span></td><td>/dashboard/data/seed</td><td>Runs scripts/seed-demo.ts via npx tsx. Returns { success, output }</td></tr>
+<tr><td><span class="badge bg">POST</span></td><td>/dashboard/data/reset</td><td>Truncates all 5 tables + obliterates all BullMQ queues. Settings preserved.</td></tr>
+</table>
+
+<h2>Admin Settings (Basic auth)</h2>
+<table><tr><th>Method</th><th>Path</th><th>Response</th></tr>
+<tr><td><span class="badge bgr">GET</span></td><td>/admin/settings</td><td>All settings with masked values</td></tr>
+<tr><td><span class="badge bb">PUT</span></td><td>/admin/settings</td><td>Update settings. { keys: { KEY: value | null } }</td></tr>
+<tr><td><span class="badge br">DELETE</span></td><td>/admin/settings/:key</td><td>Remove DB override for one key</td></tr>
+<tr><td><span class="badge bg">POST</span></td><td>/admin/settings/refresh</td><td>Force reload settings cache</td></tr>
+</table>
+
+<h2>Crawler Endpoints (port 3001, rate limited 10/min)</h2>
+<table><tr><th>Method</th><th>Path</th><th>Response</th></tr>
+<tr><td><span class="badge bgr">GET</span></td><td>/health</td><td>{ status, service, version, uptime, timestamp }</td></tr>
+<tr><td><span class="badge bg">POST</span></td><td>/crawl</td><td>Body: { url, selectors?, previousCrawl?, competitorName? }. Returns { success, elapsedMs, crawl, analysis, reportHtml }</td></tr>
+<tr><td><span class="badge bgr">GET</span></td><td>/reports</td><td>{ reports: [{ filename, path, url }] }</td></tr>
+<tr><td><span class="badge bgr">GET</span></td><td>/reports/:filename</td><td>HTML report file</td></tr>
+</table>
+
+<!-- ═══ 08 QUEUES ═══ -->
+<div class="pb"></div>
+<h1><span class="n">08</span> All 7 Job Queues — Full Configuration</h1>
+<div class="sl"></div>
+
+<table><tr><th>Queue</th><th>Workers</th><th>Rate Limit</th><th>Retries</th><th>Backoff</th><th>Triggered By</th><th>Services Called</th></tr>
+<tr><td><strong>order-sync</strong></td><td>3</td><td>10/min</td><td>5</td><td>exponential, 1s</td><td>Order webhook + daily 2AM cron</td><td>WooCommerce API, Google Sheets</td></tr>
+<tr><td><strong>notification</strong></td><td>5</td><td>20/min</td><td>5</td><td>exponential, 2s</td><td>order-sync worker, status changes</td><td>Meta WhatsApp, Wati, Interakt, SMTP Email</td></tr>
+<tr><td><strong>review-request</strong></td><td>2</td><td>—</td><td>3</td><td>exponential, 5s</td><td>Daily 6AM cron</td><td>Meta WhatsApp, SMTP Email</td></tr>
+<tr><td><strong>content-generation</strong></td><td>2</td><td>—</td><td>3</td><td>exponential, 10s</td><td>Product webhook + Monday 9AM cron</td><td>OpenAI GPT-4o, WooCommerce (write back meta/pages)</td></tr>
+<tr><td><strong>creative-generation</strong></td><td>1</td><td>—</td><td>3</td><td>exponential, 15s</td><td>Product webhook + Monday 9AM cron</td><td>Gemini, DALL-E, Sharp, Google Drive, Google Sheets</td></tr>
+<tr><td><strong>social-posting</strong></td><td>1</td><td>—</td><td>4</td><td>exponential, 5s</td><td>creative-generation worker</td><td>Postiz API</td></tr>
+<tr><td><strong>competitor-crawl</strong></td><td>1</td><td>—</td><td>3</td><td>exponential, 30s</td><td>Sunday 10PM cron</td><td>Crawler microservice, OpenAI (analysis), PostgreSQL</td></tr>
+</table>
+
+<p><strong>Job retention:</strong> Completed jobs kept 7 days. Failed jobs kept 30 days. <strong>Deduplication:</strong> order-sync uses job ID format <code>order-{orderId}-{timestamp}</code>.</p>
+
+<!-- ═══ 09 CRON ═══ -->
+<h1><span class="n">09</span> All 4 Cron Jobs — Detailed</h1>
+<div class="sl"></div>
+
+<table><tr><th>Schedule</th><th>Time (IST)</th><th>Job Name</th><th>What It Does</th><th>Services Used</th></tr>
+<tr><td><code>0 2 * * *</code></td><td>2:00 AM daily</td><td>daily-sheets-sync</td><td>Pulls last 3 days of WooCommerce orders (paginated 50/page). Enqueues order-sync job for each. Catches missed webhooks.</td><td>WooCommerce API → order-sync queue</td></tr>
+<tr><td><code>0 6 * * *</code></td><td>6:00 AM daily</td><td>daily-review-requests</td><td>Reads Sheets for "Delivered" orders. Filters: delivered 5+ days ago, Notes ≠ "Review Sent". Enqueues review-request per order. Marks "Review Sent [date]" in Notes.</td><td>Google Sheets → review-request queue</td></tr>
+<tr><td><code>0 9 * * 1</code></td><td>9:00 AM Monday</td><td>weekly-content-generation</td><td>Fetches all published products from WooCommerce. Enqueues 7 jobs per product (6 content + 1 creative). 27 products = 189 jobs.</td><td>WooCommerce API → content-generation + creative-generation queues</td></tr>
+<tr><td><code>0 22 * * 0</code></td><td>10:00 PM Sunday</td><td>weekly-competitor-crawl</td><td>Reads competitor list from Sheets "Competitors" tab. Enqueues competitor-crawl job per competitor.</td><td>Google Sheets → competitor-crawl queue</td></tr>
+</table>
+
+<!-- ═══ 10 DASHBOARD ═══ -->
+<div class="pb"></div>
+<h1><span class="n">10</span> Dashboard — Pages, Components, Polling</h1>
+<div class="sl"></div>
+
+<h2>Data Fetching (SWR Polling)</h2>
+<table><tr><th>Hook</th><th>Endpoint</th><th>Interval</th><th>Used On</th></tr>
+<tr><td>useStats()</td><td>/dashboard/stats</td><td>5s</td><td>Home page stat cards</td></tr>
+<tr><td>useQueues()</td><td>/dashboard/queues</td><td>5s</td><td>Home + Queues pages</td></tr>
+<tr><td>useWebhooks()</td><td>/dashboard/webhooks/recent</td><td>10s</td><td>Home + Activity pages</td></tr>
+<tr><td>useSystemHealth()</td><td>/dashboard/system/health</td><td>10s</td><td>System page</td></tr>
+<tr><td>useCronRuns()</td><td>/dashboard/system/cron</td><td>30s</td><td>System page</td></tr>
+<tr><td>useLogs(queue?)</td><td>/dashboard/system/logs</td><td>10s</td><td>Activity + System pages</td></tr>
+<tr><td>useSettings()</td><td>/dashboard/settings</td><td>one-time</td><td>Settings page</td></tr>
+<tr><td>useQueueDetail(name)</td><td>/dashboard/queues/:name</td><td>5s</td><td>Queue detail page</td></tr>
+</table>
+
+<h2>5 Dashboard Pages</h2>
+
+<h3>Home (app/page.tsx)</h3>
+<p>4 stat cards (Orders Processed, Failed Today, Success Rate, In Progress) with trend indicators. Queue status grid (3 columns). Recent activity feed with fade-out gradient. Live "Updated Xs ago" ticker. Skeleton loading states. Staggered fade-in animations (0.12s, 0.28s, 0.44s, 0.60s).</p>
+
+<h3>Queues (app/queues/page.tsx)</h3>
+<p>Summary strip (Total Jobs, Active, Waiting, Failed). Queue cards grid (2 columns) with: name, status badge (Healthy/Failing/Degraded/Idle), stacked progress bar, 5-column stats (Waiting/Active/Completed/Failed/Delayed), total count. Legend at bottom.</p>
+
+<h3>Activity (app/activity/page.tsx)</h3>
+<p>Source filter tabs. Event feed: ID, source badge, event name, processed/pending indicator, timestamp. Logs table: Queue, Job ID, Status, Error, Time. Top stats: "X processed" / "X pending" badges.</p>
+
+<h3>System (app/system/page.tsx)</h3>
+<p>3-column service health grid: StatusDot + label + latency bar (color-coded: &lt;50ms gold, &lt;200ms amber, ≥200ms red). Cron runs table. Recent log entries.</p>
+
+<h3>Settings (app/settings/page.tsx)</h3>
+<p>9 collapsible sections (WooCommerce, Google Sheets, WhatsApp Meta, WhatsApp Backup, Email SMTP, AI/Image Gen, Social Media, Crawler, Brand). Each with: field progress (3/5), password toggle, source badge (DB/ENV), test connection button. Sticky save bar with change counter. Seed/Reset demo data buttons (erase requires double-click confirmation).</p>
+
+<h2>UI Design System</h2>
+<table><tr><th>Token</th><th>Value</th><th>Usage</th></tr>
+<tr><td>Background</td><td>#0C0D0B</td><td>Body, sidebar</td></tr>
+<tr><td>Surface</td><td>#141513</td><td>Cards, sections</td></tr>
+<tr><td>Elevated</td><td>#1A1B19</td><td>Hover states</td></tr>
+<tr><td>Border</td><td>#2A2B28</td><td>All borders</td></tr>
+<tr><td>Primary text</td><td>#d4d3cc</td><td>Headings, values</td></tr>
+<tr><td>Muted text</td><td>#7A7968</td><td>Labels, secondary</td></tr>
+<tr><td>Subtle text</td><td>#656453</td><td>Timestamps, hints</td></tr>
+<tr><td>Gold accent</td><td>#C5A572</td><td>Active states, accents, success</td></tr>
+<tr><td>Gold gradient</td><td>#C4A35A → #A68B3E</td><td>Underlines, decorative</td></tr>
+<tr><td>Error red</td><td>#ef4444</td><td>Failed status, errors</td></tr>
+<tr><td>Warning amber</td><td>#f59e0b</td><td>Pending, delayed</td></tr>
+<tr><td>Sidebar width</td><td>260px</td><td>Fixed left sidebar</td></tr>
+<tr><td>Content max-width</td><td>1400px</td><td>Centered main content</td></tr>
+<tr><td>Content padding</td><td>32px top/bottom, 40px left/right</td><td>Main content area</td></tr>
+<tr><td>Fonts</td><td>Poppins (UI), JetBrains Mono (code/IDs)</td><td>Google Fonts</td></tr>
+</table>
+
+<!-- ═══ 11 FLOWS ═══ -->
+<div class="pb"></div>
+<h1><span class="n">11</span> End-to-End Data Flows</h1>
+<div class="sl"></div>
+
+<h2>Flow A: Customer Places Order</h2>
+<div class="dia"><span class="g">Customer</span> buys on sbek.in
+    │
+    ▼
+<span class="g">WooCommerce</span> fires POST /webhooks/woocommerce/order
+    │  <span class="d">(HMAC-SHA256 verified)</span>
+    ▼
+<span class="g">App</span> logs to <span class="gr">webhook_events</span> table
+    │
+    ▼
+Enqueues to <span class="g">order-sync</span> queue <span class="d">(Redis)</span>
+    │
+    ▼
+Worker calls <span class="g">WooCommerce API</span> for full order
+    │
+    ├─→ <span class="g">Google Sheets</span>: append Orders, Production, QC tabs
+    ├─→ <span class="g">Google Sheets</span>: upsert Customers tab
+    └─→ Enqueue <span class="g">notification</span> job
+         │
+         ├─→ <span class="g">WhatsApp</span> to owner (Meta → Wati → Interakt)
+         └─→ <span class="g">Email</span> to customer (SMTP + Handlebars)
+              │
+              ▼
+         <span class="gr">job_logs</span> table updated: status=completed</div>
+
+<h2>Flow B: Product Published</h2>
+<div class="dia"><span class="g">Product</span> published on WooCommerce
+    │
+    ▼
+POST /webhooks/woocommerce/product
+    │
+    ▼
+<span class="g">App</span> auto-creates <span class="g">7 jobs</span>:
+    │
+    ├─→ <span class="g">content-generation</span> ×6:
+    │     SEO meta → <span class="gr">OpenAI</span> → WooCommerce meta
+    │     FAQ      → <span class="gr">OpenAI</span> → WooCommerce meta (JSON-LD)
+    │     AEO KB   → <span class="gr">OpenAI</span> → WordPress page
+    │     Comparison→ <span class="gr">OpenAI</span> → WordPress blog post
+    │     Schema   → <span class="gr">OpenAI</span> → WooCommerce meta
+    │     Links    → <span class="gr">WooCommerce</span> → product description
+    │
+    └─→ <span class="g">creative-generation</span> ×1:
+          5 variants → <span class="gr">Gemini/DALL-E</span> → <span class="gr">Sharp</span> resize
+              │
+              ▼
+          <span class="gr">Google Drive</span> upload → <span class="gr">Google Sheets</span> log
+              │
+              ▼
+          <span class="g">social-posting</span> → <span class="gr">Postiz</span> → 5 platforms</div>
+
+<h2>Flow C: Competitor Monitoring</h2>
+<div class="dia">Sunday 10 PM IST → <span class="g">cron</span> fires
+    │
+    ▼
+Reads <span class="g">Google Sheets</span> Competitors tab
+    │
+    ▼
+Enqueues <span class="g">competitor-crawl</span> per competitor
+    │
+    ▼
+Worker → POST <span class="g">crawler:3001/crawl</span>
+    │
+    ▼
+<span class="g">Playwright</span> launches Chromium
+    ├─→ robots.txt check
+    ├─→ Navigate homepage (30s timeout)
+    ├─→ Wait 2s for JS
+    ├─→ Extract: products, prices, blog, SEO
+    ├─→ Follow links if needed (polite 2-3s delay)
+    └─→ Compare with previous crawl
+         │
+         ▼
+    Save to <span class="gr">competitor_snapshots</span> table
+    Generate <span class="gr">HTML report</span>
+    <span class="g">OpenAI</span> enhanced analysis
+    Alert via <span class="g">WhatsApp</span> if significant</div>
+
+<h2>Flow D: Order Lifecycle (Full Journey)</h2>
+<div class="dia"><span class="g">New</span> → auto-assign team → <span class="g">In Production</span>
+    │                              │
+    │  <span class="d">customer: production_started</span>  │
+    │  <span class="d">admin: production_brief</span>       │
+    │                              ▼
+    │                    <span class="g">QC</span> (6 checklist items)
+    │                      │            │
+    │                 All PASS       Any FAIL
+    │                      │            │
+    │                      ▼            ▼
+    │              <span class="g">Ready to Ship</span>   Back to <span class="g">In Production</span>
+    │                      │         (rework)
+    │                      ▼
+    │                  <span class="g">Shipped</span>
+    │    <span class="d">customer: order_shipped + tracking</span>
+    │                      │
+    │                      ▼
+    │                  <span class="g">Delivered</span>
+    │    <span class="d">customer: delivered + care instructions</span>
+    │                      │
+    │                 <span class="d">+5 days</span>
+    │                      ▼
+    │              <span class="g">Review Request</span>
+    │    <span class="d">customer: WhatsApp + Email</span>
+    └──────────────────────┘</div>
+
+<!-- ═══ 12 DEPLOYMENT ═══ -->
+<div class="pb"></div>
+<h1><span class="n">12</span> Deployment & Infrastructure</h1>
+<div class="sl"></div>
+
+<h2>Docker Images</h2>
+<table><tr><th>Service</th><th>Base Image</th><th>Size</th><th>Build</th></tr>
+<tr><td>App</td><td>node:20-alpine</td><td>~150 MB</td><td>Multi-stage: builder compiles TS, runner has prod deps + templates + scripts</td></tr>
+<tr><td>Dashboard</td><td>node:20-alpine</td><td>~100 MB</td><td>Multi-stage: builder runs next build (standalone), runner has .next/standalone + static + public</td></tr>
+<tr><td>Crawler</td><td>mcr.microsoft.com/playwright:v1.49.0-noble</td><td>~1.3 GB</td><td>Includes full Chromium browser engine</td></tr>
+<tr><td>PostgreSQL</td><td>postgres:16-alpine</td><td>~80 MB</td><td>Official image, persistent volume pg_data</td></tr>
+<tr><td>Redis</td><td>redis:7-alpine</td><td>~30 MB</td><td>Official image, persistent volume redis_data</td></tr>
+</table>
+
+<h2>Docker Compose Network</h2>
+<div class="dia"><span class="g">sbek-net</span> (bridge driver)
+    │
+    ├── app:3000        ← public (webhooks + dashboard API)
+    ├── dashboard:3002  ← public (user-facing UI)
+    ├── crawler:3001    ← internal only (called by app)
+    ├── postgres:5432   ← internal only (app connects)
+    └── redis:6379      ← internal only (app connects)</div>
+
+<h2>Railway Configuration</h2>
+<table><tr><th>Setting</th><th>Value</th></tr>
+<tr><td>Deploy trigger</td><td>Git push to main branch → auto-build + deploy</td></tr>
+<tr><td>Health check</td><td>GET /health (120s timeout)</td></tr>
+<tr><td>Restart policy</td><td>ON_FAILURE (max 5 retries)</td></tr>
+<tr><td>App URL</td><td>https://app-production-d917.up.railway.app</td></tr>
+<tr><td>Dashboard URL</td><td>https://dashboard-production-1ce5.up.railway.app</td></tr>
+<tr><td>PostgreSQL</td><td>maglev.proxy.rlwy.net:57485</td></tr>
+<tr><td>Redis</td><td>tramway.proxy.rlwy.net:13205</td></tr>
+</table>
+
+<h2>All Environment Variables</h2>
+<table><tr><th>Category</th><th>Keys</th><th>Required</th></tr>
+<tr><td>Core</td><td>NODE_ENV, PORT, LOG_LEVEL, DATABASE_URL, REDIS_URL</td><td>DATABASE_URL required</td></tr>
+<tr><td>WooCommerce</td><td>WOO_URL, WOO_CONSUMER_KEY, WOO_CONSUMER_SECRET, WOO_WEBHOOK_SECRET</td><td>For order sync</td></tr>
+<tr><td>Google</td><td>GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY, GOOGLE_SHEET_ID</td><td>For Sheets + Drive</td></tr>
+<tr><td>WhatsApp</td><td>WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_ACCESS_TOKEN, WHATSAPP_API_VERSION</td><td>For primary WhatsApp</td></tr>
+<tr><td>WhatsApp Backup</td><td>WATI_API_KEY, WATI_BASE_URL, INTERAKT_API_KEY</td><td>Optional fallbacks</td></tr>
+<tr><td>Email</td><td>SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_FROM</td><td>For email notifications</td></tr>
+<tr><td>AI</td><td>OPENAI_API_KEY, GEMINI_API_KEY</td><td>For content + creatives</td></tr>
+<tr><td>Social</td><td>POSTIZ_API_KEY, POSTIZ_BASE_URL</td><td>For social posting</td></tr>
+<tr><td>Crawler</td><td>CRAWLER_BASE_URL</td><td>Default: http://crawler:3001</td></tr>
+<tr><td>Admin</td><td>ADMIN_USERNAME, ADMIN_PASSWORD</td><td>PASSWORD required</td></tr>
+<tr><td>Brand</td><td>BRAND_NAME, BRAND_PRIMARY_COLOR, BRAND_WEBSITE, BRAND_SUPPORT_PHONE, BRAND_SUPPORT_EMAIL, REVIEW_URL</td><td>For templates</td></tr>
+</table>
+
+<h2>Middleware Stack (App)</h2>
+<table><tr><th>Middleware</th><th>What It Does</th></tr>
+<tr><td>express.json({ verify })</td><td>Parses JSON body + captures rawBody buffer for HMAC verification</td></tr>
+<tr><td>Helmet</td><td>Sets security headers: CSP, HSTS, X-Frame-Options, X-Content-Type-Options</td></tr>
+<tr><td>CORS</td><td>Allows cross-origin requests (for dashboard)</td></tr>
+<tr><td>Pino HTTP</td><td>Structured request logging (method, url, status, duration)</td></tr>
+<tr><td>webhookAuth</td><td>HMAC-SHA256 signature verification using WOO_WEBHOOK_SECRET + timing-safe comparison</td></tr>
+<tr><td>adminAuth</td><td>Basic HTTP auth (base64 username:password) against ADMIN_USERNAME + ADMIN_PASSWORD</td></tr>
+<tr><td>rateLimiter</td><td>Per-IP rate limiting (10/min for webhooks, configurable for other routes)</td></tr>
+<tr><td>errorHandler</td><td>Catches errors → logs (5xx=error, 4xx=warn) → returns JSON { error, message, stack? (dev only) }</td></tr>
+</table>
+
+<h2>Utility Functions</h2>
+<table><tr><th>Function</th><th>File</th><th>What It Does</th></tr>
+<tr><td>sanitizeForSheets(value)</td><td>utils/sanitize.ts</td><td>Blocks formula injection: strips leading =, +, -, @, tab, newline</td></tr>
+<tr><td>sanitizeRow(row)</td><td>utils/sanitize.ts</td><td>Applies sanitizeForSheets to all values in a Record</td></tr>
+<tr><td>normalizePhone(phone)</td><td>utils/sanitize.ts</td><td>Converts to E.164: "9876543210" → "+919876543210"</td></tr>
+<tr><td>stripHtml(html)</td><td>utils/sanitize.ts</td><td>Removes all HTML tags via regex</td></tr>
+<tr><td>truncate(str, maxLength)</td><td>utils/sanitize.ts</td><td>Returns str or str.slice(0, max-3) + "..."</td></tr>
+<tr><td>formatDate(date)</td><td>utils/date.ts</td><td>YYYY-MM-DD format</td></tr>
+<tr><td>formatDateHuman(date)</td><td>utils/date.ts</td><td>"27 Feb 2026" (en-IN locale)</td></tr>
+<tr><td>addDays(date, days)</td><td>utils/date.ts</td><td>Returns new Date + N days</td></tr>
+<tr><td>isOlderThanDays(date, days)</td><td>utils/date.ts</td><td>Boolean check for date age</td></tr>
+<tr><td>businessDaysBetween(start, end)</td><td>utils/date.ts</td><td>Counts Mon-Sat (Indian week, skips Sundays only)</td></tr>
+</table>
+
+<h2>Graceful Shutdown (src/index.ts)</h2>
+<p>On SIGTERM or SIGINT: close HTTP server → close all BullMQ queues → quit Redis → end PostgreSQL pool → process.exit(0). Unhandled rejections logged as error. Uncaught exceptions logged as fatal + exit(1).</p>
+
+<div style="margin-top: 30px; text-align: center; color: #999; font-size: 8px; border-top: 1px solid #eee; padding-top: 12px;">
+  SBEK Automation System — Complete Technical Reference<br>
+  TypeScript · Express · Next.js · BullMQ · Playwright · PostgreSQL · Redis<br>
+  11 Services · 8 Workflows · 7 Queues · 4 Cron Jobs · 5 Tables · 20+ Endpoints<br>
+  March 2026
+</div>
+
+</body>
+</html>

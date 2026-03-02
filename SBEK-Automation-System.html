@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page {
+    size: A4;
+    margin: 28mm 22mm 24mm 22mm;
+    @bottom-center {
+      content: "SBEK Automation — System Documentation";
+      font-size: 8px;
+      color: #999;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+    @bottom-right {
+      content: "Page " counter(page) " of " counter(pages);
+      font-size: 8px;
+      color: #999;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    color: #1a1a1a;
+    font-size: 10.5px;
+    line-height: 1.6;
+    background: #fff;
+  }
+
+  /* ── COVER PAGE ── */
+  .cover {
+    page-break-after: always;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 700px;
+    text-align: center;
+  }
+  .cover-brand {
+    font-size: 14px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: #C5A572;
+    margin-bottom: 10px;
+  }
+  .cover-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: #1a1a1a;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+  .cover-subtitle {
+    font-size: 14px;
+    color: #777;
+    font-weight: 300;
+    margin-bottom: 40px;
+  }
+  .cover-line {
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #C5A572, #A68B3E);
+    border-radius: 2px;
+    margin-bottom: 40px;
+  }
+  .cover-meta {
+    font-size: 10px;
+    color: #999;
+    line-height: 1.8;
+  }
+
+  /* ── SECTION HEADERS ── */
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+    padding-top: 8px;
+  }
+  h1 .num {
+    color: #C5A572;
+    margin-right: 6px;
+  }
+  .section-line {
+    width: 40px;
+    height: 2.5px;
+    background: linear-gradient(90deg, #C5A572, #A68B3E);
+    border-radius: 2px;
+    margin-bottom: 18px;
+  }
+
+  h2 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #333;
+    margin-top: 20px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  h3 {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #444;
+    margin-top: 14px;
+    margin-bottom: 6px;
+  }
+
+  p, li { font-size: 10.5px; line-height: 1.65; color: #333; }
+  p { margin-bottom: 8px; }
+  ul { padding-left: 18px; margin-bottom: 10px; }
+  li { margin-bottom: 3px; }
+
+  /* ── TABLES ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+    font-size: 10px;
+  }
+  th {
+    background: #f7f5f0;
+    color: #333;
+    font-weight: 600;
+    text-align: left;
+    padding: 7px 10px;
+    border-bottom: 2px solid #C5A572;
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+
+  /* ── CODE / DIAGRAM BLOCKS ── */
+  .diagram {
+    background: #1a1b19;
+    color: #d4d3cc;
+    padding: 16px 20px;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    line-height: 1.55;
+    margin-bottom: 16px;
+    white-space: pre;
+    overflow: hidden;
+  }
+  .diagram .gold { color: #C5A572; }
+  .diagram .dim { color: #7a7968; }
+  .diagram .green { color: #8fbc6a; }
+
+  /* ── CARDS ── */
+  .card-grid {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .card {
+    flex: 1;
+    min-width: 140px;
+    background: #faf9f6;
+    border: 1px solid #e8e6df;
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .card-label {
+    font-size: 8.5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #999;
+    margin-bottom: 4px;
+  }
+  .card-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+  .card-note {
+    font-size: 9px;
+    color: #777;
+    margin-top: 2px;
+  }
+
+  /* ── BADGE ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 8.5px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .badge-gold { background: #f5ecd7; color: #8b6914; }
+  .badge-green { background: #e6f4e0; color: #2d6a1e; }
+  .badge-blue { background: #e0ecf8; color: #1a4d8c; }
+  .badge-gray { background: #f0f0ee; color: #555; }
+  .badge-red { background: #fce4e4; color: #8c1a1a; }
+
+  /* ── FLOW STEP ── */
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    gap: 12px;
+  }
+  .flow-num {
+    width: 24px;
+    height: 24px;
+    background: #C5A572;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .flow-content { flex: 1; }
+  .flow-title { font-weight: 600; color: #1a1a1a; font-size: 11px; }
+  .flow-desc { color: #555; font-size: 10px; margin-top: 2px; }
+  .flow-tech { color: #C5A572; font-size: 9px; font-weight: 600; margin-top: 2px; }
+
+  /* ── PAGE BREAKS ── */
+  .page-break { page-break-before: always; }
+
+  /* ── TOC ── */
+  .toc { margin-bottom: 20px; }
+  .toc-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px dotted #ddd;
+    font-size: 11px;
+  }
+  .toc-item span:first-child { font-weight: 500; color: #333; }
+  .toc-item span:last-child { color: #C5A572; font-weight: 600; }
+
+  .highlight-box {
+    background: #faf9f6;
+    border-left: 3px solid #C5A572;
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 14px;
+    font-size: 10px;
+  }
+
+  .two-col {
+    display: flex;
+    gap: 14px;
+  }
+  .two-col > div { flex: 1; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════ COVER ════════════════════════ -->
+<div class="cover">
+  <div class="cover-brand">SBEK</div>
+  <div class="cover-title">Automation System</div>
+  <div class="cover-subtitle">Technical Documentation & Architecture Guide</div>
+  <div class="cover-line"></div>
+  <div class="cover-meta">
+    Version 1.0<br>
+    March 2026<br><br>
+    5 Services · 7 Job Queues · 4 Cron Jobs · 10+ API Integrations<br>
+    Built with TypeScript · Express · Next.js · BullMQ · Playwright
+  </div>
+</div>
+
+<!-- ════════════════════════ TOC ════════════════════════ -->
+<h1><span class="num">00</span> Table of Contents</h1>
+<div class="section-line"></div>
+
+<div class="toc">
+  <div class="toc-item"><span>01 — System Overview</span></div>
+  <div class="toc-item"><span>02 — Architecture Diagram</span></div>
+  <div class="toc-item"><span>03 — Tech Stack (Layer by Layer)</span></div>
+  <div class="toc-item"><span>04 — Database Schema</span></div>
+  <div class="toc-item"><span>05 — All API Endpoints</span></div>
+  <div class="toc-item"><span>06 — Job Queues & Workers</span></div>
+  <div class="toc-item"><span>07 — Cron Jobs (Scheduled Tasks)</span></div>
+  <div class="toc-item"><span>08 — External API Integrations</span></div>
+  <div class="toc-item"><span>09 — Crawler Deep Dive</span></div>
+  <div class="toc-item"><span>10 — Dashboard</span></div>
+  <div class="toc-item"><span>11 — Data Flows (End-to-End)</span></div>
+  <div class="toc-item"><span>12 — Deployment & Infrastructure</span></div>
+</div>
+
+<!-- ════════════════════════ 01 OVERVIEW ════════════════════════ -->
+<div class="page-break"></div>
+<h1><span class="num">01</span> System Overview</h1>
+<div class="section-line"></div>
+
+<p>SBEK Automation is an end-to-end operations and marketing automation platform built for <strong>SBEK Jewelry</strong>. It automates everything from the moment a customer places an order to social media posting of product creatives.</p>
+
+<div class="card-grid">
+  <div class="card">
+    <div class="card-label">Services</div>
+    <div class="card-value">5</div>
+    <div class="card-note">App, Dashboard, Crawler, PostgreSQL, Redis</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Job Queues</div>
+    <div class="card-value">7</div>
+    <div class="card-note">Order sync, notifications, content, creatives, social, crawl, reviews</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Cron Jobs</div>
+    <div class="card-value">4</div>
+    <div class="card-note">Daily sync, daily reviews, weekly content, weekly crawl</div>
+  </div>
+  <div class="card">
+    <div class="card-label">External APIs</div>
+    <div class="card-value">10+</div>
+    <div class="card-note">WooCommerce, Sheets, Drive, OpenAI, Gemini, WhatsApp, Email, Postiz</div>
+  </div>
+</div>
+
+<h2>What It Automates</h2>
+<table>
+  <tr><th>Area</th><th>What Happens</th></tr>
+  <tr><td><strong>Order Processing</strong></td><td>WooCommerce order → synced to Google Sheets (Orders, Production, QC tabs) → owner notified via WhatsApp + Email</td></tr>
+  <tr><td><strong>Customer Comms</strong></td><td>Auto-send order confirmations, shipping updates, and review requests via WhatsApp (Meta API) + Email (SMTP)</td></tr>
+  <tr><td><strong>AI Content</strong></td><td>New product published → AI generates SEO meta, FAQ, comparison article, schema markup, internal links (OpenAI GPT-4o)</td></tr>
+  <tr><td><strong>AI Creatives</strong></td><td>Product images auto-generated in 5 variants: white bg, lifestyle, festive, minimal text, story format (Google Gemini)</td></tr>
+  <tr><td><strong>Social Media</strong></td><td>Generated content + creatives auto-posted to Instagram, Facebook, LinkedIn, Twitter, Pinterest (Postiz)</td></tr>
+  <tr><td><strong>Competitor Intel</strong></td><td>Weekly headless browser crawl of competitor sites → tracks product/price changes, blog activity, SEO health</td></tr>
+  <tr><td><strong>Review Collection</strong></td><td>5 days after delivery → customer gets WhatsApp + Email asking for a review</td></tr>
+</table>
+
+<!-- ════════════════════════ 02 ARCHITECTURE ════════════════════════ -->
+<div class="page-break"></div>
+<h1><span class="num">02</span> Architecture Diagram</h1>
+<div class="section-line"></div>
+
+<div class="diagram"><span class="dim">Internet (WooCommerce, Users)</span>
+        │
+        ▼
+┌──────────────────────────────────────────────────────┐
+│  <span class="gold">APP</span>  (Express API — port 3000)                        │
+│                                                      │
+│  <span class="green">Routes:</span>                                              │
+│    /webhooks/woocommerce/*    ← receives orders      │
+│    /dashboard/*               ← serves dashboard API │
+│    /admin/settings/*          ← admin config          │
+│    /health                    ← health checks         │
+│                                                      │
+│  <span class="green">Workers (BullMQ):</span>                                    │
+│    order-sync · notification · review-request        │
+│    content-generation · creative-generation           │
+│    social-posting · competitor-crawl                  │
+│                                                      │
+│  <span class="green">Cron (node-cron):</span>                                    │
+│    2AM daily sync · 6AM reviews · Mon content · Sun crawl│
+└───────┬──────────┬───────────┬───────────────────────┘
+        │          │           │
+        ▼          ▼           ▼
+   <span class="gold">PostgreSQL</span>    <span class="gold">Redis</span>       <span class="gold">Crawler</span>
+   5 tables     7 queues    Playwright
+   port 5432    port 6379   port 3001
+
+        ▲
+        │
+┌───────┴──────────────────────────────────────────────┐
+│  <span class="gold">DASHBOARD</span>  (Next.js — port 3002)                       │
+│                                                      │
+│  Proxies /api/* → App                                │
+│  Pages: Home · Queues · Activity · System · Settings │
+└──────────────────────────────────────────────────────┘</div>
+
+<div class="highlight-box">
+  <strong>Key principle:</strong> Only the App talks to PostgreSQL, Redis, and external APIs. The Dashboard only talks to the App. The Crawler only runs when the App's competitor-crawl worker calls it. PostgreSQL and Redis are never exposed to the internet.
+</div>
+
+<!-- ════════════════════════ 03 TECH STACK ════════════════════════ -->
+<div class="page-break"></div>
+<h1><span class="num">03</span> Tech Stack (Layer by Layer)</h1>
+<div class="section-line"></div>
+
+<h2>Core Runtime</h2>
+<table>
+  <tr><th>Tech</th><th>Version</th><th>Purpose</th></tr>
+  <tr><td>Node.js</td><td>20 (Alpine)</td><td>JavaScript runtime</td></tr>
+  <tr><td>TypeScript</td><td>5.7.0</td><td>Type-safe language</td></tr>
+  <tr><td>Express.js</td><td>4.21.2</td><td>HTTP server framework</td></tr>
+</table>
+
+<h2>Database & Cache</h2>
+<table>
+  <tr><th>Tech</th><th>Version</th><th>Purpose</th></tr>
+  <tr><td>PostgreSQL</td><td>16 (Alpine)</td><td>Persistent data storage (5 tables)</td></tr>
+  <tr><td>Drizzle ORM</td><td>0.38.0</td><td>Type-safe database queries & migrations</td></tr>
+  <tr><td>Redis</td><td>7 (Alpine)</td><td>Job queue broker (BullMQ backend)</td></tr>
+  <tr><td>ioredis</td><td>5.4.2</td><td>Redis client for Node.js</td></tr>
+</table>
+
+<h2>Job Queue System</h2>
+<table>
+  <tr><th>Tech</th><th>Version</th><th>Purpose</th></tr>
+  <tr><td>BullMQ</td><td>5.34.0</td><td>Distributed job queue (7 queues, retry logic, rate limiting)</td></tr>
+  <tr><td>Bull Board</td><td>6.5.0</td><td>Admin UI for monitoring queues</td></tr>
+  <tr><td>node-cron</td><td>3.0.3</td><td>Scheduled task runner (4 cron jobs)</td></tr>
+</table>
+
+<h2>Frontend (Dashboard)</h2>
+<table>
+  <tr><th>Tech</th><th>Version</th><th>Purpose</th></tr>
+  <tr><td>Next.js</td><td>15.5.12</td><td>React framework with API proxy</td></tr>
+  <tr><td>React</td><td>18.3.1</td><td>UI component library</td></tr>
+  <tr><td>TailwindCSS</td><td>3.4.17</td><td>Utility-first CSS styling</td></tr>
+  <tr><td>SWR</td><td>2.4.1</td><td>Client-side data fetching & caching</td></tr>
+</table>
+
+<h2>AI & Content</h2>
+<table>
+  <tr><th>Tech</th><th>Version</th><th>Purpose</th></tr>
+  <tr><td>OpenAI SDK (via OpenRouter)</td><td>4.77.0</td><td>GPT-4o for SEO, FAQ, captions, competitor analysis</td></tr>
+  <tr><td>Google Gemini (@google/genai)</td><td>1.43.0</td><td>Product image generation (gemini-2.0-flash-preview)</td></tr>
+  <tr><td>DALL-E 3</td><td>via OpenAI</td><td>Fallback image generation</td></tr>
+</table>
+
+<h2>Communication</h2>
+<table>
+  <tr><th>Tech</th><th>Version</th><th>Purpose</th></tr>
+  <tr><td>Meta WhatsApp Cloud API</td><td>v21.0</td><td>Primary WhatsApp messaging</td></tr>
+  <tr><td>Wati API</td><td>—</td><td>WhatsApp fallback #1</td></tr>
+  <tr><td>Interakt API</td><td>—</td><td>WhatsApp fallback #2</td></tr>
+  <tr><td>Nodemailer</td><td>6.9.16</td><td>Email via SMTP</td></tr>
+  <tr><td>Handlebars</td><td>4.7.8</td><td>Email templates (.hbs files)</td></tr>
+</table>
+
+<h2>External Services</h2>
+<table>
+  <tr><th>Tech</th><th>Version</th><th>Purpose</th></tr>
+  <tr><td>WooCommerce REST API</td><td>1.0.1</td><td>Order/product sync, webhook source</td></tr>
+  <tr><td>Google Sheets API</td><td>4.1.4</td><td>7-tab spreadsheet (Orders, Production, QC, etc.)</td></tr>
+  <tr><td>Google Drive API</td><td>v144.0.0</td><td>Upload generated creatives</td></tr>
+  <tr><td>Postiz API</td><td>custom</td><td>Social media scheduling (5 platforms)</td></tr>
+</table>
+
+<h2>Web Scraping (Crawler)</h2>
+<table>
+  <tr><th>Tech</th><th>Version</th><th>Purpose</th></tr>
+  <tr><td>Playwright</td><td>1.49.0</td><td>Headless Chromium browser automation</td></tr>
+  <tr><td>Cheerio</td><td>1.0.0</td><td>Server-side HTML parsing</td></tr>
+</table>
+
+<h2>Security & Utilities</h2>
+<table>
+  <tr><th>Tech</th><th>Version</th><th>Purpose</th></tr>
+  <tr><td>Helmet</td><td>8.0.0</td><td>HTTP security headers</td></tr>
+  <tr><td>Zod</td><td>3.24.0</td><td>Environment variable validation</td></tr>
+  <tr><td>Pino</td><td>9.6.0</td><td>Structured JSON logging</td></tr>
+  <tr><td>Sharp</td><td>0.34.5</td><td>Image resizing & conversion</td></tr>
+  <tr><td>express-rate-limit</td><td>7.5.0</td><td>API rate limiting</td></tr>
+</table>
+
+<h2>DevOps & Deployment</h2>
+<table>
+  <tr><th>Tech</th><th>Version</th><th>Purpose</th></tr>
+  <tr><td>Docker</td><td>Multi-stage</td><td>Containerization (3 custom images)</td></tr>
+  <tr><td>Docker Compose</td><td>—</td><td>Local orchestration (5 services)</td></tr>
+  <tr><td>Railway</td><td>—</td><td>Cloud hosting (auto-deploy on git push)</td></tr>
+  <tr><td>GitHub</td><td>—</td><td>Source code repository</td></tr>
+</table>
+
+<!-- ════════════════════════ 04 DATABASE ════════════════════════ -->
+<div class="page-break"></div>
+<h1><span class="num">04</span> Database Schema</h1>
+<div class="section-line"></div>
+
+<p>PostgreSQL 16 with Drizzle ORM. All migrations are version-controlled and run automatically on deploy.</p>
+
+<h2>Table 1: job_logs</h2>
+<p>Tracks every BullMQ job through its lifecycle.</p>
+<table>
+  <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+  <tr><td>id</td><td>serial (PK)</td><td>Auto-increment ID</td></tr>
+  <tr><td>queueName</td><td>varchar(100)</td><td>Which queue (e.g. "order-sync")</td></tr>
+  <tr><td>jobId</td><td>varchar(100)</td><td>BullMQ job ID</td></tr>
+  <tr><td>status</td><td>text</td><td>queued → active → completed / failed / retrying</td></tr>
+  <tr><td>payload</td><td>jsonb</td><td>Full job input data</td></tr>
+  <tr><td>result</td><td>jsonb</td><td>Job output on success</td></tr>
+  <tr><td>error</td><td>text</td><td>Error message if failed</td></tr>
+  <tr><td>attempts</td><td>integer</td><td>Number of retry attempts</td></tr>
+  <tr><td>createdAt</td><td>timestamp</td><td>When job was created</td></tr>
+  <tr><td>completedAt</td><td>timestamp</td><td>When job finished</td></tr>
+</table>
+
+<h2>Table 2: webhook_events</h2>
+<p>Logs every incoming webhook from WooCommerce.</p>
+<table>
+  <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+  <tr><td>id</td><td>serial (PK)</td><td>Auto-increment ID</td></tr>
+  <tr><td>source</td><td>varchar(50)</td><td>"woocommerce"</td></tr>
+  <tr><td>event</td><td>varchar(100)</td><td>"order.created", "product.updated", etc.</td></tr>
+  <tr><td>payload</td><td>jsonb</td><td>Full webhook body</td></tr>
+  <tr><td>processed</td><td>boolean</td><td>Has been processed?</td></tr>
+  <tr><td>processedAt</td><td>timestamp</td><td>When it was processed</td></tr>
+  <tr><td>createdAt</td><td>timestamp</td><td>When received</td></tr>
+</table>
+
+<h2>Table 3: cron_runs</h2>
+<p>Audit log for every scheduled cron execution.</p>
+<table>
+  <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+  <tr><td>id</td><td>serial (PK)</td><td>Auto-increment ID</td></tr>
+  <tr><td>jobName</td><td>varchar(100)</td><td>"daily-sheets-sync", "weekly-competitor-crawl", etc.</td></tr>
+  <tr><td>startedAt</td><td>timestamp</td><td>When cron started</td></tr>
+  <tr><td>completedAt</td><td>timestamp</td><td>When cron finished</td></tr>
+  <tr><td>itemsProcessed</td><td>integer</td><td>How many items handled</td></tr>
+  <tr><td>error</td><td>text</td><td>Error message if failed</td></tr>
+</table>
+
+<h2>Table 4: competitor_snapshots</h2>
+<p>Point-in-time crawl results for competitor websites.</p>
+<table>
+  <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+  <tr><td>id</td><td>serial (PK)</td><td>Auto-increment ID</td></tr>
+  <tr><td>competitorName</td><td>varchar(200)</td><td>Competitor brand name</td></tr>
+  <tr><td>url</td><td>varchar(500)</td><td>URL that was crawled</td></tr>
+  <tr><td>data</td><td>jsonb</td><td>Full crawl result (products, prices, SEO, blog)</td></tr>
+  <tr><td>crawledAt</td><td>timestamp</td><td>When the crawl happened</td></tr>
+</table>
+
+<h2>Table 5: system_config</h2>
+<p>Key-value store for API keys and settings (editable from Dashboard).</p>
+<table>
+  <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+  <tr><td>id</td><td>serial (PK)</td><td>Auto-increment ID</td></tr>
+  <tr><td>key</td><td>varchar(100) UNIQUE</td><td>Setting name (e.g. "OPENAI_API_KEY")</td></tr>
+  <tr><td>value</td><td>jsonb</td><td>Setting value</td></tr>
+  <tr><td>updatedAt</td><td>timestamp</td><td>Last modified</td></tr>
+</table>
+
+<!-- ════════════════════════ 05 ENDPOINTS ════════════════════════ -->
+<div class="page-break"></div>
+<h1><span class="num">05</span> All API Endpoints</h1>
+<div class="section-line"></div>
+
+<h2>Health Checks</h2>
+<table>
+  <tr><th>Method</th><th>Path</th><th>Auth</th><th>Returns</th></tr>
+  <tr><td><span class="badge badge-green">GET</span></td><td>/health</td><td>None</td><td>{ status: "ok" }</td></tr>
+  <tr><td><span class="badge badge-green">GET</span></td><td>/health/ready</td><td>None</td><td>Redis + Postgres status with latency</td></tr>
+</table>
+
+<h2>Webhooks (from WooCommerce)</h2>
+<table>
+  <tr><th>Method</th><th>Path</th><th>Auth</th><th>What Happens</th></tr>
+  <tr><td><span class="badge badge-gold">POST</span></td><td>/webhooks/woocommerce/order</td><td>HMAC</td><td>Logs event → enqueues to order-sync queue → returns 200</td></tr>
+  <tr><td><span class="badge badge-gold">POST</span></td><td>/webhooks/woocommerce/product</td><td>HMAC</td><td>Auto-creates 7 jobs (6 content + 1 creative) → returns 200</td></tr>
+</table>
+
+<h2>Dashboard API (used by Next.js frontend)</h2>
+<table>
+  <tr><th>Method</th><th>Path</th><th>What It Returns</th></tr>
+  <tr><td><span class="badge badge-green">GET</span></td><td>/dashboard/stats</td><td>Aggregated stats: total processed, success rate, active queues</td></tr>
+  <tr><td><span class="badge badge-green">GET</span></td><td>/dashboard/queues</td><td>All 7 queues with job counts per status</td></tr>
+  <tr><td><span class="badge badge-green">GET</span></td><td>/dashboard/queues/:name</td><td>Single queue detail with recent jobs</td></tr>
+  <tr><td><span class="badge badge-green">GET</span></td><td>/dashboard/queues/:name/jobs</td><td>Paginated jobs by status (max 100/page)</td></tr>
+  <tr><td><span class="badge badge-gold">POST</span></td><td>/dashboard/queues/:name/retry-all</td><td>Retries all failed jobs</td></tr>
+  <tr><td><span class="badge badge-gold">POST</span></td><td>/dashboard/queues/:name/clean</td><td>Cleans old completed + failed jobs</td></tr>
+  <tr><td><span class="badge badge-green">GET</span></td><td>/dashboard/system/health</td><td>Redis, Postgres, Crawler status + latency (ms)</td></tr>
+  <tr><td><span class="badge badge-green">GET</span></td><td>/dashboard/system/cron</td><td>Last 50 cron job executions</td></tr>
+  <tr><td><span class="badge badge-green">GET</span></td><td>/dashboard/system/logs</td><td>Job logs (filterable by queue)</td></tr>
+  <tr><td><span class="badge badge-green">GET</span></td><td>/dashboard/webhooks/recent</td><td>Last 50 webhook events</td></tr>
+  <tr><td><span class="badge badge-green">GET</span></td><td>/dashboard/competitors</td><td>Last 20 competitor snapshots</td></tr>
+  <tr><td><span class="badge badge-green">GET</span></td><td>/dashboard/settings</td><td>All configurable API keys (masked)</td></tr>
+  <tr><td><span class="badge badge-blue">PUT</span></td><td>/dashboard/settings</td><td>Update API keys</td></tr>
+  <tr><td><span class="badge badge-gold">POST</span></td><td>/dashboard/settings/validate</td><td>Test credentials per section</td></tr>
+  <tr><td><span class="badge badge-gold">POST</span></td><td>/dashboard/data/seed</td><td>Seed demo data</td></tr>
+  <tr><td><span class="badge badge-gold">POST</span></td><td>/dashboard/data/reset</td><td>Erase all data (keeps settings)</td></tr>
+</table>
+
+<h2>Crawler Service (port 3001)</h2>
+<table>
+  <tr><th>Method</th><th>Path</th><th>What It Does</th></tr>
+  <tr><td><span class="badge badge-green">GET</span></td><td>/health</td><td>Crawler service health check</td></tr>
+  <tr><td><span class="badge badge-gold">POST</span></td><td>/crawl</td><td>Crawls a URL → extracts products, prices, blog, SEO → returns analysis + HTML report</td></tr>
+  <tr><td><span class="badge badge-green">GET</span></td><td>/reports</td><td>Lists all generated HTML reports</td></tr>
+  <tr><td><span class="badge badge-green">GET</span></td><td>/reports/:filename</td><td>Serves a specific report file</td></tr>
+</table>
+
+<!-- ════════════════════════ 06 QUEUES ════════════════════════ -->
+<div class="page-break"></div>
+<h1><span class="num">06</span> Job Queues & Workers</h1>
+<div class="section-line"></div>
+
+<p>All 7 queues run on <strong>BullMQ</strong> backed by <strong>Redis</strong>. Each queue has dedicated workers with configurable concurrency, retry logic, and rate limits.</p>
+
+<h2>1. order-sync</h2>
+<table>
+  <tr><th style="width:130px">Property</th><th>Value</th></tr>
+  <tr><td>Concurrency</td><td>3 workers</td></tr>
+  <tr><td>Rate limit</td><td>10 jobs/min (WooCommerce API limit)</td></tr>
+  <tr><td>Retries</td><td>5 (exponential backoff, 1s delay)</td></tr>
+  <tr><td>Triggered by</td><td>Order webhook + daily 2AM cron</td></tr>
+  <tr><td>What it does</td><td>Fetches full order from WooCommerce → writes to Google Sheets (Orders, Production, QC tabs) → enqueues notification job</td></tr>
+  <tr><td>Services called</td><td><span class="badge badge-gold">WooCommerce API</span> <span class="badge badge-green">Google Sheets API</span></td></tr>
+</table>
+
+<h2>2. notification</h2>
+<table>
+  <tr><th style="width:130px">Property</th><th>Value</th></tr>
+  <tr><td>Concurrency</td><td>5 workers</td></tr>
+  <tr><td>Rate limit</td><td>20 jobs/min</td></tr>
+  <tr><td>Retries</td><td>5 (exponential backoff, 2s delay)</td></tr>
+  <tr><td>Triggered by</td><td>order-sync worker</td></tr>
+  <tr><td>What it does</td><td>Sends WhatsApp message (template or text) + sends Email (Handlebars template) — supports channel: "whatsapp", "email", or "both"</td></tr>
+  <tr><td>Services called</td><td><span class="badge badge-gold">Meta WhatsApp API</span> <span class="badge badge-gray">Wati (fallback)</span> <span class="badge badge-gray">Interakt (fallback)</span> <span class="badge badge-blue">SMTP Email</span></td></tr>
+</table>
+
+<h2>3. review-request</h2>
+<table>
+  <tr><th style="width:130px">Property</th><th>Value</th></tr>
+  <tr><td>Concurrency</td><td>2 workers</td></tr>
+  <tr><td>Retries</td><td>3 (exponential backoff, 5s delay)</td></tr>
+  <tr><td>Triggered by</td><td>Daily 6AM cron</td></tr>
+  <tr><td>What it does</td><td>Sends review request via WhatsApp + Email to customers whose order was delivered 5+ days ago</td></tr>
+  <tr><td>Services called</td><td><span class="badge badge-gold">Meta WhatsApp API</span> <span class="badge badge-blue">SMTP Email</span></td></tr>
+</table>
+
+<h2>4. content-generation</h2>
+<table>
+  <tr><th style="width:130px">Property</th><th>Value</th></tr>
+  <tr><td>Concurrency</td><td>2 workers</td></tr>
+  <tr><td>Retries</td><td>3 (exponential backoff, 10s delay)</td></tr>
+  <tr><td>Triggered by</td><td>Product webhook + Monday 9AM cron</td></tr>
+  <tr><td>What it does</td><td>AI generates 6 content types per product: SEO meta, FAQ (5 pairs), AEO knowledge base, comparison article, Schema.org JSON-LD, internal linking suggestions</td></tr>
+  <tr><td>Services called</td><td><span class="badge badge-red">OpenAI GPT-4o (via OpenRouter)</span></td></tr>
+</table>
+
+<h2>5. creative-generation</h2>
+<table>
+  <tr><th style="width:130px">Property</th><th>Value</th></tr>
+  <tr><td>Concurrency</td><td>1 worker (slow + expensive)</td></tr>
+  <tr><td>Retries</td><td>3 (exponential backoff, 15s delay)</td></tr>
+  <tr><td>Triggered by</td><td>Product webhook + Monday 9AM cron</td></tr>
+  <tr><td>What it does</td><td>Generates 5 ad creative variants: white background, lifestyle shot, festive theme, minimal text overlay, story format</td></tr>
+  <tr><td>Services called</td><td><span class="badge badge-blue">Google Gemini</span> <span class="badge badge-red">DALL-E 3 (fallback)</span> <span class="badge badge-green">Google Drive</span> <span class="badge badge-gold">Sharp (resize)</span></td></tr>
+</table>
+
+<h2>6. social-posting</h2>
+<table>
+  <tr><th style="width:130px">Property</th><th>Value</th></tr>
+  <tr><td>Concurrency</td><td>1 worker</td></tr>
+  <tr><td>Retries</td><td>4 (exponential backoff, 5s delay)</td></tr>
+  <tr><td>Triggered by</td><td>creative-generation worker</td></tr>
+  <tr><td>What it does</td><td>Uploads media to Postiz → creates draft or scheduled post → supports Instagram, Facebook, LinkedIn, Twitter, Pinterest (or all)</td></tr>
+  <tr><td>Services called</td><td><span class="badge badge-gold">Postiz API</span></td></tr>
+</table>
+
+<h2>7. competitor-crawl</h2>
+<table>
+  <tr><th style="width:130px">Property</th><th>Value</th></tr>
+  <tr><td>Concurrency</td><td>1 worker</td></tr>
+  <tr><td>Retries</td><td>3 (exponential backoff, 30s delay)</td></tr>
+  <tr><td>Triggered by</td><td>Sunday 10PM cron</td></tr>
+  <tr><td>What it does</td><td>Calls crawler microservice → stores snapshot in PostgreSQL → compares with previous crawl → generates HTML report</td></tr>
+  <tr><td>Services called</td><td><span class="badge badge-gray">Crawler (POST /crawl)</span></td></tr>
+</table>
+
+<!-- ════════════════════════ 07 CRON ════════════════════════ -->
+<div class="page-break"></div>
+<h1><span class="num">07</span> Cron Jobs (Scheduled Tasks)</h1>
+<div class="section-line"></div>
+
+<p>All cron jobs run via <strong>node-cron</strong> in the App service. Timezone: <strong>Asia/Kolkata (IST)</strong>. Each execution is logged in the <code>cron_runs</code> table.</p>
+
+<div class="flow-step">
+  <div class="flow-num">1</div>
+  <div class="flow-content">
+    <div class="flow-title">Daily Sheets Sync — 2:00 AM IST</div>
+    <div class="flow-desc">Pulls last 3 days of orders from WooCommerce API (paginated, 50/page). Enqueues an order-sync job for each order. Purpose: catches any missed webhooks for reconciliation.</div>
+    <div class="flow-tech">WooCommerce API → order-sync queue → Google Sheets</div>
+  </div>
+</div>
+
+<div class="flow-step">
+  <div class="flow-num">2</div>
+  <div class="flow-content">
+    <div class="flow-title">Daily Review Requests — 6:00 AM IST</div>
+    <div class="flow-desc">Reads Google Sheets for orders with status "Delivered". Filters for orders delivered 5+ days ago where Notes column doesn't contain "Review Sent". Enqueues review-request job per order. Updates Notes to "Review Sent [date]" to prevent duplicates.</div>
+    <div class="flow-tech">Google Sheets → review-request queue → WhatsApp + Email</div>
+  </div>
+</div>
+
+<div class="flow-step">
+  <div class="flow-num">3</div>
+  <div class="flow-content">
+    <div class="flow-title">Weekly Content Generation — Monday 9:00 AM IST</div>
+    <div class="flow-desc">Fetches all published products from WooCommerce. For each product, enqueues 6 content-generation jobs + 1 creative-generation job = 7 jobs per product. If you have 27 products, that's 189 jobs.</div>
+    <div class="flow-tech">WooCommerce API → content-generation queue + creative-generation queue → OpenAI + Gemini</div>
+  </div>
+</div>
+
+<div class="flow-step">
+  <div class="flow-num">4</div>
+  <div class="flow-content">
+    <div class="flow-title">Weekly Competitor Crawl — Sunday 10:00 PM IST</div>
+    <div class="flow-desc">Reads competitor list from Google Sheets "Competitors" tab. Enqueues one competitor-crawl job per competitor. Each job calls the Crawler microservice which launches headless Chromium.</div>
+    <div class="flow-tech">Google Sheets → competitor-crawl queue → Crawler (Playwright) → PostgreSQL</div>
+  </div>
+</div>
+
+<!-- ════════════════════════ 08 INTEGRATIONS ════════════════════════ -->
+<div class="page-break"></div>
+<h1><span class="num">08</span> External API Integrations</h1>
+<div class="section-line"></div>
+
+<h2>WooCommerce</h2>
+<div class="highlight-box">
+  <strong>SDK:</strong> @woocommerce/woocommerce-rest-api v1.0.1<br>
+  <strong>Auth:</strong> Consumer Key + Consumer Secret (OAuth 1.0)<br>
+  <strong>Webhooks:</strong> HMAC-SHA256 signature verification<br>
+  <strong>Used for:</strong> Reading orders, products, customers. Receiving order/product webhooks. Pushing WordPress pages (AEO content).
+</div>
+
+<h2>Google Sheets</h2>
+<div class="highlight-box">
+  <strong>SDK:</strong> google-spreadsheet v4.1.4 + google-auth-library v9.15.0<br>
+  <strong>Auth:</strong> Service Account JWT<br>
+  <strong>7 Tabs:</strong> Orders, Production, QC, Customers, Creatives, Competitors, System Logs<br>
+  <strong>Features:</strong> Conditional formatting, data validation dropdowns, formula injection prevention via input sanitization
+</div>
+
+<h2>Google Drive</h2>
+<div class="highlight-box">
+  <strong>SDK:</strong> googleapis v144.0.0<br>
+  <strong>Auth:</strong> Same service account as Sheets<br>
+  <strong>Used for:</strong> Uploading AI-generated product creatives to "SBEK Creatives" folder, generating shareable links
+</div>
+
+<h2>OpenAI (via OpenRouter)</h2>
+<div class="highlight-box">
+  <strong>SDK:</strong> openai v4.77.0<br>
+  <strong>Gateway:</strong> openrouter.ai/api/v1 (allows switching models easily)<br>
+  <strong>Default model:</strong> openai/gpt-4o<br>
+  <strong>Image model:</strong> openai/dall-e-3<br>
+  <strong>Used for:</strong> SEO meta generation, FAQ generation (5 Q&A pairs), Instagram captions with hashtags, competitor analysis reports, comparison articles
+</div>
+
+<h2>Google Gemini</h2>
+<div class="highlight-box">
+  <strong>SDK:</strong> @google/genai v1.43.0<br>
+  <strong>Model:</strong> gemini-2.0-flash-preview-image-generation<br>
+  <strong>Used for:</strong> Product image generation in 5 variants (white bg, lifestyle, festive, minimal, story). Supports aspect ratios: 1:1, 9:16, 16:9, 4:3, 3:4. Sizes up to 4K.
+</div>
+
+<h2>WhatsApp — 3-Provider Fallback Chain</h2>
+<div class="highlight-box">
+  <strong>Priority 1 — Meta Cloud API (v21.0):</strong> Direct HTTPS calls. Template messages, plain text, image with caption.<br>
+  <strong>Priority 2 — Wati:</strong> If Meta fails, tries Wati gateway (wati.io).<br>
+  <strong>Priority 3 — Interakt:</strong> If Wati fails, tries Interakt as last resort.<br>
+  <strong>Message types:</strong> Order confirmation, shipping update, delivery confirmation, review request
+</div>
+
+<h2>Email (SMTP)</h2>
+<div class="highlight-box">
+  <strong>SDK:</strong> Nodemailer v6.9.16<br>
+  <strong>Templates:</strong> Handlebars v4.7.8 (.hbs files)<br>
+  <strong>Custom helpers:</strong> formatDate (DD MMM YYYY), formatCurrency (₹ INR format)<br>
+  <strong>Templates:</strong> order_confirmation, shipping_update, review_request, etc.
+</div>
+
+<h2>Postiz (Social Media)</h2>
+<div class="highlight-box">
+  <strong>Client:</strong> Custom REST client<br>
+  <strong>Base URL:</strong> https://app.postiz.com/api/v1<br>
+  <strong>Platforms:</strong> Instagram, Facebook, LinkedIn, Twitter, Pinterest<br>
+  <strong>Optimal posting times (IST):</strong> Instagram 10AM/2PM/7PM · Facebook 9AM/1PM/5PM · LinkedIn 8AM/12PM/5PM · Twitter 9AM/12PM/6PM · Pinterest 2PM/8PM/9PM
+</div>
+
+<!-- ════════════════════════ 09 CRAWLER ════════════════════════ -->
+<div class="page-break"></div>
+<h1><span class="num">09</span> Crawler Deep Dive</h1>
+<div class="section-line"></div>
+
+<p>A separate microservice that runs headless Chromium to scrape competitor jewelry websites. Built with <strong>Playwright 1.49.0</strong> + <strong>Cheerio 1.0.0</strong>.</p>
+
+<h2>Browser Configuration</h2>
+<table>
+  <tr><th>Setting</th><th>Value</th></tr>
+  <tr><td>Browser</td><td>Chromium (headless, no GUI)</td></tr>
+  <tr><td>User Agent</td><td>Chrome 120 on Windows 10 (realistic, avoids bot detection)</td></tr>
+  <tr><td>Viewport</td><td>1920 × 1080</td></tr>
+  <tr><td>Navigation timeout</td><td>30 seconds</td></tr>
+  <tr><td>Post-load wait</td><td>2 seconds (for JavaScript rendering)</td></tr>
+  <tr><td>Polite delay</td><td>2-3 seconds random between page navigations</td></tr>
+</table>
+
+<h2>Crawl Process (Step by Step)</h2>
+
+<div class="flow-step">
+  <div class="flow-num">1</div>
+  <div class="flow-content">
+    <div class="flow-title">Check robots.txt</div>
+    <div class="flow-desc">Fetches /robots.txt, parses Disallow rules. If crawling is blocked → returns error, doesn't proceed.</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">2</div>
+  <div class="flow-content">
+    <div class="flow-title">Launch Chromium & Navigate</div>
+    <div class="flow-desc">Opens headless browser → navigates to homepage → waits 2s for JavaScript to fully render.</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">3</div>
+  <div class="flow-content">
+    <div class="flow-title">Extract Homepage Metadata</div>
+    <div class="flow-desc">Title, meta description, all H1 tags, meta keywords, og:image, navigation links from &lt;nav&gt;/&lt;header&gt; elements.</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">4</div>
+  <div class="flow-content">
+    <div class="flow-title">Calculate SEO Score</div>
+    <div class="flow-desc">4 boolean checks: has meta description? has H1? has Open Graph tags? has JSON-LD structured data?</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">5</div>
+  <div class="flow-content">
+    <div class="flow-title">Extract Products (3 strategies)</div>
+    <div class="flow-desc"><strong>Strategy 1:</strong> CSS selectors for product cards (23 name selectors, 15 price selectors). <strong>Strategy 2:</strong> Direct product links (/products/, /shop/). <strong>Strategy 3:</strong> JSON-LD schema.org Product data. If no products on homepage → follows links to /collections or /shop page.</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">6</div>
+  <div class="flow-content">
+    <div class="flow-title">Extract Blog Posts (2 strategies)</div>
+    <div class="flow-desc"><strong>Strategy 1:</strong> Blog entry container selectors (11 selectors). <strong>Strategy 2:</strong> URL pattern matching (/blog/, /journal/, /news/). If no posts on homepage → follows link to blog page.</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">7</div>
+  <div class="flow-content">
+    <div class="flow-title">Compare with Previous Crawl</div>
+    <div class="flow-desc">Detects new/removed products, price changes >10%, new blog posts. Calculates content freshness score (0-100).</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">8</div>
+  <div class="flow-content">
+    <div class="flow-title">Generate HTML Report</div>
+    <div class="flow-desc">Creates a styled HTML report with summary cards, SEO health grid, product/price change tables, freshness bar. Saved to /app/reports/.</div>
+  </div>
+</div>
+
+<h2>Docker Image</h2>
+<div class="highlight-box">
+  Base: <strong>mcr.microsoft.com/playwright:v1.49.0-noble</strong> (Microsoft's official Playwright image with Chromium pre-installed). This is a ~1.3GB image because it includes a full browser engine.
+</div>
+
+<!-- ════════════════════════ 10 DASHBOARD ════════════════════════ -->
+<div class="page-break"></div>
+<h1><span class="num">10</span> Dashboard</h1>
+<div class="section-line"></div>
+
+<p>Built with <strong>Next.js 15</strong> + <strong>React 18</strong> + <strong>TailwindCSS 3</strong>. Dark luxury theme with gold accents. All data comes from the App's /dashboard/* API endpoints, proxied through Next.js rewrites.</p>
+
+<h2>How Data Gets to the Dashboard</h2>
+<div class="diagram"><span class="dim">Browser</span> → <span class="gold">Dashboard</span> (Next.js :3002) → /api/dashboard/stats
+                                              │
+                                     <span class="dim">Next.js rewrite</span>
+                                              │
+                                              ▼
+                                    <span class="gold">App</span> (Express :3000) → /dashboard/stats
+                                              │
+                                    Queries <span class="green">Redis</span> (queue counts)
+                                           + <span class="green">PostgreSQL</span> (job_logs, webhook_events)
+                                              │
+                                    Returns JSON → Dashboard renders it</div>
+
+<h2>5 Dashboard Pages</h2>
+
+<table>
+  <tr><th>Page</th><th>What It Shows</th><th>API Endpoints Used</th></tr>
+  <tr>
+    <td><strong>Dashboard</strong> (home)</td>
+    <td>4 stat cards (Orders Processed, Failed, In Progress, Success Rate), queue overview grid, recent webhook events</td>
+    <td>/dashboard/stats, /dashboard/queues, /dashboard/webhooks/recent</td>
+  </tr>
+  <tr>
+    <td><strong>Queues</strong></td>
+    <td>All 7 queues with job counts (Waiting, Active, Completed, Failed, Delayed), progress bars, retry/clean actions</td>
+    <td>/dashboard/queues, /dashboard/queues/:name</td>
+  </tr>
+  <tr>
+    <td><strong>Activity</strong></td>
+    <td>Live webhook event feed with pill badges (processed/pending), filterable by source/event type</td>
+    <td>/dashboard/webhooks/recent, /dashboard/system/logs</td>
+  </tr>
+  <tr>
+    <td><strong>System</strong></td>
+    <td>Service health (Redis, Postgres, Crawler — green/red with latency in ms), cron job execution history</td>
+    <td>/dashboard/system/health, /dashboard/system/cron</td>
+  </tr>
+  <tr>
+    <td><strong>Settings</strong></td>
+    <td>API key management per section (WooCommerce, Sheets, WhatsApp, Email, AI, Social, Crawler), test connection buttons, seed/reset demo data</td>
+    <td>/dashboard/settings (GET/PUT), /dashboard/settings/validate, /dashboard/data/seed, /dashboard/data/reset</td>
+  </tr>
+</table>
+
+<h2>UI Design</h2>
+<table>
+  <tr><th>Element</th><th>Style</th></tr>
+  <tr><td>Theme</td><td>Dark (#0C0D0B background)</td></tr>
+  <tr><td>Accent color</td><td>Gold gradient (#C4A35A → #A68B3E)</td></tr>
+  <tr><td>Cards</td><td>#141513 background, #1E1F1C border, hover glow</td></tr>
+  <tr><td>Text</td><td>#E8E6DF headings, #d4d3cc values, #7A7968 labels</td></tr>
+  <tr><td>Sidebar</td><td>260px wide, gold active state, 20×20 SVG icons</td></tr>
+  <tr><td>Fonts</td><td>System sans-serif (Poppins configured)</td></tr>
+</table>
+
+<!-- ════════════════════════ 11 DATA FLOWS ════════════════════════ -->
+<div class="page-break"></div>
+<h1><span class="num">11</span> Data Flows (End-to-End)</h1>
+<div class="section-line"></div>
+
+<h2>Flow A — New Order Placed</h2>
+
+<div class="flow-step">
+  <div class="flow-num">1</div>
+  <div class="flow-content">
+    <div class="flow-title">Customer places order on sbek.in</div>
+    <div class="flow-tech">WooCommerce (WordPress)</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">2</div>
+  <div class="flow-content">
+    <div class="flow-title">WooCommerce fires webhook → POST /webhooks/woocommerce/order</div>
+    <div class="flow-desc">HMAC signature verified. Webhook logged in webhook_events table.</div>
+    <div class="flow-tech">Express + PostgreSQL</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">3</div>
+  <div class="flow-content">
+    <div class="flow-title">Job enqueued to order-sync queue</div>
+    <div class="flow-tech">BullMQ + Redis</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">4</div>
+  <div class="flow-content">
+    <div class="flow-title">order-sync worker processes job</div>
+    <div class="flow-desc">Fetches full order details from WooCommerce API. Writes to Google Sheets (Orders tab, Production tab, QC tab). Creates notification job.</div>
+    <div class="flow-tech">WooCommerce REST API + Google Sheets API</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">5</div>
+  <div class="flow-content">
+    <div class="flow-title">notification worker sends alerts</div>
+    <div class="flow-desc">WhatsApp message to owner ("New order from Priya — Gold Ring — ₹45,000"). Email confirmation to customer.</div>
+    <div class="flow-tech">Meta WhatsApp Cloud API + Nodemailer SMTP</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">6</div>
+  <div class="flow-content">
+    <div class="flow-title">Dashboard shows it all</div>
+    <div class="flow-desc">Stats update, queue counts change, activity feed shows new webhook event.</div>
+    <div class="flow-tech">Next.js + SWR (auto-refresh)</div>
+  </div>
+</div>
+
+<h2>Flow B — New Product Published</h2>
+
+<div class="flow-step">
+  <div class="flow-num">1</div>
+  <div class="flow-content">
+    <div class="flow-title">Product published on WooCommerce</div>
+    <div class="flow-tech">WooCommerce webhook → POST /webhooks/woocommerce/product</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">2</div>
+  <div class="flow-content">
+    <div class="flow-title">App auto-creates 7 jobs</div>
+    <div class="flow-desc">6 content-generation jobs: SEO meta, FAQ, AEO knowledge base, comparison article, Schema.org JSON-LD, internal links. 1 creative-generation job: 5 image variants.</div>
+    <div class="flow-tech">BullMQ + Redis</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">3</div>
+  <div class="flow-content">
+    <div class="flow-title">content-generation workers process (6 jobs)</div>
+    <div class="flow-desc">Each calls OpenAI GPT-4o via OpenRouter. Generated content pushed to WordPress as pages/posts.</div>
+    <div class="flow-tech">OpenAI SDK (via OpenRouter) + WooCommerce WordPress API</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">4</div>
+  <div class="flow-content">
+    <div class="flow-title">creative-generation worker processes (1 job)</div>
+    <div class="flow-desc">Generates 5 image variants using Gemini (or DALL-E fallback). Resizes with Sharp. Uploads to Google Drive.</div>
+    <div class="flow-tech">Google Gemini + Sharp + Google Drive API</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">5</div>
+  <div class="flow-content">
+    <div class="flow-title">social-posting worker publishes</div>
+    <div class="flow-desc">Takes generated caption + image → uploads to Postiz → schedules posts for optimal times on Instagram, Facebook, LinkedIn, Twitter, Pinterest.</div>
+    <div class="flow-tech">Postiz API</div>
+  </div>
+</div>
+
+<h2>Flow C — Competitor Monitoring</h2>
+
+<div class="flow-step">
+  <div class="flow-num">1</div>
+  <div class="flow-content">
+    <div class="flow-title">Sunday 10 PM IST — cron fires</div>
+    <div class="flow-tech">node-cron</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">2</div>
+  <div class="flow-content">
+    <div class="flow-title">Reads competitor list from Google Sheets</div>
+    <div class="flow-tech">Google Sheets API (Competitors tab)</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">3</div>
+  <div class="flow-content">
+    <div class="flow-title">Enqueues competitor-crawl job per competitor</div>
+    <div class="flow-tech">BullMQ + Redis</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">4</div>
+  <div class="flow-content">
+    <div class="flow-title">Worker calls Crawler microservice</div>
+    <div class="flow-desc">POST http://crawler:3001/crawl with URL + previous crawl data.</div>
+    <div class="flow-tech">HTTP call to Crawler service</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">5</div>
+  <div class="flow-content">
+    <div class="flow-title">Crawler launches Chromium → scrapes site</div>
+    <div class="flow-desc">Extracts products (name, price, URL), blog posts, navigation, SEO score. Compares with previous crawl — flags price changes >10%, new/removed products.</div>
+    <div class="flow-tech">Playwright (Chromium) + Cheerio</div>
+  </div>
+</div>
+<div class="flow-step">
+  <div class="flow-num">6</div>
+  <div class="flow-content">
+    <div class="flow-title">Results saved + report generated</div>
+    <div class="flow-desc">Crawl data saved to competitor_snapshots table. HTML report generated and saved to /app/reports/.</div>
+    <div class="flow-tech">PostgreSQL + HTML report generator</div>
+  </div>
+</div>
+
+<h2>Flow D — Daily Catch-Up</h2>
+
+<div class="two-col">
+  <div>
+    <h3>2 AM — Sheets Sync</h3>
+    <div class="flow-step">
+      <div class="flow-num">1</div>
+      <div class="flow-content">
+        <div class="flow-desc">Pulls last 3 days of WooCommerce orders (paginated, 50/page)</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">2</div>
+      <div class="flow-content">
+        <div class="flow-desc">Enqueues order-sync for each → catches any missed webhooks</div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <h3>6 AM — Review Requests</h3>
+    <div class="flow-step">
+      <div class="flow-num">1</div>
+      <div class="flow-content">
+        <div class="flow-desc">Finds orders delivered 5+ days ago (from Sheets)</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">2</div>
+      <div class="flow-content">
+        <div class="flow-desc">Sends WhatsApp + Email review request → marks "Review Sent" in Sheets</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════ 12 DEPLOYMENT ════════════════════════ -->
+<div class="page-break"></div>
+<h1><span class="num">12</span> Deployment & Infrastructure</h1>
+<div class="section-line"></div>
+
+<h2>Docker Architecture</h2>
+
+<table>
+  <tr><th>Service</th><th>Base Image</th><th>Port</th><th>Notes</th></tr>
+  <tr><td>App</td><td>node:20-alpine (multi-stage)</td><td>3000</td><td>Builder compiles TS → Runner has only production deps</td></tr>
+  <tr><td>Dashboard</td><td>node:20-alpine (standalone)</td><td>3002</td><td>Next.js standalone output, optimized for containers</td></tr>
+  <tr><td>Crawler</td><td>mcr.microsoft.com/playwright:v1.49.0-noble</td><td>3001</td><td>~1.3GB image (includes Chromium)</td></tr>
+  <tr><td>PostgreSQL</td><td>postgres:16-alpine</td><td>5432</td><td>Persistent volume: pg_data</td></tr>
+  <tr><td>Redis</td><td>redis:7-alpine</td><td>6379</td><td>Persistent volume: redis_data</td></tr>
+</table>
+
+<h2>Railway Deployment</h2>
+
+<div class="highlight-box">
+  <strong>Platform:</strong> Railway (railway.app)<br>
+  <strong>Trigger:</strong> Auto-deploy on every git push to main branch<br>
+  <strong>Health check:</strong> GET /health (120s timeout)<br>
+  <strong>Restart policy:</strong> ON_FAILURE (max 5 retries)<br>
+  <strong>GitHub:</strong> github.com/SKULLFIRE07/sbek-automation
+</div>
+
+<h2>Live URLs</h2>
+<table>
+  <tr><th>Service</th><th>URL</th></tr>
+  <tr><td>App (API)</td><td>https://app-production-d917.up.railway.app</td></tr>
+  <tr><td>Dashboard</td><td>https://dashboard-production-1ce5.up.railway.app</td></tr>
+  <tr><td>PostgreSQL</td><td>maglev.proxy.rlwy.net:57485 (internal)</td></tr>
+  <tr><td>Redis</td><td>tramway.proxy.rlwy.net:13205 (internal)</td></tr>
+</table>
+
+<h2>Network Topology</h2>
+<div class="diagram"><span class="dim">Internet</span>
+    │
+    ├── <span class="gold">App</span>       (:3000)  ← public  ← WooCommerce webhooks
+    ├── <span class="gold">Dashboard</span>  (:3002)  ← public  ← users access this
+    │
+    ├── <span class="green">PostgreSQL</span> (:5432)  ← internal only (App connects via DATABASE_URL)
+    ├── <span class="green">Redis</span>      (:6379)  ← internal only (App connects via REDIS_URL)
+    └── <span class="green">Crawler</span>    (:3001)  ← internal only (App calls POST /crawl)</div>
+
+<h2>Environment Variables (15+ configurable)</h2>
+<table>
+  <tr><th>Category</th><th>Keys</th></tr>
+  <tr><td>Core</td><td>NODE_ENV, PORT, LOG_LEVEL, DATABASE_URL, REDIS_URL</td></tr>
+  <tr><td>WooCommerce</td><td>WOO_URL, WOO_CONSUMER_KEY, WOO_CONSUMER_SECRET, WOO_WEBHOOK_SECRET</td></tr>
+  <tr><td>Google</td><td>GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY, GOOGLE_SHEET_ID</td></tr>
+  <tr><td>WhatsApp</td><td>WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_ACCESS_TOKEN, WATI_API_KEY, INTERAKT_API_KEY</td></tr>
+  <tr><td>Email</td><td>SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_FROM</td></tr>
+  <tr><td>AI</td><td>OPENAI_API_KEY, GEMINI_API_KEY</td></tr>
+  <tr><td>Social</td><td>POSTIZ_API_KEY, POSTIZ_BASE_URL</td></tr>
+  <tr><td>Crawler</td><td>CRAWLER_BASE_URL</td></tr>
+  <tr><td>Admin</td><td>ADMIN_USERNAME, ADMIN_PASSWORD</td></tr>
+  <tr><td>Brand</td><td>BRAND_NAME, BRAND_PRIMARY_COLOR, BRAND_WEBSITE, BRAND_SUPPORT_PHONE</td></tr>
+</table>
+
+<div style="margin-top: 40px; text-align: center; color: #999; font-size: 9px; border-top: 1px solid #eee; padding-top: 16px;">
+  SBEK Automation System — Technical Documentation<br>
+  Built with TypeScript · Express · Next.js · BullMQ · Playwright · PostgreSQL · Redis<br>
+  March 2026
+</div>
+
+</body>
+</html>
