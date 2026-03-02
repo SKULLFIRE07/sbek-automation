@@ -31,6 +31,27 @@ interface ValidationResult {
   message: string;
 }
 
+/* ── URL → ID Extractors ────────────────────────────────────────────── */
+
+/** Extract the Sheet ID from a Google Sheets URL, or return the raw string if it's already just an ID */
+function extractSheetId(input: string): string {
+  const trimmed = input.trim();
+  // Match: https://docs.google.com/spreadsheets/d/{ID}/...
+  const match = trimmed.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  if (match) return match[1];
+  // Already just an ID (no slashes)
+  return trimmed;
+}
+
+/** Extract the folder ID from a Google Drive folder URL, or return the raw string */
+function extractDriveFolderId(input: string): string {
+  const trimmed = input.trim();
+  // Match: https://drive.google.com/drive/folders/{ID}...
+  const match = trimmed.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+  if (match) return match[1];
+  return trimmed;
+}
+
 /* ── Section definitions — keys match CONFIGURABLE_KEYS (UPPERCASE) ── */
 
 const SECTIONS: SectionDef[] = [
@@ -76,52 +97,7 @@ const SECTIONS: SectionDef[] = [
       },
     ],
   },
-  {
-    id: "google-sheets",
-    title: "Google Sheets & Drive",
-    icon: "\u25A6",
-    description:
-      "Connect your Google account to sync order data to Sheets and upload creatives to Drive. Use OAuth (recommended) or service account credentials as fallback.",
-    testable: true,
-    fields: [
-      {
-        key: "GOOGLE_SHEET_ID",
-        label: "Google Sheet ID",
-        type: "text",
-        hint: "The long ID string from your Google Sheet URL",
-        howToGet: "Open your Sheet → copy the ID from the URL between /d/ and /edit",
-        required: true,
-      },
-      {
-        key: "GOOGLE_OAUTH_CLIENT_ID",
-        label: "OAuth Client ID",
-        type: "text",
-        hint: "Required for 'Connect Google Account' button below",
-        howToGet: "Google Cloud Console → APIs & Services → Credentials → Create OAuth Client ID (Web App type)",
-      },
-      {
-        key: "GOOGLE_OAUTH_CLIENT_SECRET",
-        label: "OAuth Client Secret",
-        type: "password",
-        hint: "Required for 'Connect Google Account' button below",
-        howToGet: "Shown once when you create the OAuth Client ID above — copy it immediately",
-      },
-      {
-        key: "GOOGLE_SERVICE_ACCOUNT_EMAIL",
-        label: "Service Account Email (fallback)",
-        type: "text",
-        hint: "Only needed if NOT using OAuth above",
-        howToGet: "Google Cloud Console → IAM & Admin → Service Accounts → Create → copy email (e.g. sbek-bot@project.iam.gserviceaccount.com)",
-      },
-      {
-        key: "GOOGLE_PRIVATE_KEY",
-        label: "Service Account Private Key (fallback)",
-        type: "textarea",
-        hint: "Only needed if NOT using OAuth above. PEM-encoded key.",
-        howToGet: "Service Account → Keys → Add Key → JSON → copy the \"private_key\" field from the downloaded JSON",
-      },
-    ],
-  },
+  // Google section is handled separately as a custom component
   {
     id: "whatsapp-meta",
     title: "WhatsApp (Meta Cloud API)",
@@ -397,16 +373,6 @@ function ValidationIcon({ filled }: { filled: boolean }) {
   );
 }
 
-function InfoIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.2" className="flex-shrink-0">
-      <circle cx="6" cy="6" r="5" />
-      <path d="M6 5.5v3" />
-      <circle cx="6" cy="3.8" r="0.5" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
 /* ── Skeleton ───────────────────────────────────────────────────────── */
 
 function Skeleton({ className }: { className?: string }) {
@@ -475,19 +441,66 @@ function InlineToast({ result, onDismiss }: { result: ValidationResult; onDismis
   );
 }
 
-/* ── Google OAuth Connect Button ────────────────────────────────────── */
+/* ── Google Sheets & Drive Section (custom) ────────────────────────── */
 
-function GoogleOAuthButton({ values }: { values: Record<string, string> }) {
-  const [status, setStatus] = useState<{ connected: boolean; email: string }>({ connected: false, email: "" });
-  const [loading, setLoading] = useState(true);
+function GoogleSection({
+  values,
+  sources,
+  onChange,
+}: {
+  values: Record<string, string>;
+  sources: Record<string, "database" | "env" | "none">;
+  onChange: (key: string, val: string) => void;
+}) {
+  const [open, setOpen] = useState(true);
+  const [devOpen, setDevOpen] = useState(false);
+  const [oauthStatus, setOauthStatus] = useState<{ connected: boolean; email: string }>({ connected: false, email: "" });
+  const [oauthLoading, setOauthLoading] = useState(true);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [setupStatus, setSetupStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [setupMsg, setSetupMsg] = useState("");
+
+  // Sheet URL state — we show the user-friendly URL but store the extracted ID
+  const [sheetUrl, setSheetUrl] = useState("");
+  const [driveUrl, setDriveUrl] = useState("");
 
   useEffect(() => {
     fetchApi<{ connected: boolean; email: string }>("/auth/google/status")
-      .then(setStatus)
-      .catch(() => setStatus({ connected: false, email: "" }))
-      .finally(() => setLoading(false));
+      .then(setOauthStatus)
+      .catch(() => setOauthStatus({ connected: false, email: "" }))
+      .finally(() => setOauthLoading(false));
   }, []);
+
+  // Sync sheet URL from stored ID
+  useEffect(() => {
+    const storedId = values["GOOGLE_SHEET_ID"] ?? "";
+    if (storedId && !storedId.includes("***") && !sheetUrl) {
+      setSheetUrl(storedId.includes("/") ? storedId : `https://docs.google.com/spreadsheets/d/${storedId}/edit`);
+    }
+  }, [values, sheetUrl]);
+
+  useEffect(() => {
+    const storedId = values["GOOGLE_DRIVE_FOLDER_ID"] ?? "";
+    if (storedId && !storedId.includes("***") && !driveUrl) {
+      setDriveUrl(storedId.includes("/") ? storedId : `https://drive.google.com/drive/folders/${storedId}`);
+    }
+  }, [values, driveUrl]);
+
+  const handleSheetUrlChange = (url: string) => {
+    setSheetUrl(url);
+    const id = extractSheetId(url);
+    onChange("GOOGLE_SHEET_ID", id);
+  };
+
+  const handleDriveUrlChange = (url: string) => {
+    setDriveUrl(url);
+    if (url.trim()) {
+      const id = extractDriveFolderId(url);
+      onChange("GOOGLE_DRIVE_FOLDER_ID", id);
+    } else {
+      onChange("GOOGLE_DRIVE_FOLDER_ID", "");
+    }
+  };
 
   const handleConnect = () => {
     window.location.href = "/api/auth/google/authorize";
@@ -497,91 +510,297 @@ function GoogleOAuthButton({ values }: { values: Record<string, string> }) {
     setDisconnecting(true);
     try {
       await postApi("/auth/google/disconnect");
-      setStatus({ connected: false, email: "" });
-    } catch {
-      // ignore
-    } finally {
-      setDisconnecting(false);
+      setOauthStatus({ connected: false, email: "" });
+    } catch { /* ignore */ }
+    finally { setDisconnecting(false); }
+  };
+
+  const handleSetup = async () => {
+    setSetupStatus("loading");
+    setSetupMsg("");
+    try {
+      const result = await postApi<{ success: boolean; message?: string; error?: string }>("/dashboard/google/setup");
+      if (result.success) {
+        setSetupStatus("success");
+        setSetupMsg(result.message || "Sheet tabs and Drive folder ready!");
+      } else {
+        setSetupStatus("error");
+        setSetupMsg(result.error || "Setup failed");
+      }
+    } catch (err) {
+      setSetupStatus("error");
+      setSetupMsg(err instanceof Error ? err.message : "Setup failed");
     }
   };
 
-  if (loading) {
-    return <div className="text-[11px] py-2" style={{ color: "var(--text-subtle)" }}>Checking Google connection...</div>;
-  }
+  const sheetId = values["GOOGLE_SHEET_ID"] ?? "";
+  const hasSheet = sheetId.length > 0 && !sheetId.includes("***");
 
-  if (status.connected) {
-    return (
-      <div
-        className="flex items-center justify-between px-3 py-2.5 mb-4"
-        style={{
-          background: "#F0FAF0",
-          border: "1px solid #D5E8D5",
-          borderRadius: "var(--radius-sm)",
-        }}
-      >
-        <span className="flex items-center gap-2 text-[11px]" style={{ color: "var(--text-secondary)" }}>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.2" />
-            <path d="M4 7l2 2 4-4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Connected as <strong>{status.email}</strong>
-        </span>
-        <button
-          type="button"
-          onClick={handleDisconnect}
-          disabled={disconnecting}
-          className="btn-ghost px-2 py-1 text-[10px] uppercase tracking-wider font-medium"
-          style={{ color: "var(--error)", opacity: disconnecting ? 0.5 : 1 }}
-        >
-          {disconnecting ? "Disconnecting..." : "Disconnect"}
-        </button>
-      </div>
-    );
-  }
-
-  // Check if OAuth client ID and secret are filled in
-  const hasClientId = !!(values["GOOGLE_OAUTH_CLIENT_ID"]?.trim()) && !values["GOOGLE_OAUTH_CLIENT_ID"]?.includes("***");
-  const hasClientSecret = !!(values["GOOGLE_OAUTH_CLIENT_SECRET"]?.trim()) && !values["GOOGLE_OAUTH_CLIENT_SECRET"]?.includes("***");
-  // Also consider them "set" if the source is ENV/DB (masked values)
-  const credsConfigured = (hasClientId && hasClientSecret) ||
-    (values["GOOGLE_OAUTH_CLIENT_ID"]?.includes("***") && values["GOOGLE_OAUTH_CLIENT_SECRET"]?.includes("***"));
-
-  if (!credsConfigured) {
-    return (
-      <div
-        className="flex items-center gap-2 px-3 py-2.5 mb-4 text-[11px]"
-        style={{
-          background: "#FFFBF0",
-          border: "1px solid #E8DFC0",
-          borderRadius: "var(--radius-sm)",
-          color: "var(--text-muted)",
-        }}
-      >
-        <InfoIcon />
-        <span>
-          Fill in <strong>OAuth Client ID</strong> and <strong>OAuth Client Secret</strong> below, save, then the Connect button will appear.
-        </span>
-      </div>
-    );
-  }
+  const configuredCount = [
+    oauthStatus.connected || (sources["GOOGLE_SERVICE_ACCOUNT_EMAIL"] !== "none" && sources["GOOGLE_SERVICE_ACCOUNT_EMAIL"] !== undefined),
+    sources["GOOGLE_SHEET_ID"] !== "none" && sources["GOOGLE_SHEET_ID"] !== undefined,
+  ].filter(Boolean).length;
 
   return (
-    <button
-      type="button"
-      onClick={handleConnect}
-      className="btn-ghost w-full px-4 py-2.5 mb-4 text-[11px] uppercase tracking-[0.08em] font-medium flex items-center justify-center gap-2"
+    <div
+      className="mb-4"
       style={{
-        background: "#F0F6FF",
-        borderColor: "#D5E0F0",
-        color: "var(--text-muted)",
+        border: "1px solid var(--border)",
+        background: "var(--bg-surface)",
+        borderRadius: "var(--radius-md)",
       }}
     >
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2">
-        <circle cx="7" cy="7" r="5.5" />
-        <path d="M7 4v6M4 7h6" />
-      </svg>
-      Connect Google Account (Sheets + Drive)
-    </button>
+      {/* Header */}
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left row-hover"
+        style={{ borderRadius: "var(--radius-md)" }}
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-base leading-none" style={{ color: "var(--text-subtle)" }}>{"\u25A6"}</span>
+          <h2 className="text-xs uppercase tracking-[0.15em] font-medium" style={{ color: "var(--text-muted)" }}>
+            Google Sheets & Drive
+          </h2>
+          <span
+            className="text-[10px] font-mono"
+            style={{ color: configuredCount >= 2 ? "var(--text-secondary)" : "var(--text-disabled)" }}
+          >
+            {configuredCount}/2
+          </span>
+        </div>
+        <span style={{ color: "var(--text-subtle)" }}>
+          <ChevronIcon open={open} />
+        </span>
+      </button>
+
+      {open && (
+        <div className="px-5 pb-5" style={{ borderTop: "1px solid var(--border)" }}>
+          <p className="text-[11px] leading-relaxed pt-4 pb-4" style={{ color: "var(--text-subtle)" }}>
+            Connect your Google account, then paste your Sheet and Drive folder links. The system will auto-create all required tabs and columns.
+          </p>
+
+          {/* ── Step 1: Google Account ── */}
+          <div className="mb-5">
+            <div className="flex items-center gap-2 mb-2">
+              <span
+                className="flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold"
+                style={{ background: oauthStatus.connected ? "var(--text-secondary)" : "var(--border-strong)", color: oauthStatus.connected ? "#fff" : "var(--text-muted)" }}
+              >
+                1
+              </span>
+              <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
+                Connect Google Account
+              </span>
+              {oauthStatus.connected && (
+                <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: "var(--text-secondary)" }}>
+                  Connected
+                </span>
+              )}
+            </div>
+
+            {oauthLoading ? (
+              <div className="text-[11px] py-2 pl-7" style={{ color: "var(--text-subtle)" }}>Checking...</div>
+            ) : oauthStatus.connected ? (
+              <div
+                className="flex items-center justify-between px-3 py-2.5 ml-7"
+                style={{ background: "#F0FAF0", border: "1px solid #D5E8D5", borderRadius: "var(--radius-sm)" }}
+              >
+                <span className="flex items-center gap-2 text-[11px]" style={{ color: "var(--text-secondary)" }}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.2" />
+                    <path d="M4 7l2 2 4-4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Logged in as <strong>{oauthStatus.email}</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={handleDisconnect}
+                  disabled={disconnecting}
+                  className="btn-ghost px-2 py-1 text-[10px] uppercase tracking-wider font-medium"
+                  style={{ color: "var(--error)", opacity: disconnecting ? 0.5 : 1 }}
+                >
+                  {disconnecting ? "..." : "Disconnect"}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleConnect}
+                className="btn-ghost ml-7 px-4 py-2.5 text-[11px] uppercase tracking-[0.08em] font-medium flex items-center gap-2"
+                style={{ background: "#F0F6FF", borderColor: "#D5E0F0", color: "var(--text-muted)" }}
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2">
+                  <circle cx="7" cy="7" r="5.5" />
+                  <path d="M7 4v6M4 7h6" />
+                </svg>
+                Login with Google
+              </button>
+            )}
+          </div>
+
+          {/* ── Step 2: Google Sheet URL ── */}
+          <div className="mb-5">
+            <div className="flex items-center gap-2 mb-2">
+              <span
+                className="flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold"
+                style={{ background: hasSheet ? "var(--text-secondary)" : "var(--border-strong)", color: hasSheet ? "#fff" : "var(--text-muted)" }}
+              >
+                2
+              </span>
+              <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
+                Google Sheet URL
+              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "#CC3333" }}>
+                Required
+              </span>
+              {sources["GOOGLE_SHEET_ID"] && sources["GOOGLE_SHEET_ID"] !== "none" && (
+                <span
+                  className="badge text-[9px] font-mono uppercase tracking-wider"
+                  style={{
+                    color: sources["GOOGLE_SHEET_ID"] === "database" ? "var(--text-secondary)" : "var(--warning)",
+                    background: sources["GOOGLE_SHEET_ID"] === "database" ? "#F0FAF0" : "#FFFEF0",
+                  }}
+                >
+                  {sources["GOOGLE_SHEET_ID"] === "database" ? "DB" : "ENV"}
+                </span>
+              )}
+            </div>
+            <div className="ml-7">
+              <input
+                type="text"
+                value={sheetUrl}
+                onChange={(e) => handleSheetUrlChange(e.target.value)}
+                className="input w-full font-mono text-sm"
+                placeholder="https://docs.google.com/spreadsheets/d/your-sheet-id/edit"
+                spellCheck={false}
+                autoComplete="off"
+              />
+              <p className="text-[11px] mt-1" style={{ color: "var(--text-subtle)" }}>
+                Paste the full URL of your Google Sheet. Create a blank sheet and share it with your connected Google account.
+              </p>
+              {hasSheet && (
+                <p className="text-[10px] mt-0.5 font-mono" style={{ color: "var(--text-disabled)" }}>
+                  Extracted ID: {sheetId}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* ── Step 3: Drive Folder URL (optional) ── */}
+          <div className="mb-5">
+            <div className="flex items-center gap-2 mb-2">
+              <span
+                className="flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold"
+                style={{ background: "var(--border-strong)", color: "var(--text-muted)" }}
+              >
+                3
+              </span>
+              <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
+                Google Drive Folder URL
+              </span>
+              <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: "var(--text-subtle)" }}>
+                Optional
+              </span>
+            </div>
+            <div className="ml-7">
+              <input
+                type="text"
+                value={driveUrl}
+                onChange={(e) => handleDriveUrlChange(e.target.value)}
+                className="input w-full font-mono text-sm"
+                placeholder="https://drive.google.com/drive/folders/your-folder-id"
+                spellCheck={false}
+                autoComplete="off"
+              />
+              <p className="text-[11px] mt-1" style={{ color: "var(--text-subtle)" }}>
+                Paste a Drive folder link where creatives will be uploaded. Leave empty to auto-create an &quot;SBEK Creatives&quot; folder.
+              </p>
+            </div>
+          </div>
+
+          {/* ── Setup Sheet Button ── */}
+          <div
+            className="pt-4 mt-2 flex items-center gap-3"
+            style={{ borderTop: "1px solid var(--border)" }}
+          >
+            <button
+              type="button"
+              onClick={handleSetup}
+              disabled={setupStatus === "loading" || (!oauthStatus.connected && !values["GOOGLE_SERVICE_ACCOUNT_EMAIL"])}
+              className="btn-ghost px-4 py-2 text-[11px] uppercase tracking-[0.08em] font-medium flex items-center gap-2"
+              style={{
+                background: setupStatus === "success" ? "#F0FAF0" : setupStatus === "error" ? "#FFF0F0" : "#F0F6FF",
+                borderColor: setupStatus === "success" ? "#D5E8D5" : setupStatus === "error" ? "#E8D5D5" : "#D5E0F0",
+                color: setupStatus === "success" ? "var(--text-secondary)" : setupStatus === "error" ? "var(--error)" : "var(--text-muted)",
+                opacity: setupStatus === "loading" ? 0.7 : 1,
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.2">
+                <path d="M1 6h3m4 0h3" />
+                <circle cx="6" cy="6" r="2.5" />
+              </svg>
+              {setupStatus === "loading"
+                ? "Setting up..."
+                : setupStatus === "success"
+                  ? "Sheet Ready!"
+                  : "Setup Sheet & Drive"}
+            </button>
+            <span className="text-[10px]" style={{ color: "var(--text-subtle)" }}>
+              Creates 7 tabs (Orders, Production, QC, etc.) with headers, dropdowns, and color coding
+            </span>
+          </div>
+
+          {setupMsg && (
+            <div
+              className="mt-2 px-3 py-2 text-[11px] font-mono animate-enter-fade"
+              style={{
+                background: setupStatus === "error" ? "#FFF0F0" : "#F0FAF0",
+                border: `1px solid ${setupStatus === "error" ? "#E8D5D5" : "#D5E8D5"}`,
+                borderRadius: "var(--radius-sm)",
+                color: setupStatus === "error" ? "var(--error)" : "var(--text-secondary)",
+              }}
+            >
+              {setupMsg}
+            </div>
+          )}
+
+          {/* ── Developer Settings (collapsible) ── */}
+          <div className="mt-5">
+            <button
+              type="button"
+              onClick={() => setDevOpen(!devOpen)}
+              className="flex items-center gap-2 text-[10px] uppercase tracking-[0.1em] font-medium py-1"
+              style={{ color: "var(--text-disabled)" }}
+            >
+              <ChevronIcon open={devOpen} />
+              Developer Settings (Service Account Fallback)
+            </button>
+            {devOpen && (
+              <div className="mt-3 pl-4" style={{ borderLeft: "2px solid var(--border)" }}>
+                <p className="text-[10px] mb-3" style={{ color: "var(--text-disabled)" }}>
+                  Only needed if Google OAuth login is not available. These are set by your developer via environment variables.
+                </p>
+                {[
+                  { key: "GOOGLE_OAUTH_CLIENT_ID", label: "OAuth Client ID", type: "text" as const, hint: "Set by developer" },
+                  { key: "GOOGLE_OAUTH_CLIENT_SECRET", label: "OAuth Client Secret", type: "password" as const, hint: "Set by developer" },
+                  { key: "GOOGLE_SERVICE_ACCOUNT_EMAIL", label: "Service Account Email", type: "text" as const, hint: "e.g. sbek-bot@project.iam.gserviceaccount.com" },
+                  { key: "GOOGLE_PRIVATE_KEY", label: "Service Account Private Key", type: "textarea" as const, hint: "PEM-encoded private key" },
+                ].map((field) => (
+                  <SettingsField
+                    key={field.key}
+                    field={field}
+                    value={values[field.key] ?? ""}
+                    source={sources[field.key]}
+                    onChange={(val) => onChange(field.key, val)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -605,7 +824,6 @@ function TestConnectionButton({
       const sectionValues: Record<string, string> = {};
       for (const f of sectionFields) {
         const v = values[f.key];
-        // Skip masked values (contain ***) — let the server resolve from real stored/env values
         if (v && !v.includes("***")) sectionValues[f.key] = v;
       }
       const result = await postApi<ValidationResult>("/dashboard/settings/validate", {
@@ -1047,7 +1265,6 @@ function SettingsSection({
             <p className="text-[11px] leading-relaxed pt-4 pb-3" style={{ color: "var(--text-subtle)" }}>
               {section.description}
             </p>
-            {section.id === "google-sheets" && <GoogleOAuthButton values={values} />}
             <div>
               {section.fields.map((field) => (
                 <SettingsField
@@ -1109,7 +1326,7 @@ export default function SettingsPage() {
   const [hydrated, setHydrated] = useState(false);
   const [validationResults, setValidationResults] = useState<Record<string, ValidationResult | null>>({});
 
-  // Hydrate form from API response (handles both new and legacy format)
+  // Hydrate form from API response
   useEffect(() => {
     if (remote && !hydrated) {
       const flat: Record<string, string> = {};
@@ -1156,7 +1373,6 @@ export default function SettingsPage() {
   });
   const hasChanges = dirtyKeys.length > 0;
 
-  // Find which sections have dirty keys
   const dirtySections = new Set<string>();
   for (const k of dirtyKeys) {
     for (const s of SECTIONS) {
@@ -1192,7 +1408,7 @@ export default function SettingsPage() {
         return next;
       });
 
-      // Auto-validate each dirty section that is testable
+      // Auto-validate testable dirty sections
       for (const sectionId of dirtySections) {
         const section = SECTIONS.find((s) => s.id === sectionId);
         if (!section?.testable) continue;
@@ -1226,6 +1442,10 @@ export default function SettingsPage() {
     }
   };
 
+  // Insert Google section after WooCommerce (index 0)
+  const wooSection = SECTIONS[0]; // woocommerce
+  const restSections = SECTIONS.slice(1); // everything after woo (google-sheets was removed from SECTIONS)
+
   return (
     <div className="animate-enter">
       <PageHeader title="Settings" />
@@ -1250,7 +1470,25 @@ export default function SettingsPage() {
           <DataManagementBar />
 
           <div className="stagger">
-            {SECTIONS.map((section) => (
+            {/* WooCommerce */}
+            <SettingsSection
+              section={wooSection}
+              values={values}
+              sources={sources}
+              onChange={handleChange}
+              validationResult={validationResults[wooSection.id]}
+              onValidationResult={handleValidationResult}
+            />
+
+            {/* Google Sheets & Drive — custom section */}
+            <GoogleSection
+              values={values}
+              sources={sources}
+              onChange={handleChange}
+            />
+
+            {/* All other sections */}
+            {restSections.map((section) => (
               <SettingsSection
                 key={section.id}
                 section={section}

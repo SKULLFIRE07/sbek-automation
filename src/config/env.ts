@@ -26,6 +26,7 @@ const envSchema = z.object({
   GOOGLE_SERVICE_ACCOUNT_EMAIL: z.string().email().optional(),
   GOOGLE_PRIVATE_KEY: z.string().min(1).optional(),
   GOOGLE_SHEET_ID: z.string().min(1).optional(),
+  GOOGLE_DRIVE_FOLDER_ID: z.string().min(1).optional(),
 
   // ── WhatsApp / Meta ────────────────────────────────────
   WHATSAPP_PHONE_NUMBER_ID: z.string().min(1).optional(),

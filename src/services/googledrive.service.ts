@@ -61,8 +61,9 @@ class GoogleDriveService {
     try {
       this.drive = google.drive({ version: 'v3', auth });
 
-      // Ensure the shared creatives folder exists
-      this.folderId = await this.ensureFolder('SBEK Creatives');
+      // Use explicit folder ID if provided, otherwise auto-create "SBEK Creatives"
+      const explicitFolderId = (await settings.get('GOOGLE_DRIVE_FOLDER_ID')) ?? env.GOOGLE_DRIVE_FOLDER_ID;
+      this.folderId = explicitFolderId || await this.ensureFolder('SBEK Creatives');
 
       this.initialized = true;
       this.credHash = hash;

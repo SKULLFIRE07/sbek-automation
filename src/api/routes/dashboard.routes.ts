@@ -10,6 +10,8 @@ import { logger } from '../../config/logger.js';
 import { env } from '../../config/env.js';
 import { settings, CONFIGURABLE_KEYS, type ConfigurableKey } from '../../services/settings.service.js';
 import { seedDemoData } from '../../services/seed.service.js';
+import { sheets } from '../../services/googlesheets.service.js';
+import { gdrive } from '../../services/googledrive.service.js';
 
 export const dashboardRouter = Router();
 
@@ -513,6 +515,28 @@ dashboardRouter.post('/data/reset', async (_req: Request, res: Response) => {
   } catch (err) {
     logger.error({ err }, 'Dashboard reset error');
     res.status(500).json({ success: false, error: 'Failed to erase data' });
+  }
+});
+
+// ── Google Setup (initialise Sheet tabs + Drive folder) ────────────────
+
+dashboardRouter.post('/google/setup', async (_req: Request, res: Response) => {
+  try {
+    // Force re-initialisation so it picks up newly-saved credentials
+    (sheets as unknown as { initialized: boolean }).initialized = false;
+    (gdrive as unknown as { initialized: boolean }).initialized = false;
+
+    await sheets.init();
+    await gdrive.init();
+
+    res.json({
+      success: true,
+      message: 'Google Sheet tabs created (Orders, Production, QC, Customers, Creatives, Competitors, System Logs) with formatting. Drive folder ready.',
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Setup failed';
+    logger.error({ err }, 'Google setup error');
+    res.status(500).json({ success: false, error: msg });
   }
 });
 

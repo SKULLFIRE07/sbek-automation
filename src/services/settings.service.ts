@@ -18,10 +18,11 @@ export const CONFIGURABLE_KEYS = [
   'WOO_CONSUMER_SECRET',
   'WOO_WEBHOOK_SECRET',
 
-  // Google Sheets
+  // Google Sheets & Drive
   'GOOGLE_SERVICE_ACCOUNT_EMAIL',
   'GOOGLE_PRIVATE_KEY',
   'GOOGLE_SHEET_ID',
+  'GOOGLE_DRIVE_FOLDER_ID',
 
   // WhatsApp — Meta (primary)
   'WHATSAPP_PHONE_NUMBER_ID',
