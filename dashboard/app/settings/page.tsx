@@ -12,6 +12,7 @@ interface FieldDef {
   label: string;
   type: "text" | "password" | "textarea" | "select";
   hint?: string;
+  howToGet?: string;
   options?: string[];
   required?: boolean;
 }
@@ -35,7 +36,7 @@ interface ValidationResult {
 const SECTIONS: SectionDef[] = [
   {
     id: "woocommerce",
-    title: "WooCommerce",
+    title: "WooCommerce Store",
     icon: "\u2302",
     description:
       "Connect your WooCommerce store to sync products, orders, and customer data in real time.",
@@ -45,76 +46,85 @@ const SECTIONS: SectionDef[] = [
         key: "WOO_URL",
         label: "Store URL",
         type: "text",
-        hint: "Full URL of your WooCommerce store (e.g. https://store.sbek.com)",
+        hint: "Full URL of your WooCommerce store",
+        howToGet: "Your store's main URL, e.g. https://store.sbek.com",
         required: true,
       },
       {
         key: "WOO_CONSUMER_KEY",
         label: "Consumer Key",
         type: "password",
-        hint: "WooCommerce REST API consumer key (starts with ck_)",
+        hint: "Starts with ck_",
+        howToGet: "WooCommerce → Settings → Advanced → REST API → Add Key → Read/Write",
         required: true,
       },
       {
         key: "WOO_CONSUMER_SECRET",
         label: "Consumer Secret",
         type: "password",
-        hint: "WooCommerce REST API consumer secret (starts with cs_)",
+        hint: "Starts with cs_",
+        howToGet: "Generated alongside the Consumer Key above",
         required: true,
       },
       {
         key: "WOO_WEBHOOK_SECRET",
         label: "Webhook Secret",
         type: "password",
-        hint: "Secret for verifying WooCommerce webhook payloads",
+        hint: "Secret for verifying webhook payloads",
+        howToGet: "WooCommerce → Settings → Advanced → Webhooks → Add → copy the Secret",
         required: true,
       },
     ],
   },
   {
     id: "google-sheets",
-    title: "Google Account",
+    title: "Google Sheets & Drive",
     icon: "\u25A6",
     description:
-      "Connect your Google account to access Sheets and Drive. Click 'Connect Google Account' below, or use service account credentials as a fallback.",
+      "Connect your Google account to sync order data to Sheets and upload creatives to Drive. Use OAuth (recommended) or service account credentials as fallback.",
     testable: true,
     fields: [
       {
         key: "GOOGLE_SHEET_ID",
-        label: "Sheet ID",
+        label: "Google Sheet ID",
         type: "text",
-        hint: "The ID from your Google Sheet URL (between /d/ and /edit)",
+        hint: "The long ID string from your Google Sheet URL",
+        howToGet: "Open your Sheet → copy the ID from the URL between /d/ and /edit",
         required: true,
       },
       {
         key: "GOOGLE_OAUTH_CLIENT_ID",
         label: "OAuth Client ID",
         type: "text",
-        hint: "From Google Cloud Console → APIs & Services → Credentials",
+        hint: "Required for 'Connect Google Account' button below",
+        howToGet: "Google Cloud Console → APIs & Services → Credentials → Create OAuth Client ID (Web App type)",
       },
       {
         key: "GOOGLE_OAUTH_CLIENT_SECRET",
         label: "OAuth Client Secret",
         type: "password",
-        hint: "From Google Cloud Console → APIs & Services → Credentials",
+        hint: "Required for 'Connect Google Account' button below",
+        howToGet: "Shown once when you create the OAuth Client ID above — copy it immediately",
       },
       {
         key: "GOOGLE_SERVICE_ACCOUNT_EMAIL",
         label: "Service Account Email (fallback)",
         type: "text",
-        hint: "Only needed if not using OAuth. e.g. sbek-bot@your-project.iam.gserviceaccount.com",
+        hint: "Only needed if NOT using OAuth above",
+        howToGet: "Google Cloud Console → IAM & Admin → Service Accounts → Create → copy email (e.g. sbek-bot@project.iam.gserviceaccount.com)",
       },
       {
         key: "GOOGLE_PRIVATE_KEY",
-        label: "Private Key (fallback)",
+        label: "Service Account Private Key (fallback)",
         type: "textarea",
-        hint: "Only needed if not using OAuth. PEM-encoded private key.",
+        hint: "Only needed if NOT using OAuth above. PEM-encoded key.",
+        howToGet: "Service Account → Keys → Add Key → JSON → copy the \"private_key\" field from the downloaded JSON",
       },
     ],
   },
   {
     id: "whatsapp-meta",
-    title: "WhatsApp (Meta)",
+    title: "WhatsApp (Meta Cloud API)",
     icon: "\u2709",
     description:
       "Primary WhatsApp Business Cloud API for order confirmations, shipping updates, and review requests.",
@@ -124,14 +134,16 @@ const SECTIONS: SectionDef[] = [
         key: "WHATSAPP_PHONE_NUMBER_ID",
         label: "Phone Number ID",
         type: "text",
-        hint: "Numeric ID from Meta Business Suite (e.g. 123456789012345)",
+        hint: "Numeric ID, NOT your phone number",
+        howToGet: "Meta Business Suite → WhatsApp → API Setup → Phone Number ID (e.g. 123456789012345)",
         required: true,
       },
       {
         key: "WHATSAPP_ACCESS_TOKEN",
-        label: "Access Token",
+        label: "Permanent Access Token",
         type: "password",
-        hint: "Meta/Facebook access token for WhatsApp Cloud API",
+        hint: "Long-lived token for API access",
+        howToGet: "Meta Business Suite → WhatsApp → API Setup → Generate Permanent Token",
         required: true,
       },
     ],
@@ -141,25 +153,28 @@ const SECTIONS: SectionDef[] = [
     title: "WhatsApp Backup (Wati / Interakt)",
     icon: "\u2709",
     description:
-      "Backup WhatsApp providers. If Meta Cloud API fails, the system falls back to Wati first, then Interakt.",
+      "Backup WhatsApp providers. If Meta Cloud API fails, the system falls back to Wati first, then Interakt. Optional — skip if not needed.",
     fields: [
       {
         key: "WATI_API_KEY",
         label: "Wati API Key",
         type: "password",
-        hint: "API key from your Wati dashboard",
+        hint: "Optional backup provider",
+        howToGet: "Wati Dashboard → Settings → API Keys → copy",
       },
       {
         key: "WATI_BASE_URL",
         label: "Wati Base URL",
         type: "text",
         hint: "e.g. https://live-mt-server.wati.io",
+        howToGet: "Provided by Wati when you sign up",
       },
       {
         key: "INTERAKT_API_KEY",
         label: "Interakt API Key",
         type: "password",
-        hint: "API key from your Interakt dashboard (used as 2nd fallback)",
+        hint: "Optional 2nd fallback provider",
+        howToGet: "Interakt Dashboard → Developers → API Keys → copy",
       },
     ],
   },
@@ -168,88 +183,96 @@ const SECTIONS: SectionDef[] = [
     title: "Email (SMTP)",
     icon: "\u2707",
     description:
-      "Set up outbound email delivery via SMTP for order confirmations, shipping updates, and marketing emails.",
+      "Outbound email for order confirmations, shipping updates, and marketing. For Gmail, use an App Password (not your regular password).",
     testable: true,
     fields: [
       {
         key: "SMTP_HOST",
-        label: "Host",
+        label: "SMTP Host",
         type: "text",
-        hint: "SMTP server hostname (e.g. smtp.gmail.com)",
+        hint: "e.g. smtp.gmail.com",
+        howToGet: "Gmail: smtp.gmail.com  |  Outlook: smtp.office365.com  |  Custom: check your email provider",
         required: true,
       },
       {
         key: "SMTP_PORT",
-        label: "Port",
+        label: "SMTP Port",
         type: "text",
-        hint: "SMTP server port (587 for TLS, 465 for SSL)",
+        hint: "587 for TLS (recommended), 465 for SSL",
+        howToGet: "Use 587 for Gmail/most providers",
         required: true,
       },
       {
         key: "SMTP_USER",
-        label: "User",
+        label: "Email Address",
         type: "text",
-        hint: "SMTP authentication username / email",
+        hint: "Your full email address used to send",
+        howToGet: "e.g. orders@sbek.com or your Gmail address",
         required: true,
       },
       {
         key: "SMTP_PASS",
-        label: "Password",
+        label: "Email Password / App Password",
         type: "password",
-        hint: "For Gmail: Use an App Password — Google Account → Security → 2-Step Verification → App Passwords → Generate for 'Mail'",
+        hint: "For Gmail: must be an App Password, not your regular password",
+        howToGet: "Gmail: Google Account → Security → 2-Step Verification → App Passwords → Generate for 'Mail' → copy the 16-char password",
         required: true,
       },
       {
         key: "EMAIL_FROM",
-        label: "From Address",
+        label: "From Display Name",
         type: "text",
-        hint: 'Sender display (e.g. SBEK <orders@sbek.com>)',
+        hint: "How emails appear to recipients",
+        howToGet: 'Format: Brand Name <email@domain.com>  e.g. SBEK <orders@sbek.com>',
       },
     ],
   },
   {
     id: "ai",
-    title: "AI (Text & Images)",
+    title: "AI — Text & Image Generation",
     icon: "\u2726",
     description:
-      "OpenRouter for text generation (descriptions, SEO, captions, competitor analysis). Gemini for product image generation.",
+      "OpenRouter for text generation (product descriptions, SEO, captions, competitor analysis). Gemini for product image generation. If no OpenRouter key, Gemini is used for both.",
     testable: true,
     fields: [
       {
         key: "OPENROUTER_API_KEY",
         label: "OpenRouter API Key",
         type: "password",
-        hint: "Get yours at openrouter.ai — used for all text generation (SEO, FAQs, captions, analysis)",
+        hint: "Powers all text generation. Falls back to Gemini if not set.",
+        howToGet: "openrouter.ai → Sign Up → Dashboard → API Keys → Create Key → copy",
         required: true,
       },
       {
         key: "GEMINI_API_KEY",
-        label: "Gemini API Key (Image Generation)",
+        label: "Gemini API Key",
         type: "password",
-        hint: "Google Gemini key for product image generation. Get it at aistudio.google.com",
+        hint: "Powers image generation. Also used as text fallback if OpenRouter is not set.",
+        howToGet: "aistudio.google.com → Get API Key → Create → copy",
       },
     ],
   },
   {
     id: "social-media",
-    title: "Social Media",
+    title: "Social Media (Postiz)",
     icon: "\u269B",
     description:
-      "Connect Postiz to schedule and auto-publish to Instagram, Facebook, and Pinterest.",
+      "Auto-publish to Instagram, Facebook, and Pinterest via Postiz scheduling.",
     testable: true,
     fields: [
       {
         key: "POSTIZ_API_KEY",
         label: "Postiz API Key",
         type: "password",
-        hint: "API key from your Postiz dashboard",
+        hint: "For auto-scheduling social posts",
+        howToGet: "app.postiz.com → Settings → API → Generate Key → copy",
         required: true,
       },
       {
         key: "POSTIZ_BASE_URL",
         label: "Postiz Base URL",
         type: "text",
-        hint: "Default: https://app.postiz.com/api/v1",
+        hint: "Default: https://app.postiz.com/api/v1 — change only if self-hosting",
       },
     ],
   },
@@ -258,7 +281,7 @@ const SECTIONS: SectionDef[] = [
     title: "Competitor Crawler",
     icon: "\u2318",
     description:
-      "Configure the web crawler microservice used for competitive intelligence and price monitoring.",
+      "Web crawler for competitive intelligence and price monitoring.",
     testable: true,
     fields: [
       {
@@ -266,52 +289,53 @@ const SECTIONS: SectionDef[] = [
         label: "Crawler Service URL",
         type: "text",
         hint: "Default: http://crawler:3001 (Docker) or http://localhost:3001 (dev)",
+        howToGet: "Only change this if you've deployed the crawler separately",
       },
     ],
   },
   {
     id: "brand",
-    title: "Brand",
+    title: "Brand Identity",
     icon: "\u2605",
     description:
-      "Define your brand identity. Used across generated content, emails, WhatsApp messages, and social posts.",
+      "Your brand details — used in emails, WhatsApp messages, AI-generated content, and social posts.",
     fields: [
       {
         key: "BRAND_NAME",
         label: "Brand Name",
         type: "text",
-        hint: "Your brand name (e.g. SBEK)",
+        hint: "e.g. SBEK",
         required: true,
       },
       {
         key: "BRAND_PRIMARY_COLOR",
         label: "Primary Color",
         type: "text",
-        hint: "Hex color code (e.g. #B8860B)",
+        hint: "Hex code, e.g. #B8860B (used in email templates)",
       },
       {
         key: "BRAND_WEBSITE",
         label: "Website URL",
         type: "text",
-        hint: "Your brand website (used in email templates and AI headers)",
+        hint: "e.g. https://sbek.com",
       },
       {
         key: "BRAND_SUPPORT_PHONE",
         label: "Support Phone",
         type: "text",
-        hint: "Customer support phone number (e.g. +91XXXXXXXXXX)",
+        hint: "e.g. +91XXXXXXXXXX",
       },
       {
         key: "BRAND_SUPPORT_EMAIL",
         label: "Support Email",
         type: "text",
-        hint: "Customer support email address",
+        hint: "e.g. support@sbek.com",
       },
       {
         key: "REVIEW_URL",
-        label: "Review URL",
+        label: "Review Link",
         type: "text",
-        hint: "URL where customers can leave a review (Google, Trustpilot, etc.)",
+        hint: "Where customers leave reviews (Google, Trustpilot, etc.)",
       },
     ],
   },
@@ -369,6 +393,16 @@ function ValidationIcon({ filled }: { filled: boolean }) {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="flex-shrink-0">
       <circle cx="7" cy="7" r="6" stroke="var(--border-strong)" strokeWidth="1.2" fill="none" />
+    </svg>
+  );
+}
+
+function InfoIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.2" className="flex-shrink-0">
+      <circle cx="6" cy="6" r="5" />
+      <path d="M6 5.5v3" />
+      <circle cx="6" cy="3.8" r="0.5" fill="currentColor" stroke="none" />
     </svg>
   );
 }
@@ -443,7 +477,7 @@ function InlineToast({ result, onDismiss }: { result: ValidationResult; onDismis
 
 /* ── Google OAuth Connect Button ────────────────────────────────────── */
 
-function GoogleOAuthButton() {
+function GoogleOAuthButton({ values }: { values: Record<string, string> }) {
   const [status, setStatus] = useState<{ connected: boolean; email: string }>({ connected: false, email: "" });
   const [loading, setLoading] = useState(true);
   const [disconnecting, setDisconnecting] = useState(false);
@@ -501,6 +535,32 @@ function GoogleOAuthButton() {
         >
           {disconnecting ? "Disconnecting..." : "Disconnect"}
         </button>
+      </div>
+    );
+  }
+
+  // Check if OAuth client ID and secret are filled in
+  const hasClientId = !!(values["GOOGLE_OAUTH_CLIENT_ID"]?.trim()) && !values["GOOGLE_OAUTH_CLIENT_ID"]?.includes("***");
+  const hasClientSecret = !!(values["GOOGLE_OAUTH_CLIENT_SECRET"]?.trim()) && !values["GOOGLE_OAUTH_CLIENT_SECRET"]?.includes("***");
+  // Also consider them "set" if the source is ENV/DB (masked values)
+  const credsConfigured = (hasClientId && hasClientSecret) ||
+    (values["GOOGLE_OAUTH_CLIENT_ID"]?.includes("***") && values["GOOGLE_OAUTH_CLIENT_SECRET"]?.includes("***"));
+
+  if (!credsConfigured) {
+    return (
+      <div
+        className="flex items-center gap-2 px-3 py-2.5 mb-4 text-[11px]"
+        style={{
+          background: "#FFFBF0",
+          border: "1px solid #E8DFC0",
+          borderRadius: "var(--radius-sm)",
+          color: "var(--text-muted)",
+        }}
+      >
+        <InfoIcon />
+        <span>
+          Fill in <strong>OAuth Client ID</strong> and <strong>OAuth Client Secret</strong> below, save, then the Connect button will appear.
+        </span>
       </div>
     );
   }
@@ -746,16 +806,34 @@ function SettingsField({
   const labelRow = (
     <div className="flex items-center gap-2 mb-1.5">
       <ValidationIcon filled={hasFill} />
-      <label className="text-xs" style={{ color: "var(--text-muted)" }}>
+      <label
+        className="text-xs"
+        style={{
+          color: "var(--text-muted)",
+          fontWeight: field.required ? 600 : 400,
+        }}
+      >
         {field.label}
       </label>
       {field.required && (
-        <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: "#CC3333" }}>
+        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "#CC3333" }}>
           Required
         </span>
       )}
       {sourceBadge}
     </div>
+  );
+
+  const hintBlock = (
+    <>
+      {field.hint && <p className="text-[11px] mt-1" style={{ color: "var(--text-subtle)" }}>{field.hint}</p>}
+      {field.howToGet && (
+        <p className="text-[10px] mt-0.5 flex items-start gap-1" style={{ color: "var(--text-disabled)" }}>
+          <span className="flex-shrink-0 mt-px" style={{ fontSize: "9px" }}>&#9432;</span>
+          <span>{field.howToGet}</span>
+        </p>
+      )}
+    </>
   );
 
   if (isSelect) {
@@ -773,7 +851,7 @@ function SettingsField({
             <option key={opt} value={opt}>{opt}</option>
           ))}
         </select>
-        {field.hint && <p className="text-[11px] mt-1" style={{ color: "var(--text-subtle)" }}>{field.hint}</p>}
+        {hintBlock}
       </div>
     );
   }
@@ -784,9 +862,17 @@ function SettingsField({
         <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-2">
             <ValidationIcon filled={hasFill} />
-            <label className="text-xs" style={{ color: "var(--text-muted)" }}>{field.label}</label>
+            <label
+              className="text-xs"
+              style={{
+                color: "var(--text-muted)",
+                fontWeight: field.required ? 600 : 400,
+              }}
+            >
+              {field.label}
+            </label>
             {field.required && (
-              <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: "#CC3333" }}>
+              <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "#CC3333" }}>
                 Required
               </span>
             )}
@@ -812,7 +898,7 @@ function SettingsField({
           }
           spellCheck={false}
         />
-        {field.hint && <p className="text-[11px] mt-1" style={{ color: "var(--text-subtle)" }}>{field.hint}</p>}
+        {hintBlock}
       </div>
     );
   }
@@ -841,7 +927,7 @@ function SettingsField({
           </button>
         )}
       </div>
-      {field.hint && <p className="text-[11px] mt-1" style={{ color: "var(--text-subtle)" }}>{field.hint}</p>}
+      {hintBlock}
     </div>
   );
 }
@@ -961,7 +1047,7 @@ function SettingsSection({
             <p className="text-[11px] leading-relaxed pt-4 pb-3" style={{ color: "var(--text-subtle)" }}>
               {section.description}
             </p>
-            {section.id === "google-sheets" && <GoogleOAuthButton />}
+            {section.id === "google-sheets" && <GoogleOAuthButton values={values} />}
             <div>
               {section.fields.map((field) => (
                 <SettingsField
