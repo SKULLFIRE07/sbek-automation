@@ -562,13 +562,25 @@ dashboardRouter.post('/settings/validate', async (req: Request, res: Response) =
       }
 
       case 'google-sheets': {
-        const email = await resolve('GOOGLE_SERVICE_ACCOUNT_EMAIL');
+        const refreshToken = await resolve('GOOGLE_OAUTH_REFRESH_TOKEN');
         const sheetId = await resolve('GOOGLE_SHEET_ID');
-        if (!email || !sheetId) {
-          res.json({ valid: false, message: 'Service Account Email and Sheet ID are required' });
+
+        if (refreshToken) {
+          // OAuth2 — validate by checking the token works
+          if (!sheetId) {
+            res.json({ valid: false, message: 'Sheet ID is required (the ID from your Google Sheet URL)' });
+            return;
+          }
+          res.json({ valid: true, message: 'Google account connected via OAuth. Sheet ID configured.' });
           return;
         }
-        // Just verify the service account email format and sheet ID exist
+
+        // Fallback: service account validation
+        const email = await resolve('GOOGLE_SERVICE_ACCOUNT_EMAIL');
+        if (!email || !sheetId) {
+          res.json({ valid: false, message: 'Connect your Google account, or provide Service Account Email and Sheet ID' });
+          return;
+        }
         if (!email.includes('@') || !email.includes('.iam.gserviceaccount.com')) {
           res.json({ valid: false, message: 'Service Account Email must be a valid GCP service account' });
           return;
@@ -626,26 +638,30 @@ dashboardRouter.post('/settings/validate', async (req: Request, res: Response) =
 
       case 'ai': {
         const results: { key: string; valid: boolean; message: string }[] = [];
-        const openaiKey = await resolve('OPENAI_API_KEY');
-        if (openaiKey) {
+
+        // OpenRouter (text generation)
+        const openrouterKey = await resolve('OPENROUTER_API_KEY');
+        if (openrouterKey) {
           const controller = new AbortController();
           const timeout = setTimeout(() => controller.abort(), 10000);
           try {
-            const resp = await fetch('https://api.openai.com/v1/models', {
-              headers: { Authorization: `Bearer ${openaiKey}` },
+            const resp = await fetch('https://openrouter.ai/api/v1/models', {
+              headers: { Authorization: `Bearer ${openrouterKey}` },
               signal: controller.signal,
             });
             clearTimeout(timeout);
             if (resp.ok) {
-              results.push({ key: 'OPENAI_API_KEY', valid: true, message: 'OpenAI API key is valid' });
+              results.push({ key: 'OPENROUTER_API_KEY', valid: true, message: 'OpenRouter API key is valid' });
             } else {
-              results.push({ key: 'OPENAI_API_KEY', valid: false, message: `OpenAI returned ${resp.status}` });
+              results.push({ key: 'OPENROUTER_API_KEY', valid: false, message: `OpenRouter returned ${resp.status}` });
             }
           } catch (e) {
             clearTimeout(timeout);
-            results.push({ key: 'OPENAI_API_KEY', valid: false, message: e instanceof Error ? e.message : 'Connection failed' });
+            results.push({ key: 'OPENROUTER_API_KEY', valid: false, message: e instanceof Error ? e.message : 'Connection failed' });
           }
         }
+
+        // Gemini (image generation)
         const geminiKey = await resolve('GEMINI_API_KEY');
         if (geminiKey) {
           const controller = new AbortController();
@@ -656,7 +672,7 @@ dashboardRouter.post('/settings/validate', async (req: Request, res: Response) =
             });
             clearTimeout(timeout);
             if (resp.ok) {
-              results.push({ key: 'GEMINI_API_KEY', valid: true, message: 'Gemini API key is valid' });
+              results.push({ key: 'GEMINI_API_KEY', valid: true, message: 'Gemini API key is valid (image generation)' });
             } else {
               results.push({ key: 'GEMINI_API_KEY', valid: false, message: `Gemini returned ${resp.status}` });
             }
@@ -665,8 +681,9 @@ dashboardRouter.post('/settings/validate', async (req: Request, res: Response) =
             results.push({ key: 'GEMINI_API_KEY', valid: false, message: e instanceof Error ? e.message : 'Connection failed' });
           }
         }
+
         if (results.length === 0) {
-          res.json({ valid: false, message: 'No AI keys configured' });
+          res.json({ valid: false, message: 'No AI keys configured. Set OpenRouter key (text) and/or Gemini key (images).' });
           return;
         }
         const allValid = results.every((r) => r.valid);

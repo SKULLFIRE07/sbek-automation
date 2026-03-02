@@ -27,7 +27,23 @@ export const notificationWorker = new Worker<NotificationPayload>(
 
     const results: Record<string, string> = {};
 
-    // WhatsApp
+    // Email (send first — most reliable channel)
+    if ((channel === 'email' || channel === 'both') && recipientEmail) {
+      try {
+        const subject = emailSubjects[templateName] || `SBEK — Update on your order`;
+        await email.sendEmail(recipientEmail, subject, templateName, {
+          ...templateData,
+          customer_name: recipientName,
+        });
+        results.email = 'sent';
+        logger.info({ recipientEmail, templateName }, 'Email sent');
+      } catch (err) {
+        logger.error({ err, recipientEmail, templateName }, 'Email failed');
+        results.email = 'failed';
+      }
+    }
+
+    // WhatsApp (best-effort — don't block job if unconfigured)
     if ((channel === 'whatsapp' || channel === 'both') && recipientPhone) {
       try {
         const msgId = await whatsapp.sendTemplate(
@@ -46,7 +62,6 @@ export const notificationWorker = new Worker<NotificationPayload>(
       } catch (metaErr) {
         logger.warn({ err: metaErr, recipientPhone, templateName }, 'Meta WhatsApp failed — trying backup');
 
-        // Fallback to Wati / Interakt
         if (wati.isConfigured()) {
           try {
             const backup = await wati.sendTemplate(recipientPhone, templateName, templateData);
@@ -54,28 +69,12 @@ export const notificationWorker = new Worker<NotificationPayload>(
             logger.info({ recipientPhone, templateName, provider: backup.provider }, 'WhatsApp sent via backup');
           } catch (backupErr) {
             logger.error({ err: backupErr, recipientPhone, templateName }, 'All WhatsApp providers failed');
-            throw backupErr;
+            results.whatsapp = 'failed';
           }
         } else {
-          logger.error({ recipientPhone, templateName }, 'Meta WhatsApp failed and no backup configured');
-          throw metaErr;
+          logger.warn({ recipientPhone, templateName }, 'WhatsApp not configured — skipping');
+          results.whatsapp = 'not_configured';
         }
-      }
-    }
-
-    // Email
-    if ((channel === 'email' || channel === 'both') && recipientEmail) {
-      try {
-        const subject = emailSubjects[templateName] || `SBEK — Update on your order`;
-        await email.sendEmail(recipientEmail, subject, templateName, {
-          ...templateData,
-          customer_name: recipientName,
-        });
-        results.email = 'sent';
-        logger.info({ recipientEmail, templateName }, 'Email sent');
-      } catch (err) {
-        logger.error({ err, recipientEmail, templateName }, 'Email failed');
-        throw err;
       }
     }
 

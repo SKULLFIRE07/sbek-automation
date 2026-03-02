@@ -7,7 +7,7 @@
  */
 
 import { GoogleSpreadsheet, GoogleSpreadsheetWorksheet } from 'google-spreadsheet';
-import { JWT } from 'google-auth-library';
+import { JWT, OAuth2Client } from 'google-auth-library';
 import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
 import { sanitizeForSheets, sanitizeRow } from '../utils/sanitize.js';
@@ -123,27 +123,48 @@ class GoogleSheetsService {
   // ── Initialization ──────────────────────────────────────────────────────
 
   /**
-   * Authenticate with Google via service-account JWT, load the spreadsheet,
-   * and cache references to every expected tab. If a tab does not exist it is
-   * created with the correct header row.
+   * Authenticate with Google via OAuth2 (preferred) or service-account JWT
+   * (fallback), load the spreadsheet, and cache references to every expected
+   * tab. If a tab does not exist it is created with the correct header row.
    *
    * Re-initializes automatically if credentials are updated via Settings.
    */
   async init(): Promise<void> {
-    const email = (await settings.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')) ?? env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    const privateKey = (await settings.get('GOOGLE_PRIVATE_KEY')) ?? env.GOOGLE_PRIVATE_KEY;
+    const refreshToken = (await settings.get('GOOGLE_OAUTH_REFRESH_TOKEN')) ?? env.GOOGLE_OAUTH_REFRESH_TOKEN;
     const sheetId = (await settings.get('GOOGLE_SHEET_ID')) ?? env.GOOGLE_SHEET_ID;
-    const hash = [email ?? '', sheetId ?? ''].join('|');
 
-    if (this.initialized && hash === this.credHash) return;
+    let auth: JWT | OAuth2Client;
+    let hash: string;
 
-    try {
-      const auth = new JWT({
+    if (refreshToken) {
+      // OAuth2 path — user connected their Google account
+      const clientId = (await settings.get('GOOGLE_OAUTH_CLIENT_ID')) ?? env.GOOGLE_OAUTH_CLIENT_ID;
+      const clientSecret = (await settings.get('GOOGLE_OAUTH_CLIENT_SECRET')) ?? env.GOOGLE_OAUTH_CLIENT_SECRET;
+      hash = ['oauth', clientId ?? '', sheetId ?? ''].join('|');
+
+      if (this.initialized && hash === this.credHash) return;
+
+      const oauth2 = new OAuth2Client(clientId, clientSecret);
+      oauth2.setCredentials({ refresh_token: refreshToken });
+      auth = oauth2;
+      logger.info('Google Sheets: using OAuth2 authentication');
+    } else {
+      // Service account JWT fallback
+      const email = (await settings.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')) ?? env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+      const privateKey = (await settings.get('GOOGLE_PRIVATE_KEY')) ?? env.GOOGLE_PRIVATE_KEY;
+      hash = [email ?? '', sheetId ?? ''].join('|');
+
+      if (this.initialized && hash === this.credHash) return;
+
+      auth = new JWT({
         email,
         key: (privateKey ?? '').replace(/\\n/g, '\n'),
         scopes: ['https://www.googleapis.com/auth/spreadsheets'],
       });
+      logger.info('Google Sheets: using service account JWT authentication');
+    }
 
+    try {
       this.doc = new GoogleSpreadsheet(sheetId ?? '', auth);
       await this.doc.loadInfo();
       this.credHash = hash;
@@ -310,6 +331,29 @@ class GoogleSheetsService {
         });
     } catch (error) {
       logger.error({ err: error, status }, 'Error fetching orders by status');
+      return [];
+    }
+  }
+
+  /** Return every order row from the Orders tab (no status filtering). */
+  async getAllOrders(): Promise<Record<string, string>[]> {
+    this.assertInitialized();
+    try {
+      const sheet = this.getSheet(TAB_NAMES.ORDERS);
+      if (!sheet) return [];
+
+      const rows = await sheet.getRows();
+      const headers = TAB_HEADERS[TAB_NAMES.ORDERS];
+
+      return rows.map((r) => {
+        const record: Record<string, string> = {};
+        for (const h of headers) {
+          record[h] = r.get(h) ?? '';
+        }
+        return record;
+      });
+    } catch (error) {
+      logger.error({ err: error }, 'Error fetching all orders');
       return [];
     }
   }
@@ -630,6 +674,21 @@ class GoogleSheetsService {
     }
   }
 
+  /** Add a new competitor row. */
+  async appendCompetitor(data: Record<string, string>): Promise<void> {
+    this.assertInitialized();
+    try {
+      const sheet = this.getSheet(TAB_NAMES.COMPETITORS);
+      if (!sheet) return;
+
+      const sanitized = sanitizeRow(data);
+      await sheet.addRow(sanitized);
+      logger.info({ name: data['Name'] }, 'Competitor appended');
+    } catch (error) {
+      logger.error({ err: error, data }, 'Error appending competitor');
+    }
+  }
+
   // ── Formatting & Data Validation ─────────────────────────────────────────
 
   /**
@@ -729,6 +788,36 @@ class GoogleSheetsService {
               },
             },
           });
+
+          // QC row color coding: green=Pass, red=Fail, yellow=Pending
+          const pfCol = String.fromCharCode(65 + pfIdx);
+          const qcColors: Record<string, { red: number; green: number; blue: number }> = {
+            'Pass':    { red: 0.78, green: 0.95, blue: 0.78 },
+            'Fail':    { red: 0.96, green: 0.78, blue: 0.78 },
+            'Pending': { red: 1.0,  green: 0.96, blue: 0.80 },
+          };
+          for (const [val, color] of Object.entries(qcColors)) {
+            requests.push({
+              addConditionalFormatRule: {
+                rule: {
+                  ranges: [{
+                    sheetId: qcSheet.sheetId,
+                    startRowIndex: 1,
+                    startColumnIndex: 0,
+                    endColumnIndex: TAB_HEADERS[TAB_NAMES.QC].length,
+                  }],
+                  booleanRule: {
+                    condition: {
+                      type: 'CUSTOM_FORMULA',
+                      values: [{ userEnteredValue: `=$${pfCol}2="${val}"` }],
+                    },
+                    format: { backgroundColor: color },
+                  },
+                },
+                index: 0,
+              },
+            });
+          }
         }
       }
 

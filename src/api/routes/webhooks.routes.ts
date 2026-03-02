@@ -3,6 +3,8 @@ import { webhookAuth } from '../middleware/webhookAuth.js';
 import { webhookLimiter } from '../middleware/rateLimiter.js';
 import { orderSync, contentGeneration, creativeGeneration } from '../../queues/registry.js';
 import { logger } from '../../config/logger.js';
+import { db } from '../../config/database.js';
+import { webhookEvents } from '../../db/schema.js';
 
 export const webhooksRouter = Router();
 
@@ -54,6 +56,14 @@ webhooksRouter.post(
           jobId: `order-${orderId}-${Date.now()}`,
         }
       );
+
+      // Log to webhook_events for dashboard activity feed
+      await db.insert(webhookEvents).values({
+        source: 'woocommerce',
+        event,
+        payload: { orderId, customer: payload?.billing?.first_name, total: payload?.total },
+        processed: false,
+      }).catch(() => {}); // fire-and-forget
 
       logger.info({ orderId, event, webhookId }, 'Order webhook enqueued');
       res.json({ received: true, orderId, event });
@@ -169,6 +179,14 @@ webhooksRouter.post(
       );
 
       await Promise.all(jobs);
+
+      // Log to webhook_events for dashboard activity feed
+      await db.insert(webhookEvents).values({
+        source: 'woocommerce',
+        event: topic || 'product.updated',
+        payload: { productId, productName, jobsEnqueued: jobs.length },
+        processed: false,
+      }).catch(() => {});
 
       logger.info({ productId, productName, jobCount: jobs.length }, 'Product webhook jobs enqueued');
       res.json({ received: true, productId, topic, jobsEnqueued: jobs.length });

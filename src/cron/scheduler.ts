@@ -4,6 +4,7 @@ import { runDailyReviewRequests } from './jobs/daily-review-requests.js';
 import { runWeeklyCompetitorCrawl } from './jobs/weekly-competitor-crawl.js';
 import { runDailySheetsSync } from './jobs/daily-sheets-sync.js';
 import { runWeeklyContentGeneration } from './jobs/weekly-content-generation.js';
+import { runStatusPoller } from './jobs/status-poller.js';
 
 const IST = { timezone: 'Asia/Kolkata' };
 
@@ -53,5 +54,14 @@ export function initScheduler(): void {
     }
   }, IST);
 
-  logger.info('Cron scheduler initialized with 4 jobs');
+  // Every 30 seconds — poll Orders sheet for manual status changes
+  cron.schedule('*/30 * * * * *', async () => {
+    try {
+      await runStatusPoller();
+    } catch (err) {
+      logger.error({ err }, 'Cron: status poller failed');
+    }
+  }, IST);
+
+  logger.info('Cron scheduler initialized with 5 jobs');
 }

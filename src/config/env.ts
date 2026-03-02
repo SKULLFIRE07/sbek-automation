@@ -45,6 +45,14 @@ const envSchema = z.object({
   // ── Gemini / Nano Banana (image generation) ──────────
   GEMINI_API_KEY: z.string().min(1).optional(),
 
+  // ── OpenRouter (text generation) ────────────────────
+  OPENROUTER_API_KEY: z.string().min(1).optional(),
+
+  // ── Google OAuth (alternative to service account) ───
+  GOOGLE_OAUTH_CLIENT_ID: z.string().min(1).optional(),
+  GOOGLE_OAUTH_CLIENT_SECRET: z.string().min(1).optional(),
+  GOOGLE_OAUTH_REFRESH_TOKEN: z.string().min(1).optional(),
+
   // ── Wati (WhatsApp backup) ───────────────────────────
   WATI_API_KEY: z.string().min(1).optional(),
   WATI_BASE_URL: z.string().url().optional(),
@@ -69,6 +77,7 @@ const envSchema = z.object({
   // ── Branding ───────────────────────────────────────────
   BRAND_NAME: z.string().min(1).default('SBEK'),
   BRAND_PRIMARY_COLOR: z.string().min(1).default('#C5A572'),
+  BRAND_OWNER_EMAIL: z.string().email().optional(),
   BRAND_WEBSITE: z.string().url().optional(),
   BRAND_SUPPORT_PHONE: z.string().min(1).optional(),
   BRAND_SUPPORT_EMAIL: z.string().email().optional(),

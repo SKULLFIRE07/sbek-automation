@@ -41,7 +41,7 @@ const TABS = {
     'Key', 'Value', 'Description', 'Updated',
   ],
   Competitors: [
-    'Name', 'URL', 'Category', 'Last Crawled', 'Notes',
+    'Name', 'URL', 'Active',
   ],
 };
 

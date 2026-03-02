@@ -174,7 +174,7 @@ export default function QueuesPage() {
               { label: "Failed", value: q.failed, shade: "#C0392B" },
               { label: "Waiting", value: q.waiting, shade: "#999999" },
               { label: "Delayed", value: q.delayed, shade: "#B0B0B0" },
-              { label: "Completed", value: q.completed, shade: "#CCCCCC" },
+              { label: "Completed", value: q.completed, shade: "#22C55E" },
             ];
 
             return (
@@ -253,7 +253,7 @@ export default function QueuesPage() {
         <LegendItem shade="#C0392B" label="Failed" />
         <LegendItem shade="#999999" label="Waiting" />
         <LegendItem shade="#B0B0B0" label="Delayed" />
-        <LegendItem shade="#CCCCCC" label="Completed" />
+        <LegendItem shade="#22C55E" label="Completed" />
       </div>
     </div>
   );

@@ -61,7 +61,7 @@ export default function QueueDetailPage() {
     { key: "failed" as const, shade: "#C0392B" },
     { key: "waiting" as const, shade: "#999999" },
     { key: "delayed" as const, shade: "#B0B0B0" },
-    { key: "completed" as const, shade: "#CCCCCC" },
+    { key: "completed" as const, shade: "#22C55E" },
   ];
 
   /* Calculate cumulative scaleX offset for each segment */

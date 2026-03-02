@@ -47,6 +47,15 @@ export const CONFIGURABLE_KEYS = [
   // Gemini / Nano Banana
   'GEMINI_API_KEY',
 
+  // OpenRouter (text generation)
+  'OPENROUTER_API_KEY',
+
+  // Google OAuth (alternative to service account)
+  'GOOGLE_OAUTH_CLIENT_ID',
+  'GOOGLE_OAUTH_CLIENT_SECRET',
+  'GOOGLE_OAUTH_REFRESH_TOKEN',
+  'GOOGLE_OAUTH_EMAIL',
+
   // Postiz (social media)
   'POSTIZ_API_KEY',
   'POSTIZ_BASE_URL',
@@ -213,6 +222,9 @@ const FULLY_MASKED_KEYS = new Set([
   'SMTP_PASS',
   'OPENAI_API_KEY',
   'GEMINI_API_KEY',
+  'OPENROUTER_API_KEY',
+  'GOOGLE_OAUTH_CLIENT_SECRET',
+  'GOOGLE_OAUTH_REFRESH_TOKEN',
   'WATI_API_KEY',
   'INTERAKT_API_KEY',
   'POSTIZ_API_KEY',

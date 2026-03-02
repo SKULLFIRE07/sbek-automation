@@ -12,21 +12,26 @@ class AIService {
   private cachedKey: string | null = null;
   private cachedModel: string | null = null;
   private cachedImageModel: string | null = null;
+  /** 'openrouter' or 'gemini' — determines baseURL and default models */
+  private cachedProvider: 'openrouter' | 'gemini' = 'openrouter';
   private cacheTime = 0;
   private readonly CACHE_TTL = 60_000; // 1 minute
 
   /**
-   * Fetch the OpenRouter API key and model settings from the system_config
-   * database table, falling back to environment variables when nothing is
-   * stored in the DB.  Results are cached for CACHE_TTL milliseconds.
+   * Fetch the API key and model settings. Priority:
+   *   1. OpenRouter key (uses openrouter.ai/api/v1)
+   *   2. Gemini key fallback (uses generativelanguage.googleapis.com)
+   * Results are cached for CACHE_TTL milliseconds.
    */
-  private async getConfig(): Promise<{ apiKey: string; model: string; imageModel: string }> {
+  private async getConfig(): Promise<{ apiKey: string; model: string; imageModel: string; provider: 'openrouter' | 'gemini' }> {
     const now = Date.now();
     if (this.cachedKey && now - this.cacheTime < this.CACHE_TTL) {
+      const defaultModel = this.cachedProvider === 'openrouter' ? 'google/gemini-2.5-flash' : 'gemini-2.5-flash';
       return {
         apiKey: this.cachedKey,
-        model: this.cachedModel || 'openai/gpt-4o',
-        imageModel: this.cachedImageModel || 'openai/dall-e-3',
+        model: this.cachedModel || defaultModel,
+        imageModel: this.cachedImageModel || defaultModel,
+        provider: this.cachedProvider,
       };
     }
 
@@ -38,17 +43,22 @@ class AIService {
           inArray(systemConfig.key, [
             'openrouter_api_key',
             'openrouter_model',
-            'openrouter_image_model',
+            'gemini_api_key',
+            'gemini_model',
           ]),
         );
 
       for (const row of rows) {
         if (row.key === 'openrouter_api_key') {
           this.cachedKey = row.value as string;
+          this.cachedProvider = 'openrouter';
         } else if (row.key === 'openrouter_model') {
           this.cachedModel = row.value as string;
-        } else if (row.key === 'openrouter_image_model') {
-          this.cachedImageModel = row.value as string;
+        }
+        // Gemini fallback: use gemini key if no openrouter key found
+        if (!this.cachedKey && row.key === 'gemini_api_key') {
+          this.cachedKey = row.value as string;
+          this.cachedProvider = 'gemini';
         }
       }
 
@@ -57,31 +67,62 @@ class AIService {
       logger.warn({ err }, 'Failed to read AI config from system_config table, falling back to env');
     }
 
-    // Also check the settings service for OPENAI_API_KEY (set via dashboard)
+    // Also check the settings service (set via dashboard)
+    if (!this.cachedKey) {
+      const settingsKey = await settings.get('OPENROUTER_API_KEY');
+      if (settingsKey) { this.cachedKey = settingsKey; this.cachedProvider = 'openrouter'; }
+    }
+    if (!this.cachedKey) {
+      const settingsKey = await settings.get('GEMINI_API_KEY');
+      if (settingsKey) { this.cachedKey = settingsKey; this.cachedProvider = 'gemini'; }
+    }
     if (!this.cachedKey) {
       const settingsKey = await settings.get('OPENAI_API_KEY');
-      if (settingsKey) this.cachedKey = settingsKey;
+      if (settingsKey) { this.cachedKey = settingsKey; this.cachedProvider = 'openrouter'; }
     }
 
-    // Final fallback to env var
+    // Final fallback to env vars
+    if (!this.cachedKey) {
+      if (env.OPENROUTER_API_KEY) {
+        this.cachedKey = env.OPENROUTER_API_KEY;
+        this.cachedProvider = 'openrouter';
+      } else if (env.GEMINI_API_KEY) {
+        this.cachedKey = env.GEMINI_API_KEY;
+        this.cachedProvider = 'gemini';
+      } else if (env.OPENAI_API_KEY) {
+        this.cachedKey = env.OPENAI_API_KEY;
+        this.cachedProvider = 'openrouter';
+      }
+    }
+
+    const defaultModel = this.cachedProvider === 'openrouter' ? 'google/gemini-2.5-flash' : 'gemini-2.5-flash';
     return {
-      apiKey: this.cachedKey || env.OPENAI_API_KEY || '',
-      model: this.cachedModel || 'openai/gpt-4o',
-      imageModel: this.cachedImageModel || 'openai/dall-e-3',
+      apiKey: this.cachedKey || '',
+      model: this.cachedModel || defaultModel,
+      imageModel: this.cachedImageModel || defaultModel,
+      provider: this.cachedProvider,
     };
   }
 
   /**
-   * Build an OpenAI-compatible client that points at the OpenRouter gateway.
+   * Build an OpenAI-compatible client. Uses OpenRouter when available,
+   * falls back to Gemini's OpenAI-compatible endpoint.
    */
   private async getClient(): Promise<OpenAI> {
     const config = await this.getConfig();
+
+    if (config.provider === 'gemini') {
+      return new OpenAI({
+        apiKey: config.apiKey,
+        baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+      });
+    }
 
     return new OpenAI({
       apiKey: config.apiKey,
       baseURL: 'https://openrouter.ai/api/v1',
       defaultHeaders: {
-        'HTTP-Referer': env.BRAND_WEBSITE || 'https://sbek.com',
+        'HTTP-Referer': 'https://sbek.com',
         'X-Title': 'SBEK Automation',
       },
     });
@@ -214,7 +255,9 @@ class AIService {
     });
 
     try {
-      const parsed = JSON.parse(raw) as { title: string; description: string };
+      // Strip markdown code fences if present (Gemini often wraps JSON in ```json...```)
+      const cleaned = raw.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+      const parsed = JSON.parse(cleaned) as { title: string; description: string };
 
       return {
         title: parsed.title.slice(0, 60),
@@ -270,7 +313,8 @@ class AIService {
     });
 
     try {
-      const parsed = JSON.parse(raw) as Array<{ question: string; answer: string }>;
+      const cleaned = raw.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+      const parsed = JSON.parse(cleaned) as Array<{ question: string; answer: string }>;
 
       if (!Array.isArray(parsed)) {
         throw new Error('Expected an array of FAQ objects');

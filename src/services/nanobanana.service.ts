@@ -114,7 +114,6 @@ class NanoBananaService {
       imageConfig: {
         aspectRatio,
         imageSize,
-        personGeneration: '',
       },
     };
 

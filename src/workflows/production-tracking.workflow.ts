@@ -74,8 +74,9 @@ export async function createProductionTask(payload: ProductionUpdatePayload): Pr
 
   logger.info({ orderId }, 'Creating production task');
 
-  // Get order details from Sheets
-  const orders = await sheets.getOrdersByStatus('New');
+  // Get order details from Sheets (search all orders, not just 'New',
+  // because the status may already be changed by the time this runs)
+  const orders = await sheets.getAllOrders();
   const order = orders?.find((row) => row['Order ID'] === String(orderId));
 
   if (!order) {

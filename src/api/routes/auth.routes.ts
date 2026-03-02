@@ -1,0 +1,135 @@
+/**
+ * Google OAuth2 routes for connecting the user's Google account
+ * to Google Sheets and Google Drive.
+ */
+
+import { Router } from 'express';
+import { OAuth2Client } from 'google-auth-library';
+import { env } from '../../config/env.js';
+import { logger } from '../../config/logger.js';
+import { settings } from '../../services/settings.service.js';
+
+export const authRouter = Router();
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+const SCOPES = [
+  'https://www.googleapis.com/auth/spreadsheets',
+  'https://www.googleapis.com/auth/drive.file',
+  'https://www.googleapis.com/auth/userinfo.email',
+];
+
+async function getOAuth2Client(): Promise<OAuth2Client> {
+  const clientId = (await settings.get('GOOGLE_OAUTH_CLIENT_ID')) ?? env.GOOGLE_OAUTH_CLIENT_ID;
+  const clientSecret = (await settings.get('GOOGLE_OAUTH_CLIENT_SECRET')) ?? env.GOOGLE_OAUTH_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    throw new Error('Google OAuth client credentials not configured');
+  }
+
+  // Build redirect URI from the request's origin
+  const port = env.PORT ?? 3000;
+  const redirectUri = process.env.GOOGLE_OAUTH_REDIRECT_URI ?? `http://localhost:${port}/auth/google/callback`;
+
+  return new OAuth2Client(clientId, clientSecret, redirectUri);
+}
+
+// ── Routes ───────────────────────────────────────────────────────────────────
+
+/**
+ * GET /auth/google/authorize
+ * Redirects the user to Google's OAuth consent screen.
+ */
+authRouter.get('/google/authorize', async (_req, res) => {
+  try {
+    const client = await getOAuth2Client();
+    const url = client.generateAuthUrl({
+      access_type: 'offline',
+      prompt: 'consent',
+      scope: SCOPES,
+    });
+    res.redirect(url);
+  } catch (error) {
+    logger.error({ err: error }, 'Failed to generate Google OAuth URL');
+    res.status(500).json({ error: 'Google OAuth client credentials not configured. Set GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET first.' });
+  }
+});
+
+/**
+ * GET /auth/google/callback
+ * Handles the OAuth callback from Google, exchanges the code for tokens,
+ * and stores the refresh token in the database.
+ */
+authRouter.get('/google/callback', async (req, res) => {
+  const code = req.query.code as string | undefined;
+  if (!code) {
+    return res.status(400).json({ error: 'Missing authorization code' });
+  }
+
+  try {
+    const client = await getOAuth2Client();
+    const { tokens } = await client.getToken(code);
+
+    if (!tokens.refresh_token) {
+      return res.status(400).json({ error: 'No refresh token received. Try revoking app access in your Google Account and reconnecting.' });
+    }
+
+    // Store the refresh token
+    await settings.set('GOOGLE_OAUTH_REFRESH_TOKEN', tokens.refresh_token);
+
+    // Fetch the connected email for display purposes
+    client.setCredentials(tokens);
+    const userInfo = await client.request<{ email: string }>({
+      url: 'https://www.googleapis.com/oauth2/v2/userinfo',
+    });
+    const email = userInfo.data?.email ?? '';
+    if (email) {
+      await settings.set('GOOGLE_OAUTH_EMAIL', email);
+    }
+
+    logger.info({ email }, 'Google OAuth connected successfully');
+
+    // Redirect back to dashboard settings
+    const dashboardUrl = process.env.DASHBOARD_URL ?? 'http://localhost:3001';
+    res.redirect(`${dashboardUrl}/settings?google=connected`);
+  } catch (error) {
+    logger.error({ err: error }, 'Google OAuth callback failed');
+    res.status(500).json({ error: 'Failed to exchange authorization code' });
+  }
+});
+
+/**
+ * GET /auth/google/status
+ * Returns the current Google OAuth connection status.
+ */
+authRouter.get('/google/status', async (_req, res) => {
+  try {
+    const refreshToken = await settings.get('GOOGLE_OAUTH_REFRESH_TOKEN');
+    const email = await settings.get('GOOGLE_OAUTH_EMAIL');
+
+    res.json({
+      connected: !!refreshToken,
+      email: email ?? '',
+    });
+  } catch (error) {
+    logger.error({ err: error }, 'Failed to check Google OAuth status');
+    res.json({ connected: false, email: '' });
+  }
+});
+
+/**
+ * POST /auth/google/disconnect
+ * Removes the stored OAuth tokens, reverting to service account auth.
+ */
+authRouter.post('/google/disconnect', async (_req, res) => {
+  try {
+    await settings.set('GOOGLE_OAUTH_REFRESH_TOKEN', null);
+    await settings.set('GOOGLE_OAUTH_EMAIL', null);
+
+    logger.info('Google OAuth disconnected');
+    res.json({ success: true });
+  } catch (error) {
+    logger.error({ err: error }, 'Failed to disconnect Google OAuth');
+    res.status(500).json({ error: 'Failed to disconnect' });
+  }
+});

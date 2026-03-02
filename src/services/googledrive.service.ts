@@ -6,7 +6,7 @@
  */
 
 import { google } from 'googleapis';
-import { JWT } from 'google-auth-library';
+import { JWT, OAuth2Client } from 'google-auth-library';
 import { Readable } from 'node:stream';
 import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
@@ -20,24 +20,45 @@ class GoogleDriveService {
   private credHash = '';
 
   /**
-   * Authenticate with Google via service-account JWT and initialise
-   * the Drive client. Ensures the "SBEK Creatives" folder exists.
-   * Re-initializes if credentials are updated via Settings.
+   * Authenticate with Google via OAuth2 (preferred) or service-account JWT
+   * (fallback) and initialise the Drive client. Ensures the "SBEK Creatives"
+   * folder exists. Re-initializes if credentials are updated via Settings.
    */
   async init(): Promise<void> {
-    const email = (await settings.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')) ?? env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    const privateKey = (await settings.get('GOOGLE_PRIVATE_KEY')) ?? env.GOOGLE_PRIVATE_KEY;
-    const hash = email ?? '';
+    const refreshToken = (await settings.get('GOOGLE_OAUTH_REFRESH_TOKEN')) ?? env.GOOGLE_OAUTH_REFRESH_TOKEN;
 
-    if (this.initialized && hash === this.credHash) return;
+    let auth: JWT | OAuth2Client;
+    let hash: string;
 
-    try {
-      const auth = new JWT({
+    if (refreshToken) {
+      // OAuth2 path — user connected their Google account
+      const clientId = (await settings.get('GOOGLE_OAUTH_CLIENT_ID')) ?? env.GOOGLE_OAUTH_CLIENT_ID;
+      const clientSecret = (await settings.get('GOOGLE_OAUTH_CLIENT_SECRET')) ?? env.GOOGLE_OAUTH_CLIENT_SECRET;
+      hash = `oauth|${clientId ?? ''}`;
+
+      if (this.initialized && hash === this.credHash) return;
+
+      const oauth2 = new OAuth2Client(clientId, clientSecret);
+      oauth2.setCredentials({ refresh_token: refreshToken });
+      auth = oauth2;
+      logger.info('Google Drive: using OAuth2 authentication');
+    } else {
+      // Service account JWT fallback
+      const email = (await settings.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')) ?? env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+      const privateKey = (await settings.get('GOOGLE_PRIVATE_KEY')) ?? env.GOOGLE_PRIVATE_KEY;
+      hash = email ?? '';
+
+      if (this.initialized && hash === this.credHash) return;
+
+      auth = new JWT({
         email,
         key: (privateKey ?? '').replace(/\\n/g, '\n'),
         scopes: ['https://www.googleapis.com/auth/drive.file'],
       });
+      logger.info('Google Drive: using service account JWT authentication');
+    }
 
+    try {
       this.drive = google.drive({ version: 'v3', auth });
 
       // Ensure the shared creatives folder exists
@@ -79,6 +100,22 @@ class GoogleDriveService {
     });
 
     const id = folder.data.id!;
+
+    // Share the folder with the brand owner so it appears in their Drive
+    const ownerEmail = env.BRAND_OWNER_EMAIL || env.SMTP_USER;
+    if (ownerEmail) {
+      try {
+        await this.drive!.permissions.create({
+          fileId: id,
+          requestBody: { role: 'writer', type: 'user', emailAddress: ownerEmail },
+          sendNotificationEmail: false,
+        });
+        logger.info({ folderId: id, sharedWith: ownerEmail }, 'Drive folder shared with owner');
+      } catch (_err) {
+        logger.warn({ folderId: id }, 'Could not share folder with owner — check email');
+      }
+    }
+
     logger.info({ folderId: id, name }, 'Google Drive folder created');
     return id;
   }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useSettings } from "@/lib/hooks";
-import { putApi, postApi } from "@/lib/api";
+import { fetchApi, putApi, postApi } from "@/lib/api";
 import { PageHeader } from "@/components/page-header";
 
 /* ── Types ──────────────────────────────────────────────────────────── */
@@ -73,32 +73,42 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "google-sheets",
-    title: "Google Sheets",
+    title: "Google Account",
     icon: "\u25A6",
     description:
-      "Link a Google Sheet as a data warehouse. Orders, production, QC, customers, creatives, and logs are synced to separate tabs.",
+      "Connect your Google account to access Sheets and Drive. Click 'Connect Google Account' below, or use service account credentials as a fallback.",
     testable: true,
     fields: [
-      {
-        key: "GOOGLE_SERVICE_ACCOUNT_EMAIL",
-        label: "Service Account Email",
-        type: "text",
-        hint: "e.g. sbek-bot@your-project.iam.gserviceaccount.com",
-        required: true,
-      },
-      {
-        key: "GOOGLE_PRIVATE_KEY",
-        label: "Private Key",
-        type: "textarea",
-        hint: "PEM-encoded private key (starts with -----BEGIN PRIVATE KEY-----)",
-        required: true,
-      },
       {
         key: "GOOGLE_SHEET_ID",
         label: "Sheet ID",
         type: "text",
         hint: "The ID from your Google Sheet URL (between /d/ and /edit)",
         required: true,
+      },
+      {
+        key: "GOOGLE_OAUTH_CLIENT_ID",
+        label: "OAuth Client ID",
+        type: "text",
+        hint: "From Google Cloud Console → APIs & Services → Credentials",
+      },
+      {
+        key: "GOOGLE_OAUTH_CLIENT_SECRET",
+        label: "OAuth Client Secret",
+        type: "password",
+        hint: "From Google Cloud Console → APIs & Services → Credentials",
+      },
+      {
+        key: "GOOGLE_SERVICE_ACCOUNT_EMAIL",
+        label: "Service Account Email (fallback)",
+        type: "text",
+        hint: "Only needed if not using OAuth. e.g. sbek-bot@your-project.iam.gserviceaccount.com",
+      },
+      {
+        key: "GOOGLE_PRIVATE_KEY",
+        label: "Private Key (fallback)",
+        type: "textarea",
+        hint: "Only needed if not using OAuth. PEM-encoded private key.",
       },
     ],
   },
@@ -186,7 +196,7 @@ const SECTIONS: SectionDef[] = [
         key: "SMTP_PASS",
         label: "Password",
         type: "password",
-        hint: "SMTP password or app-specific password",
+        hint: "For Gmail: Use an App Password — Google Account → Security → 2-Step Verification → App Passwords → Generate for 'Mail'",
         required: true,
       },
       {
@@ -199,24 +209,24 @@ const SECTIONS: SectionDef[] = [
   },
   {
     id: "ai",
-    title: "AI / Image Generation",
+    title: "AI (Text & Images)",
     icon: "\u2726",
     description:
-      "OpenAI for text generation (descriptions, SEO, captions). Gemini Nano Banana for product image generation.",
+      "OpenRouter for text generation (descriptions, SEO, captions, competitor analysis). Gemini for product image generation.",
     testable: true,
     fields: [
       {
-        key: "OPENAI_API_KEY",
-        label: "OpenAI API Key",
+        key: "OPENROUTER_API_KEY",
+        label: "OpenRouter API Key",
         type: "password",
-        hint: "Used for text generation — product descriptions, SEO content, social captions",
+        hint: "Get yours at openrouter.ai — used for all text generation (SEO, FAQs, captions, analysis)",
         required: true,
       },
       {
         key: "GEMINI_API_KEY",
-        label: "Gemini API Key (Nano Banana)",
+        label: "Gemini API Key (Image Generation)",
         type: "password",
-        hint: "Google Gemini key for image generation (gemini-2.0-flash-preview-image-generation)",
+        hint: "Google Gemini key for product image generation. Get it at aistudio.google.com",
       },
     ],
   },
@@ -428,6 +438,90 @@ function InlineToast({ result, onDismiss }: { result: ValidationResult; onDismis
         \u2715
       </button>
     </div>
+  );
+}
+
+/* ── Google OAuth Connect Button ────────────────────────────────────── */
+
+function GoogleOAuthButton() {
+  const [status, setStatus] = useState<{ connected: boolean; email: string }>({ connected: false, email: "" });
+  const [loading, setLoading] = useState(true);
+  const [disconnecting, setDisconnecting] = useState(false);
+
+  useEffect(() => {
+    fetchApi<{ connected: boolean; email: string }>("/auth/google/status")
+      .then(setStatus)
+      .catch(() => setStatus({ connected: false, email: "" }))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleConnect = () => {
+    window.location.href = "/api/auth/google/authorize";
+  };
+
+  const handleDisconnect = async () => {
+    setDisconnecting(true);
+    try {
+      await postApi("/auth/google/disconnect");
+      setStatus({ connected: false, email: "" });
+    } catch {
+      // ignore
+    } finally {
+      setDisconnecting(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-[11px] py-2" style={{ color: "var(--text-subtle)" }}>Checking Google connection...</div>;
+  }
+
+  if (status.connected) {
+    return (
+      <div
+        className="flex items-center justify-between px-3 py-2.5 mb-4"
+        style={{
+          background: "#F0FAF0",
+          border: "1px solid #D5E8D5",
+          borderRadius: "var(--radius-sm)",
+        }}
+      >
+        <span className="flex items-center gap-2 text-[11px]" style={{ color: "var(--text-secondary)" }}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.2" />
+            <path d="M4 7l2 2 4-4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Connected as <strong>{status.email}</strong>
+        </span>
+        <button
+          type="button"
+          onClick={handleDisconnect}
+          disabled={disconnecting}
+          className="btn-ghost px-2 py-1 text-[10px] uppercase tracking-wider font-medium"
+          style={{ color: "var(--error)", opacity: disconnecting ? 0.5 : 1 }}
+        >
+          {disconnecting ? "Disconnecting..." : "Disconnect"}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleConnect}
+      className="btn-ghost w-full px-4 py-2.5 mb-4 text-[11px] uppercase tracking-[0.08em] font-medium flex items-center justify-center gap-2"
+      style={{
+        background: "#F0F6FF",
+        borderColor: "#D5E0F0",
+        color: "var(--text-muted)",
+      }}
+    >
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2">
+        <circle cx="7" cy="7" r="5.5" />
+        <path d="M7 4v6M4 7h6" />
+      </svg>
+      Connect Google Account (Sheets + Drive)
+    </button>
   );
 }
 
@@ -867,6 +961,7 @@ function SettingsSection({
             <p className="text-[11px] leading-relaxed pt-4 pb-3" style={{ color: "var(--text-subtle)" }}>
               {section.description}
             </p>
+            {section.id === "google-sheets" && <GoogleOAuthButton />}
             <div>
               {section.fields.map((field) => (
                 <SettingsField

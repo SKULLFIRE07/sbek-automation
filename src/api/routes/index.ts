@@ -4,6 +4,7 @@ import { webhooksRouter } from './webhooks.routes.js';
 import { jobsRouter } from './jobs.routes.js';
 import { dashboardRouter } from './dashboard.routes.js';
 import { settingsRouter } from './settings.routes.js';
+import { authRouter } from './auth.routes.js';
 
 export const router = Router();
 
@@ -21,3 +22,6 @@ router.use('/dashboard', dashboardRouter);
 
 // Admin settings with Basic auth (BYOK — Bring Your Own Keys)
 router.use('/admin/settings', settingsRouter);
+
+// Google OAuth flow (connect Google account for Sheets + Drive)
+router.use('/auth', authRouter);

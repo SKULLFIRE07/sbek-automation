@@ -4,11 +4,11 @@ import Link from "next/link";
 import { StatusDot } from "./status-dot";
 import type { QueueItem } from "@/lib/hooks";
 
-/* Subtle monochrome palette — only failed gets color */
+/* Clean palette — completed is green, failed is red */
 const STATUS_COLORS: Record<string, { bar: string; text: string; bg: string }> = {
   active:    { bar: "#1A1A1A", text: "#555555", bg: "rgba(0,0,0,0.05)" },
   failed:    { bar: "#C0392B", text: "#C0392B", bg: "rgba(192,57,43,0.07)" },
-  completed: { bar: "#CCCCCC", text: "#999999", bg: "rgba(0,0,0,0.04)" },
+  completed: { bar: "#22C55E", text: "#16A34A", bg: "rgba(34,197,94,0.07)" },
   waiting:   { bar: "#999999", text: "#888888", bg: "rgba(0,0,0,0.04)" },
   delayed:   { bar: "#B0B0B0", text: "#999999", bg: "rgba(0,0,0,0.04)" },
 };

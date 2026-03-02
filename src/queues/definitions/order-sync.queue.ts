@@ -1,6 +1,9 @@
 import { Worker, type Job } from 'bullmq';
+import { eq } from 'drizzle-orm';
 import { env } from '../../config/env.js';
 import { logger } from '../../config/logger.js';
+import { db } from '../../config/database.js';
+import { webhookEvents } from '../../db/schema.js';
 import type { OrderSyncPayload } from '../types.js';
 import { processOrderSync } from '../../workflows/order-processing.workflow.js';
 
@@ -33,6 +36,11 @@ export const orderSyncWorker = new Worker<OrderSyncPayload>(
 
 orderSyncWorker.on('completed', (job) => {
   logger.info({ jobId: job.id, orderId: job.data.orderId }, 'Order sync completed');
+  // Mark webhook event as processed in dashboard activity feed
+  db.update(webhookEvents)
+    .set({ processed: true, processedAt: new Date() })
+    .where(eq(webhookEvents.event, job.data.event))
+    .catch(() => {});
 });
 
 orderSyncWorker.on('failed', (job, err) => {

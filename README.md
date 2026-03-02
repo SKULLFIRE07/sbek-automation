@@ -59,10 +59,10 @@ Built with TypeScript, Express, BullMQ, Redis, PostgreSQL, and Docker.
      +---------+ +-------+ +-----+ +--------+ +----------+
            |         |       |       |         |
            v         v       v       v         v
-     +---------+ +-------+ +-----+ +--------+ +----------+
-     | Google  | |WhatsApp| |Email| |OpenAI | |DALL-E 3  |
-     | Sheets  | | Cloud  | |SMTP | |GPT-4o | |          |
-     +---------+ +-------+ +-----+ +--------+ +----------+
+     +---------+ +-------+ +-----+ +---------+ +----------+
+     | Google  | |WhatsApp| |Email| |OpenRouter| | Gemini  |
+     | Sheets  | | Cloud  | |SMTP | | (Text)  | | (Image) |
+     +---------+ +-------+ +-----+ +---------+ +----------+
                                                     |
                       +-----------------------------+
                       |                             |
@@ -105,10 +105,10 @@ Built with TypeScript, Express, BullMQ, Redis, PostgreSQL, and Docker.
 - **Review Collection** -- 5-day delayed review requests after delivery with daily cron safety net
 
 ### Marketing
-- **SEO/AEO Content** -- GPT-4o generates meta titles, descriptions, FAQs (JSON-LD), AEO knowledge base articles, and comparison content; pushes directly to WooCommerce as Yoast-compatible fields
-- **Ad Creatives** -- DALL-E 3 generates product images in 5 variants (white background, lifestyle, festive, minimal text, story format)
+- **SEO/AEO Content** -- OpenRouter (Gemini 2.5 Flash) generates meta titles, descriptions, FAQs (JSON-LD), AEO knowledge base articles, and comparison content; pushes directly to WooCommerce as Yoast-compatible fields
+- **Ad Creatives** -- Gemini generates product images in 5 variants (white background, lifestyle, festive, minimal text, story format)
 - **Social Scheduling** -- Auto-posts approved creatives to Instagram/Facebook via Postiz with AI-generated captions
-- **Competitor Monitoring** -- Playwright crawler scrapes competitor sites weekly, GPT-4o analyzes changes, alerts on significant moves
+- **Competitor Monitoring** -- Playwright crawler scrapes competitor sites weekly, AI analyzes changes, alerts on significant moves
 
 ### Dashboard
 - **Real-time Admin Dashboard** -- Next.js 15 app (port 3002) with live queue monitoring, job activity feed, system health overview, and cron job status
@@ -209,27 +209,38 @@ You need credentials from **6 services**. Each section below walks through the s
 </details>
 
 <details>
-<summary><strong>Google Cloud (Sheets + Drive)</strong></summary>
+<summary><strong>Google Account (Sheets + Drive)</strong></summary>
+
+**Option A: OAuth2 (Recommended)** — Connect your Gmail account directly
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project (or select existing)
 3. Enable these APIs:
    - **Google Sheets API**
    - **Google Drive API**
-4. Go to **IAM & Admin > Service Accounts**
-5. Click **Create service account**
-   - Name: `sbek-automation`
-   - Grant role: **Editor** (or at minimum, Sheets access)
-6. Click on the new service account, go to **Keys** tab
-7. Click **Add Key > Create new key > JSON**
-8. Download the JSON key file
-9. From the JSON file, copy:
-   - `client_email` value -> `GOOGLE_SERVICE_ACCOUNT_EMAIL`
-   - `private_key` value -> `GOOGLE_PRIVATE_KEY`
-10. Create a new Google Spreadsheet (or use the setup script to create one)
-11. **Share the spreadsheet** with the service account email (Editor access)
-12. Copy the spreadsheet ID from the URL: `https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/...`
-13. Add to `.env`:
+4. Go to **APIs & Services > OAuth consent screen**
+   - Select **External**, fill in app name
+   - Add test users (your Gmail address)
+5. Go to **APIs & Services > Credentials**
+   - Click **Create Credentials > OAuth 2.0 Client ID**
+   - Application type: **Web application**
+   - Add redirect URI: `http://localhost:3000/auth/google/callback`
+6. Copy the **Client ID** and **Client Secret**
+7. Create a Google Spreadsheet and copy the Sheet ID from the URL
+8. Add to `.env`:
+    ```
+    GOOGLE_OAUTH_CLIENT_ID=your_client_id.apps.googleusercontent.com
+    GOOGLE_OAUTH_CLIENT_SECRET=your_client_secret
+    GOOGLE_SHEET_ID=your_spreadsheet_id_here
+    ```
+9. Start the backend, then go to **Dashboard > Settings > Google Account** and click **Connect Google Account**
+
+**Option B: Service Account (Fallback)**
+
+1. Go to **IAM & Admin > Service Accounts** in Google Cloud Console
+2. Create a service account, download the JSON key
+3. Share the spreadsheet with the service account email (Editor access)
+4. Add to `.env`:
     ```
     GOOGLE_SERVICE_ACCOUNT_EMAIL=sbek-bot@your-project.iam.gserviceaccount.com
     GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
@@ -286,19 +297,33 @@ You need credentials from **6 services**. Each section below walks through the s
 </details>
 
 <details>
-<summary><strong>OpenAI</strong></summary>
+<summary><strong>OpenRouter (Text Generation)</strong></summary>
 
-1. Go to [platform.openai.com](https://platform.openai.com/)
-2. Navigate to **API Keys**
-3. Click **Create new secret key**
-4. Copy the key (starts with `sk-`)
-5. Ensure your account has billing enabled and sufficient credits for:
-   - GPT-4o (text generation for SEO, FAQs, captions, competitor analysis)
-   - DALL-E 3 (image generation for ad creatives)
+1. Go to [openrouter.ai](https://openrouter.ai/)
+2. Sign up and navigate to **Keys**
+3. Click **Create Key**
+4. Copy the key (starts with `sk-or-`)
+5. Add credits to your account (supports many models including Gemini, AI, Claude, etc.)
 6. Add to `.env`:
    ```
-   OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxx
+   OPENROUTER_API_KEY=sk-or-xxxxxxxxxxxxxxxxxxxxxxxx
    ```
+
+> OpenRouter is used for all text generation: SEO meta, FAQs, captions, and competitor analysis. Default model: `google/gemini-2.5-flash`.
+</details>
+
+<details>
+<summary><strong>Gemini (Image Generation)</strong></summary>
+
+1. Go to [aistudio.google.com](https://aistudio.google.com/)
+2. Click **Get API key** > **Create API key**
+3. Copy the API key
+4. Add to `.env`:
+   ```
+   GEMINI_API_KEY=your_gemini_api_key
+   ```
+
+> Gemini is used exclusively for product image generation (Nano Banana). The model used is `gemini-2.0-flash-preview-image-generation`.
 </details>
 
 <details>
@@ -359,9 +384,14 @@ Full reference of all environment variables. Copy `.env.example` to `.env` and f
 
 | Variable                       | Required | Description                                  |
 |-------------------------------|----------|----------------------------------------------|
-| `GOOGLE_SERVICE_ACCOUNT_EMAIL`| Yes      | Service account email                        |
-| `GOOGLE_PRIVATE_KEY`          | Yes      | PEM-encoded private key (newlines as `\n`)   |
+| `GOOGLE_OAUTH_CLIENT_ID`      | No*      | OAuth2 client ID (preferred auth method)     |
+| `GOOGLE_OAUTH_CLIENT_SECRET`  | No*      | OAuth2 client secret                         |
+| `GOOGLE_OAUTH_REFRESH_TOKEN`  | No*      | Set automatically after OAuth flow           |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL`| No*      | Service account email (fallback auth)        |
+| `GOOGLE_PRIVATE_KEY`          | No*      | PEM-encoded private key (fallback auth)      |
 | `GOOGLE_SHEET_ID`             | Yes      | Spreadsheet ID from URL                      |
+
+> *Either OAuth credentials or service account credentials are required.
 
 ### WhatsApp Business Cloud API
 
@@ -381,11 +411,17 @@ Full reference of all environment variables. Copy `.env.example` to `.env` and f
 | `SMTP_PASS` | No       | --      | SMTP password / app password|
 | `EMAIL_FROM`| No       | --      | From address for emails    |
 
-### OpenAI
+### AI — Text Generation (OpenRouter)
 
-| Variable         | Required | Description    |
-|-----------------|----------|----------------|
-| `OPENAI_API_KEY` | Yes      | OpenAI API key |
+| Variable            | Required | Description                      |
+|--------------------|----------|----------------------------------|
+| `OPENROUTER_API_KEY` | Yes     | OpenRouter API key (`sk-or-...`) |
+
+### AI — Image Generation (Gemini)
+
+| Variable         | Required | Description                   |
+|-----------------|----------|-------------------------------|
+| `GEMINI_API_KEY` | No       | Google Gemini API key         |
 
 ### Postiz (Social Media)
 
@@ -494,14 +530,14 @@ When an order is marked as delivered, a review request job is enqueued on the `r
 
 A weekly cron on Monday at 9 AM enqueues `content-generation` jobs for all published products. The content pipeline generates:
 
-- **SEO meta** (title + description) via GPT-4o, written back to WooCommerce as Yoast-compatible meta fields
+- **SEO meta** (title + description) via AI, written back to WooCommerce as Yoast-compatible meta fields
 - **FAQs** (5 Q&A pairs) formatted as FAQPage JSON-LD, stored in WooCommerce custom fields
 - **AEO knowledge base** documents optimized for Answer Engine Optimization
 - **Comparison articles** that position SBEK against market alternatives
 
-### Ad Creative Generation (DALL-E 3)
+### Ad Creative Generation (Gemini)
 
-The `creative-generation` queue produces product images using DALL-E 3 in 5 variant styles:
+The `creative-generation` queue produces product images using Gemini in 5 variant styles:
 
 | Variant        | Description                                      | Size      |
 |---------------|--------------------------------------------------|-----------|
@@ -511,7 +547,7 @@ The `creative-generation` queue produces product images using DALL-E 3 in 5 vari
 | `minimal_text`| Minimal layout with space for text overlay       | 1024x1024 |
 | `story_format`| Vertical macro photography for Stories           | 1024x1792 |
 
-Each generated image is logged to the **Creatives** tab in Google Sheets. An Instagram caption is also generated via GPT-4o.
+Each generated image is logged to the **Creatives** tab in Google Sheets. An Instagram caption is also generated via AI.
 
 ### Social Media Scheduling (Postiz)
 
@@ -519,7 +555,7 @@ The `social-posting` worker uploads generated creative images to Postiz, creates
 
 ### Competitor Monitoring (Playwright Crawler)
 
-A weekly cron on Sunday at 10 PM enqueues `competitor-crawl` jobs for each configured competitor. The crawler microservice (a separate Docker container running Playwright + Chromium) visits competitor websites, extracts product listings, blog posts, navigation structure, SEO signals, and generates a styled HTML report. The crawl data is then analyzed by GPT-4o for competitive insights. Significant changes (new collections, major price drops, aggressive promotions) trigger an internal WhatsApp alert.
+A weekly cron on Sunday at 10 PM enqueues `competitor-crawl` jobs for each configured competitor. The crawler microservice (a separate Docker container running Playwright + Chromium) visits competitor websites, extracts product listings, blog posts, navigation structure, SEO signals, and generates a styled HTML report. The crawl data is then analyzed by AI for competitive insights. Significant changes (new collections, major price drops, aggressive promotions) trigger an internal WhatsApp alert.
 
 ---
 
@@ -632,7 +668,7 @@ docker compose up -d
 
 - Content generation and creative workers use low concurrency (2 and 1) to stay within limits
 - Check your account for billing status and usage limits
-- DALL-E 3 errors often mean the prompt was flagged by content policy
+- Gemini errors often mean the prompt was flagged by content policy
 </details>
 
 <details>
@@ -670,7 +706,7 @@ npm run db:studio      # Open Drizzle Studio GUI
 | **Queues**       | BullMQ + Redis 7                                             |
 | **Database**     | PostgreSQL 16 + Drizzle ORM                                  |
 | **Scheduling**   | node-cron (4 scheduled jobs)                                 |
-| **APIs**         | WooCommerce REST API v3, Google Sheets API, WhatsApp Cloud API, OpenAI SDK v4, Postiz API |
+| **APIs**         | WooCommerce REST API v3, Google Sheets API, WhatsApp Cloud API, OpenRouter (text AI), Gemini (image AI), Postiz API |
 | **Email**        | Nodemailer + Handlebars templates                            |
 | **Crawler**      | Playwright + Chromium (separate microservice)                |
 | **Validation**   | Zod (env vars), HMAC-SHA256 (webhooks)                       |

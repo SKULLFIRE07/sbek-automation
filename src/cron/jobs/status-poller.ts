@@ -1,0 +1,228 @@
+import { logger } from '../../config/logger.js';
+import { sheets } from '../../services/googlesheets.service.js';
+import { createProductionTask } from '../../workflows/production-tracking.workflow.js';
+import { completeProduction } from '../../workflows/production-tracking.workflow.js';
+import { createQCChecklist } from '../../workflows/qc-tracking.workflow.js';
+import { handleStatusChange } from '../../workflows/customer-comms.workflow.js';
+import { notification } from '../../queues/registry.js';
+import { normalizePhone } from '../../utils/sanitize.js';
+import { formatDate } from '../../utils/date.js';
+import { db } from '../../config/database.js';
+import { webhookEvents } from '../../db/schema.js';
+
+// ── In-memory snapshot: Order ID → last-known status ─────────────────────
+// Resets on process restart — first poll re-seeds without triggering actions.
+const statusSnapshot = new Map<string, string>();
+let initialized = false;
+let polling = false;
+
+// ── Public entry point (called by scheduler) ─────────────────────────────
+
+export async function runStatusPoller(): Promise<void> {
+  if (polling) {
+    logger.warn('Status poller: previous cycle still running, skipping');
+    return;
+  }
+  polling = true;
+
+  try {
+    await sheets.init();
+    const allOrders = await sheets.getAllOrders();
+
+    if (!allOrders || allOrders.length === 0) {
+      logger.debug('Status poller: no orders found');
+      return;
+    }
+
+    // First run: seed snapshot without triggering actions
+    if (!initialized) {
+      for (const order of allOrders) {
+        const orderId = order['Order ID'];
+        const status = order['Status'];
+        if (orderId && status) {
+          statusSnapshot.set(orderId, status);
+        }
+      }
+      initialized = true;
+      logger.info({ orderCount: statusSnapshot.size }, 'Status poller: snapshot seeded');
+      return;
+    }
+
+    // Subsequent runs: detect changes
+    const currentIds = new Set<string>();
+    let changesDetected = 0;
+
+    for (const order of allOrders) {
+      const orderId = order['Order ID'];
+      const currentStatus = order['Status'];
+      if (!orderId || !currentStatus) continue;
+
+      currentIds.add(orderId);
+      const previousStatus = statusSnapshot.get(orderId);
+
+      // New order appeared since last poll
+      if (previousStatus === undefined) {
+        statusSnapshot.set(orderId, currentStatus);
+        continue;
+      }
+
+      // No change
+      if (previousStatus === currentStatus) continue;
+
+      // Status changed — dispatch
+      logger.info(
+        { orderId, from: previousStatus, to: currentStatus },
+        'Status poller: change detected',
+      );
+
+      try {
+        await dispatchTransition(orderId, previousStatus, currentStatus, order);
+        changesDetected++;
+      } catch (err) {
+        logger.error(
+          { err, orderId, from: previousStatus, to: currentStatus },
+          'Status poller: transition error',
+        );
+      }
+
+      // Update snapshot regardless (prevent re-triggering on error)
+      statusSnapshot.set(orderId, currentStatus);
+    }
+
+    // Cleanup deleted orders
+    for (const id of statusSnapshot.keys()) {
+      if (!currentIds.has(id)) statusSnapshot.delete(id);
+    }
+
+    if (changesDetected > 0) {
+      logger.info({ changesDetected }, 'Status poller: cycle complete');
+    }
+  } finally {
+    polling = false;
+  }
+}
+
+// ── Transition dispatcher ────────────────────────────────────────────────
+
+async function dispatchTransition(
+  orderId: string,
+  oldStatus: string,
+  newStatus: string,
+  order: Record<string, string>,
+): Promise<void> {
+  const numericId = Number(orderId);
+
+  // Audit trail
+  await sheets.logEvent(
+    'INFO',
+    'StatusPoller',
+    `Order ${orderId}: ${oldStatus} → ${newStatus}`,
+    JSON.stringify({ customer: order['Customer Name'], product: order['Product'] }),
+  ).catch(() => {}); // fire-and-forget
+
+  // Log to webhook_events for dashboard activity feed
+  await db.insert(webhookEvents).values({
+    source: 'sheets-poller',
+    event: `status.${newStatus.toLowerCase().replace(/\s+/g, '_')}`,
+    payload: { orderId, from: oldStatus, to: newStatus, customer: order['Customer Name'] },
+    processed: true,
+    processedAt: new Date(),
+  }).catch(() => {});
+
+  // Match on TARGET status — works regardless of which status it came from.
+  // e.g. "New → QC" or "In Production → QC" both trigger QC actions.
+  switch (newStatus) {
+    // ── → In Production ─────────────────────────────────────────────
+    case 'In Production': {
+      await createProductionTask({
+        orderId: numericId,
+        status: 'in_production',
+        assignee: order['Production Assignee'] || undefined,
+        notes: order['Notes'] || undefined,
+      });
+      break;
+    }
+
+    // ── → QC ────────────────────────────────────────────────────────
+    case 'QC': {
+      // Mark production as completed (if it exists)
+      await completeProduction(numericId).catch((err) => {
+        logger.warn({ err, orderId }, 'completeProduction skipped (may not have production row)');
+      });
+      await createQCChecklist({
+        orderId: numericId,
+        productName: order['Product'] || '',
+        checklistItems: [],
+      });
+      break;
+    }
+
+    // ── → Ready to Ship ─────────────────────────────────────────────
+    case 'Ready to Ship': {
+      const phone = order['Phone'] ? normalizePhone(order['Phone']) : undefined;
+      const email = order['Email'] || undefined;
+
+      if (phone || email) {
+        await notification.add(`poller-qc-passed-${orderId}-${Date.now()}`, {
+          channel: 'both',
+          recipientPhone: phone,
+          recipientEmail: email,
+          recipientName: order['Customer Name'] || 'Customer',
+          templateName: 'qc_passed',
+          templateData: {
+            customer_name: order['Customer Name'] || 'Customer',
+            order_id: orderId,
+            product_name: order['Product'] || '',
+          },
+        });
+      }
+
+      await sheets.updateOrder(orderId, {
+        'Last Updated': formatDate(new Date()),
+      });
+      break;
+    }
+
+    // ── → Shipped ───────────────────────────────────────────────────
+    case 'Shipped': {
+      await handleStatusChange({
+        orderId: numericId,
+        oldStatus,
+        newStatus,
+        customerName: order['Customer Name'] || 'Customer',
+        customerPhone: order['Phone'] || undefined,
+        customerEmail: order['Email'] || undefined,
+        productName: order['Product'] || '',
+      });
+
+      await sheets.updateOrder(orderId, {
+        'Last Updated': formatDate(new Date()),
+      });
+      break;
+    }
+
+    // ── → Delivered ─────────────────────────────────────────────────
+    case 'Delivered': {
+      await handleStatusChange({
+        orderId: numericId,
+        oldStatus,
+        newStatus,
+        customerName: order['Customer Name'] || 'Customer',
+        customerPhone: order['Phone'] || undefined,
+        customerEmail: order['Email'] || undefined,
+        productName: order['Product'] || '',
+      });
+
+      await sheets.updateOrder(orderId, {
+        'Last Updated': formatDate(new Date()),
+      });
+      break;
+    }
+
+    default:
+      logger.warn(
+        { orderId, from: oldStatus, to: newStatus },
+        'Status poller: unhandled target status',
+      );
+  }
+}

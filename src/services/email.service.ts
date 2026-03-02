@@ -196,7 +196,7 @@ class EmailService {
    * the .hbs extension).
    */
   private loadTemplates(): void {
-    const templateDir = resolve(__dirname, '../../templates/email');
+    const templateDir = resolve(__dirname, '../templates/email');
 
     let files: string[];
     try {
@@ -223,11 +223,16 @@ class EmailService {
 
   /**
    * Retrieve a compiled template by name or throw if it does not exist.
-   * Supports lookup by exact name or by mapping common aliases
-   * (e.g. "order_shipped" -> "shipped").
+   * Supports lookup by exact name or by normalizing underscores → hyphens
+   * (e.g. "order_confirmation" -> "order-confirmation", "review_request" -> "review-request").
    */
   private getTemplate(name: string): HandlebarsTemplateDelegate {
     let template = this.templates.get(name);
+
+    // Fallback: convert underscores to hyphens (template files use hyphens)
+    if (!template) {
+      template = this.templates.get(name.replace(/_/g, '-'));
+    }
 
     // Fallback: strip "order_" prefix to match file names like shipped.hbs
     if (!template && name.startsWith('order_')) {
