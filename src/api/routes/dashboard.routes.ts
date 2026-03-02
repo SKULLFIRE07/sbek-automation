@@ -449,6 +449,26 @@ dashboardRouter.get('/settings', async (_req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /settings/reveal/:key — return the real (unmasked) value for a config key.
+ * Used when the admin clicks the "eye" icon to see a hidden API key.
+ */
+dashboardRouter.get('/settings/reveal/:key', async (req: Request, res: Response) => {
+  const key = req.params.key as string;
+  if (!(CONFIGURABLE_KEYS as readonly string[]).includes(key)) {
+    res.status(400).json({ error: `Invalid key: ${key}` });
+    return;
+  }
+
+  try {
+    const value = await settings.get(key as ConfigurableKey);
+    res.json({ key, value: value ?? '' });
+  } catch (err) {
+    logger.error({ err }, 'Dashboard settings reveal error');
+    res.status(500).json({ error: 'Failed to reveal setting' });
+  }
+});
+
 dashboardRouter.put('/settings', async (req: Request, res: Response) => {
   const { keys } = req.body as { keys?: Record<string, string | null> };
 

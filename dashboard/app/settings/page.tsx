@@ -1002,10 +1002,31 @@ function SettingsField({
   onChange: (val: string) => void;
 }) {
   const [visible, setVisible] = useState(false);
-  const isSensitive = field.type === "password";
+  const [revealedValue, setRevealedValue] = useState<string | null>(null);
+  const [revealing, setRevealing] = useState(false);
+  const isSensitive = field.type === "password" || field.type === "textarea";
   const isTextarea = field.type === "textarea";
   const isSelect = field.type === "select";
   const hasFill = value.trim().length > 0;
+  const isMasked = value.includes("***");
+
+  const handleToggleVisible = async () => {
+    if (!visible && isMasked && !revealedValue) {
+      // Fetch the real value from the server
+      setRevealing(true);
+      try {
+        const result = await fetchApi<{ value: string }>(`/dashboard/settings/reveal/${field.key}`);
+        setRevealedValue(result.value);
+      } catch {
+        // If reveal fails, just show the masked value
+      }
+      setRevealing(false);
+    }
+    setVisible(!visible);
+  };
+
+  // Display value: show revealed value when visible and we have it
+  const displayValue = visible && revealedValue && isMasked ? revealedValue : value;
 
   const inputClasses = "input w-full font-mono text-sm";
 
@@ -1098,17 +1119,18 @@ function SettingsField({
           </div>
           <button
             type="button"
-            onClick={() => setVisible(!visible)}
+            onClick={handleToggleVisible}
+            disabled={revealing}
             className="p-1 transition-colors"
             style={{ color: "var(--text-subtle)" }}
             title={visible ? "Hide value" : "Show value"}
           >
-            {visible ? <EyeOffIcon /> : <EyeIcon />}
+            {revealing ? <span className="text-[10px]">...</span> : visible ? <EyeOffIcon /> : <EyeIcon />}
           </button>
         </div>
         <textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          value={displayValue}
+          onChange={(e) => { setRevealedValue(null); onChange(e.target.value); }}
           rows={4}
           className={`${inputClasses} resize-y`}
           style={
@@ -1127,8 +1149,8 @@ function SettingsField({
       <div className="relative">
         <input
           type={isSensitive && !visible ? "password" : "text"}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          value={displayValue}
+          onChange={(e) => { setRevealedValue(null); onChange(e.target.value); }}
           className={inputClasses}
           spellCheck={false}
           autoComplete="off"
@@ -1136,12 +1158,13 @@ function SettingsField({
         {isSensitive && (
           <button
             type="button"
-            onClick={() => setVisible(!visible)}
+            onClick={handleToggleVisible}
+            disabled={revealing}
             className="absolute right-2 top-1/2 -translate-y-1/2 p-1 transition-colors"
             style={{ color: "var(--text-subtle)" }}
             title={visible ? "Hide value" : "Show value"}
           >
-            {visible ? <EyeOffIcon /> : <EyeIcon />}
+            {revealing ? <span className="text-[10px]">...</span> : visible ? <EyeOffIcon /> : <EyeIcon />}
           </button>
         )}
       </div>

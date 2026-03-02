@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SBEK Automation — Setup Checklist</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+    font-size: 11pt;
+    line-height: 1.5;
+    color: #000;
+    background: #fff;
+    padding: 40px 50px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 20pt; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.5px; }
+  .subtitle { font-size: 10pt; color: #666; margin-bottom: 30px; }
+  h2 {
+    font-size: 13pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    border-bottom: 2px solid #000;
+    padding-bottom: 6px;
+    margin-top: 28px;
+    margin-bottom: 14px;
+  }
+  .section-desc { font-size: 9.5pt; color: #444; margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+  th, td { text-align: left; padding: 6px 8px; font-size: 10pt; vertical-align: top; }
+  th {
+    font-weight: 700;
+    font-size: 8.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border-bottom: 1px solid #000;
+    color: #333;
+  }
+  td { border-bottom: 1px solid #ddd; }
+  .field-name { font-weight: 600; }
+  .required { font-weight: 700; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.5px; }
+  .status-have { color: #000; }
+  .status-need { color: #000; font-weight: 600; }
+  .how-to { font-size: 9pt; color: #333; }
+  .url { font-family: monospace; font-size: 8.5pt; word-break: break-all; }
+  .step { display: block; margin-bottom: 3px; }
+  .note {
+    font-size: 9pt;
+    color: #444;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    padding: 8px 10px;
+    margin-top: 6px;
+    margin-bottom: 16px;
+  }
+  .footer {
+    margin-top: 40px;
+    padding-top: 12px;
+    border-top: 1px solid #ccc;
+    font-size: 8.5pt;
+    color: #999;
+  }
+  .checkbox { display: inline-block; width: 12px; height: 12px; border: 1.5px solid #000; margin-right: 6px; vertical-align: middle; }
+  @media print {
+    body { padding: 20px 30px; }
+    .note { background: #f8f8f8; }
+    h2 { page-break-after: avoid; }
+    table { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<h1>SBEK Automation — Setup Checklist</h1>
+<p class="subtitle">All credentials and API keys needed to run the system. Section-by-section guide.</p>
+
+<!-- ================================================================== -->
+<h2>1. WooCommerce Store</h2>
+<p class="section-desc">Connects your online store to sync orders, products, and customers automatically.</p>
+<table>
+  <tr><th>Field</th><th>Status</th><th>How to Get</th></tr>
+  <tr>
+    <td class="field-name">Store URL <span class="required">(Required)</span></td>
+    <td class="status-have">Have (ENV)</td>
+    <td class="how-to">Your WooCommerce store URL, e.g. <span class="url">https://store.sbek.com</span></td>
+  </tr>
+  <tr>
+    <td class="field-name">Consumer Key <span class="required">(Required)</span></td>
+    <td class="status-have">Have (ENV)</td>
+    <td class="how-to">
+      <span class="step">1. Go to your WooCommerce admin panel</span>
+      <span class="step">2. WooCommerce &rarr; Settings &rarr; Advanced &rarr; REST API</span>
+      <span class="step">3. Click "Add Key" &rarr; Permissions: Read/Write &rarr; Generate</span>
+      <span class="step">4. Copy the Consumer Key (starts with <b>ck_</b>)</span>
+    </td>
+  </tr>
+  <tr>
+    <td class="field-name">Consumer Secret <span class="required">(Required)</span></td>
+    <td class="status-have">Have (ENV)</td>
+    <td class="how-to">Generated alongside the Consumer Key above (starts with <b>cs_</b>). Copy it immediately — it's shown only once.</td>
+  </tr>
+  <tr>
+    <td class="field-name">Webhook Secret <span class="required">(Required)</span></td>
+    <td class="status-have">Have (ENV)</td>
+    <td class="how-to">
+      <span class="step">1. WooCommerce &rarr; Settings &rarr; Advanced &rarr; Webhooks</span>
+      <span class="step">2. Click "Add Webhook"</span>
+      <span class="step">3. Copy the Secret shown at the top</span>
+    </td>
+  </tr>
+</table>
+
+<!-- ================================================================== -->
+<h2>2. Google Sheets & Drive</h2>
+<p class="section-desc">Syncs order data to Google Sheets and uploads product creatives to Google Drive.</p>
+<table>
+  <tr><th>Field</th><th>Status</th><th>How to Get</th></tr>
+  <tr>
+    <td class="field-name">Google Login <span class="required">(Required)</span></td>
+    <td class="status-need">Need to Connect</td>
+    <td class="how-to">
+      <span class="step">1. Open the SBEK Dashboard &rarr; Settings</span>
+      <span class="step">2. In "Google Sheets & Drive" section, click <b>"Login with Google"</b></span>
+      <span class="step">3. Sign in with your Gmail account and allow access</span>
+      <span class="step">4. You'll be redirected back. It will show "Connected as your@gmail.com"</span>
+    </td>
+  </tr>
+  <tr>
+    <td class="field-name">Google Sheet URL <span class="required">(Required)</span></td>
+    <td class="status-need">Need to Create</td>
+    <td class="how-to">
+      <span class="step">1. Go to <span class="url">https://sheets.google.com</span></span>
+      <span class="step">2. Click "+" to create a new blank spreadsheet</span>
+      <span class="step">3. Name it "SBEK Orders" (or anything you like)</span>
+      <span class="step">4. Copy the full URL from the browser address bar</span>
+      <span class="step">5. Paste it in the dashboard Settings &rarr; "Google Sheet URL" field</span>
+      <span class="step">6. Click "Setup Sheet & Drive" — the system will auto-create all tabs</span>
+    </td>
+  </tr>
+  <tr>
+    <td class="field-name">Google Drive Folder URL</td>
+    <td style="color:#666">Optional</td>
+    <td class="how-to">
+      <span class="step">Leave empty — the system auto-creates an "SBEK Creatives" folder.</span>
+      <span class="step">Or: Go to <span class="url">https://drive.google.com</span> &rarr; Create a folder &rarr; paste its URL.</span>
+    </td>
+  </tr>
+</table>
+<div class="note">
+  <b>Note:</b> The "Login with Google" button requires OAuth credentials (Client ID &amp; Secret) to be pre-configured by the developer in Railway environment variables. If the button doesn't work, ask the developer to set <b>GOOGLE_OAUTH_CLIENT_ID</b> and <b>GOOGLE_OAUTH_CLIENT_SECRET</b>.
+</div>
+
+<!-- ================================================================== -->
+<h2>3. WhatsApp (Meta Cloud API)</h2>
+<p class="section-desc">Sends order confirmations, shipping updates, and review requests via WhatsApp.</p>
+<table>
+  <tr><th>Field</th><th>Status</th><th>How to Get</th></tr>
+  <tr>
+    <td class="field-name">Phone Number ID <span class="required">(Required)</span></td>
+    <td class="status-have">Have (ENV)</td>
+    <td class="how-to">
+      <span class="step">1. Go to <span class="url">https://business.facebook.com</span></span>
+      <span class="step">2. Navigate to WhatsApp &rarr; API Setup</span>
+      <span class="step">3. Copy the "Phone Number ID" (numeric, e.g. 123456789012345)</span>
+    </td>
+  </tr>
+  <tr>
+    <td class="field-name">Permanent Access Token <span class="required">(Required)</span></td>
+    <td class="status-have">Have (ENV)</td>
+    <td class="how-to">
+      <span class="step">1. Go to <span class="url">https://business.facebook.com</span></span>
+      <span class="step">2. WhatsApp &rarr; API Setup &rarr; scroll down</span>
+      <span class="step">3. Generate a <b>Permanent Access Token</b> (not the temporary one)</span>
+      <span class="step">4. Copy the token</span>
+    </td>
+  </tr>
+</table>
+
+<!-- ================================================================== -->
+<h2>4. Email (SMTP)</h2>
+<p class="section-desc">Sends order confirmation emails, shipping notifications, and marketing emails.</p>
+<table>
+  <tr><th>Field</th><th>Status</th><th>How to Get</th></tr>
+  <tr>
+    <td class="field-name">SMTP Host <span class="required">(Required)</span></td>
+    <td class="status-have">Have (ENV)</td>
+    <td class="how-to">
+      Gmail: <b>smtp.gmail.com</b><br>
+      Outlook: <b>smtp.office365.com</b>
+    </td>
+  </tr>
+  <tr>
+    <td class="field-name">SMTP Port <span class="required">(Required)</span></td>
+    <td class="status-have">Have (ENV)</td>
+    <td class="how-to"><b>587</b> (for Gmail and most providers)</td>
+  </tr>
+  <tr>
+    <td class="field-name">Email Address <span class="required">(Required)</span></td>
+    <td class="status-have">Have (ENV)</td>
+    <td class="how-to">Your full Gmail address, e.g. <b>orders@sbek.com</b></td>
+  </tr>
+  <tr>
+    <td class="field-name">App Password <span class="required">(Required)</span></td>
+    <td class="status-have">Have (ENV)</td>
+    <td class="how-to">
+      <b>For Gmail (must use App Password, NOT regular password):</b>
+      <span class="step">1. Go to <span class="url">https://myaccount.google.com/security</span></span>
+      <span class="step">2. Enable <b>2-Step Verification</b> (if not already on)</span>
+      <span class="step">3. Go to <span class="url">https://myaccount.google.com/apppasswords</span></span>
+      <span class="step">4. App name: type "SBEK" &rarr; click <b>Create</b></span>
+      <span class="step">5. Copy the 16-character password (e.g. <b>abcd efgh ijkl mnop</b>)</span>
+      <span class="step">6. Paste it as the SMTP Password (remove spaces)</span>
+    </td>
+  </tr>
+  <tr>
+    <td class="field-name">From Display Name</td>
+    <td style="color:#666">Optional</td>
+    <td class="how-to">Format: <b>SBEK &lt;orders@sbek.com&gt;</b></td>
+  </tr>
+</table>
+
+<!-- ================================================================== -->
+<h2>5. AI — Text & Image Generation</h2>
+<p class="section-desc">Powers product descriptions, SEO content, social captions, competitor analysis, and product image generation.</p>
+<table>
+  <tr><th>Field</th><th>Status</th><th>How to Get</th></tr>
+  <tr>
+    <td class="field-name">OpenRouter API Key <span class="required">(Required for text)</span></td>
+    <td class="status-need">Need</td>
+    <td class="how-to">
+      <span class="step">1. Go to <span class="url">https://openrouter.ai</span></span>
+      <span class="step">2. Sign up / Log in</span>
+      <span class="step">3. Dashboard &rarr; API Keys &rarr; <b>Create Key</b></span>
+      <span class="step">4. Copy the key (starts with <b>sk-or-</b>)</span>
+      <span class="step">5. Add credits: Dashboard &rarr; Credits &rarr; Add funds ($5-10 to start)</span>
+    </td>
+  </tr>
+  <tr>
+    <td class="field-name">Gemini API Key</td>
+    <td style="color:#666">Optional (for images)</td>
+    <td class="how-to">
+      <span class="step">1. Go to <span class="url">https://aistudio.google.com/apikey</span></span>
+      <span class="step">2. Click <b>"Create API Key"</b></span>
+      <span class="step">3. Select or create a Google Cloud project</span>
+      <span class="step">4. Copy the key</span>
+    </td>
+  </tr>
+</table>
+<div class="note">
+  <b>Note:</b> If you only set the Gemini key (no OpenRouter), it will be used for both text and images. OpenRouter gives better text quality and model choice.
+</div>
+
+<!-- ================================================================== -->
+<h2>6. Social Media (Postiz)</h2>
+<p class="section-desc">Auto-schedules and publishes posts to Instagram, Facebook, and Pinterest.</p>
+<table>
+  <tr><th>Field</th><th>Status</th><th>How to Get</th></tr>
+  <tr>
+    <td class="field-name">Postiz API Key <span class="required">(Required)</span></td>
+    <td class="status-need">Need</td>
+    <td class="how-to">
+      <span class="step">1. Go to <span class="url">https://app.postiz.com</span></span>
+      <span class="step">2. Sign up / Log in</span>
+      <span class="step">3. Settings &rarr; API &rarr; <b>Generate Key</b></span>
+      <span class="step">4. Copy the key</span>
+    </td>
+  </tr>
+  <tr>
+    <td class="field-name">Postiz Base URL</td>
+    <td style="color:#666">Optional</td>
+    <td class="how-to">Default: <span class="url">https://app.postiz.com/api/v1</span> — only change if self-hosting.</td>
+  </tr>
+</table>
+
+<!-- ================================================================== -->
+<h2>7. Brand Identity</h2>
+<p class="section-desc">Used across all emails, WhatsApp messages, AI-generated content, and social posts.</p>
+<table>
+  <tr><th>Field</th><th>Status</th><th>How to Get</th></tr>
+  <tr>
+    <td class="field-name">Brand Name <span class="required">(Required)</span></td>
+    <td class="status-have">Have (ENV)</td>
+    <td class="how-to">Your brand name, e.g. <b>SBEK</b></td>
+  </tr>
+  <tr>
+    <td class="field-name">Primary Color</td>
+    <td style="color:#666">Optional</td>
+    <td class="how-to">Hex color code, e.g. <b>#B8860B</b> (used in email templates)</td>
+  </tr>
+  <tr>
+    <td class="field-name">Website URL</td>
+    <td style="color:#666">Optional</td>
+    <td class="how-to">e.g. <b>https://sbek.com</b></td>
+  </tr>
+  <tr>
+    <td class="field-name">Support Phone</td>
+    <td style="color:#666">Optional</td>
+    <td class="how-to">e.g. <b>+91XXXXXXXXXX</b></td>
+  </tr>
+  <tr>
+    <td class="field-name">Support Email</td>
+    <td style="color:#666">Optional</td>
+    <td class="how-to">e.g. <b>support@sbek.com</b></td>
+  </tr>
+  <tr>
+    <td class="field-name">Review Link</td>
+    <td style="color:#666">Optional</td>
+    <td class="how-to">Google Business review URL or Trustpilot link</td>
+  </tr>
+</table>
+
+<!-- ================================================================== -->
+<h2>Summary — What's Needed</h2>
+<table>
+  <tr><th style="width:40%">Section</th><th style="width:20%">Status</th><th>Action Needed</th></tr>
+  <tr><td class="field-name">WooCommerce</td><td><b>Done</b></td><td>All 4 keys configured via ENV</td></tr>
+  <tr><td class="field-name">Google Sheets & Drive</td><td><b>Pending</b></td><td>Click "Login with Google" + paste Sheet URL + click Setup</td></tr>
+  <tr><td class="field-name">WhatsApp (Meta)</td><td><b>Done</b></td><td>Phone Number ID and Access Token configured</td></tr>
+  <tr><td class="field-name">Email (SMTP)</td><td><b>Done</b></td><td>Gmail SMTP configured with App Password</td></tr>
+  <tr><td class="field-name">AI (Text & Images)</td><td><b>Pending</b></td><td>Get OpenRouter key ($5 credits) + optionally Gemini key</td></tr>
+  <tr><td class="field-name">Social Media (Postiz)</td><td><b>Pending</b></td><td>Sign up at postiz.com and get API key</td></tr>
+  <tr><td class="field-name">Brand Identity</td><td><b>Done</b></td><td>Brand name set. Fill optional fields as needed.</td></tr>
+</table>
+
+<div class="footer">
+  SBEK Automation System &mdash; Setup Checklist<br>
+  Dashboard: Settings page &rarr; fill in each section &rarr; click Save All &rarr; Test Connection
+</div>
+
+</body>
+</html>
