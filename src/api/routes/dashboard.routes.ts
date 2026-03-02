@@ -336,6 +336,44 @@ dashboardRouter.post('/queues/:name/clean', async (req: Request, res: Response) 
   }
 });
 
+// ── Drain Queue (stop all jobs including active) ────────────────────────
+
+dashboardRouter.post('/queues/:name/drain', async (req: Request, res: Response) => {
+  try {
+    const allQueues = queues.getAll();
+    const queue = allQueues.find((q) => q.name === req.params.name);
+    if (!queue) {
+      res.status(404).json({ error: 'Queue not found' });
+      return;
+    }
+
+    // Pause the queue to stop picking up new jobs
+    await queue.pause();
+
+    // Clean all job states
+    await queue.clean(0, 10000, 'completed');
+    await queue.clean(0, 10000, 'failed');
+    await queue.clean(0, 10000, 'wait');
+    await queue.clean(0, 10000, 'active');
+    await queue.clean(0, 10000, 'delayed');
+
+    // Drain removes all waiting and delayed jobs
+    await queue.drain();
+
+    // Obliterate fully removes all job data from Redis
+    await queue.obliterate({ force: true });
+
+    // Resume the queue so it can accept new jobs
+    await queue.resume();
+
+    logger.info({ queue: queue.name }, 'Queue drained and obliterated');
+    res.json({ queue: queue.name, message: 'Queue drained — all jobs (including active) removed' });
+  } catch (err) {
+    logger.error({ err }, 'Dashboard drain error');
+    res.status(500).json({ error: 'Failed to drain queue' });
+  }
+});
+
 // ── System Health ───────────────────────────────────────────────────────
 
 dashboardRouter.get('/system/health', async (_req: Request, res: Response) => {
