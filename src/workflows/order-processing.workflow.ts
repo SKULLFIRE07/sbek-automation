@@ -45,6 +45,9 @@ export async function processOrderSync(payload: OrderSyncPayload): Promise<void>
 
   logger.info({ orderId, event }, 'Starting order processing workflow');
 
+  // Ensure Google Sheets is initialised (may not be ready if startup init failed)
+  await sheets.init();
+
   // 1. Parse order into a flat row for Sheets
   const parsed = woocommerce.parseOrderForSheets(rawPayload);
 

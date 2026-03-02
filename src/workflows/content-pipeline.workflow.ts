@@ -25,6 +25,9 @@ export async function processContentGeneration(
 
   logger.info({ productId, productName, type }, 'Starting content generation workflow');
 
+  // Ensure Google Sheets is initialised
+  await sheets.init();
+
   switch (type) {
     case 'seo_meta':
       await handleSEOMeta(productId, productName);

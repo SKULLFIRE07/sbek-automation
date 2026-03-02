@@ -105,6 +105,10 @@ export async function processCreativeGeneration(
     'Starting creative generation workflow (Nano Banana + Drive upload)',
   );
 
+  // Ensure Google Sheets & Drive are initialised
+  await sheets.init();
+  await gdrive.init();
+
   const filePaths: string[] = [];
   const now = new Date().toISOString();
 
