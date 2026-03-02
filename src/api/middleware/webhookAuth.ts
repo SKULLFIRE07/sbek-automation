@@ -41,6 +41,20 @@ export function webhookAuth(
   res: Response,
   next: NextFunction,
 ): void {
+  // WooCommerce sends a ping when a webhook is first created/saved.
+  // The ping has no signature header and uses x-www-form-urlencoded body.
+  // Allow it through so WooCommerce can verify the URL is reachable.
+  const wcTopic = req.headers['x-wc-webhook-topic'];
+  if (!wcTopic || wcTopic === 'action.woocommerce_webhook_delivery') {
+    // This is a ping / delivery confirmation — accept it
+    const signature = req.headers['x-wc-webhook-signature'];
+    if (!signature) {
+      logger.info('WooCommerce webhook ping received (no signature) — accepting');
+      next();
+      return;
+    }
+  }
+
   const signature = req.headers['x-wc-webhook-signature'];
 
   if (!signature || typeof signature !== 'string') {

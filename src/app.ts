@@ -12,10 +12,13 @@ import { router } from './api/routes/index.js';
 export function createApp() {
   const app = express();
 
+  // Trust proxy (Railway, Vercel, etc. run behind reverse proxies)
+  app.set('trust proxy', 1);
+
   // Security headers
   app.use(helmet());
   app.use(cors({
-    origin: ['http://localhost:3002', 'http://localhost:3000', 'http://dashboard:3000'],
+    origin: true,
     credentials: true,
   }));
 
@@ -28,6 +31,9 @@ export function createApp() {
       },
     })
   );
+
+  // Parse URL-encoded bodies (WooCommerce ping sends form data)
+  app.use(express.urlencoded({ extended: true }));
 
   // Request logging (skips /health to reduce noise)
   app.use(requestLogger);
