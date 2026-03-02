@@ -9,12 +9,7 @@ import { timeAgo, truncate } from "@/lib/utils";
 
 /* ── Skeleton ─────────────────────────────────────────────────── */
 function Skeleton({ className }: { className?: string }) {
-  return (
-    <div
-      className={`animate-pulse ${className || ""}`}
-      style={{ background: "#1A1B19" }}
-    />
-  );
+  return <div className={`skeleton ${className || ""}`} />;
 }
 
 /* ── Section Heading ──────────────────────────────────────────── */
@@ -29,18 +24,18 @@ function SectionHeading({
     <div className="flex items-center gap-3 mb-5">
       <div
         className="w-[3px] h-4 rounded-full"
-        style={{ background: "#C5A572" }}
+        style={{ background: "var(--text-secondary)" }}
       />
       <h2
         className="text-sm font-medium tracking-wide"
-        style={{ color: "#d4d3cc" }}
+        style={{ color: "var(--text-secondary)" }}
       >
         {children}
       </h2>
       {count !== undefined && (
         <span
           className="text-[11px] font-medium px-2 py-0.5 rounded-full"
-          style={{ color: "#7A7968", background: "#1A1B19" }}
+          style={{ color: "var(--text-subtle)", background: "var(--bg-hover)" }}
         >
           {count}
         </span>
@@ -73,13 +68,13 @@ export default function SystemPage() {
   const { data: logs, isLoading: logsLoading } = useLogs();
 
   return (
-    <>
+    <div className="animate-enter">
       {/* Header with live indicator */}
       <div className="flex items-center gap-3 mb-10">
         <PageHeader title="System" />
         <span
           className="inline-block w-2 h-2 rounded-full live-dot"
-          style={{ background: "#C5A572" }}
+          style={{ background: "var(--success)" }}
         />
       </div>
 
@@ -89,11 +84,18 @@ export default function SystemPage() {
 
         {healthLoading || !health ? (
           <div
-            className="grid grid-cols-1 md:grid-cols-3 gap-px rounded-lg overflow-hidden"
-            style={{ background: "#2A2B28" }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-px overflow-hidden"
+            style={{
+              background: "var(--border)",
+              borderRadius: "var(--radius-md)",
+            }}
           >
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="p-6" style={{ background: "#141513" }}>
+              <div
+                key={i}
+                className="p-6"
+                style={{ background: "var(--bg-surface)" }}
+              >
                 <Skeleton className="h-3 w-20 mb-3 rounded" />
                 <Skeleton className="h-6 w-16 mb-2 rounded" />
                 <Skeleton className="h-1 w-full rounded" />
@@ -101,7 +103,10 @@ export default function SystemPage() {
             ))}
           </div>
         ) : (
-          <div className="rounded-lg overflow-hidden">
+          <div
+            className="overflow-hidden stagger"
+            style={{ borderRadius: "var(--radius-md)" }}
+          >
             <HealthGrid services={health} />
           </div>
         )}
@@ -114,11 +119,15 @@ export default function SystemPage() {
         </SectionHeading>
 
         <div
-          className="border rounded-lg overflow-hidden"
-          style={{ borderColor: "#2A2B28", background: "#141513" }}
+          className="overflow-hidden"
+          style={{
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-md)",
+            background: "var(--bg-surface)",
+          }}
         >
           {cronLoading || !cronRuns ? (
-            <div className="p-5 space-y-3">
+            <div className="p-5 space-y-3 stagger">
               {Array.from({ length: 4 }).map((_, i) => (
                 <Skeleton key={i} className="h-6 w-full rounded" />
               ))}
@@ -134,11 +143,15 @@ export default function SystemPage() {
         <SectionHeading count={logs?.length}>Recent Activity</SectionHeading>
 
         <div
-          className="border rounded-lg overflow-hidden"
-          style={{ borderColor: "#2A2B28", background: "#141513" }}
+          className="overflow-hidden"
+          style={{
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-md)",
+            background: "var(--bg-surface)",
+          }}
         >
           {logsLoading || !logs ? (
-            <div className="p-5 space-y-3">
+            <div className="p-5 space-y-3 stagger">
               {Array.from({ length: 6 }).map((_, i) => (
                 <Skeleton key={i} className="h-6 w-full rounded" />
               ))}
@@ -146,7 +159,7 @@ export default function SystemPage() {
           ) : logs.length === 0 ? (
             <p
               className="p-8 text-center text-xs"
-              style={{ color: "#7A7968" }}
+              style={{ color: "var(--text-subtle)" }}
             >
               No log entries yet
             </p>
@@ -165,10 +178,16 @@ export default function SystemPage() {
                 <tbody>
                   {logs.slice(0, 50).map((log) => (
                     <tr key={log.id} className="hoverable-row">
-                      <td className="font-mono" style={{ color: "#d4d3cc" }}>
+                      <td
+                        className="font-mono"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
                         {log.queueName}
                       </td>
-                      <td className="font-mono" style={{ color: "#9A9880" }}>
+                      <td
+                        className="font-mono"
+                        style={{ color: "var(--text-muted)" }}
+                      >
                         {log.jobId}
                       </td>
                       <td>
@@ -176,7 +195,7 @@ export default function SystemPage() {
                           <StatusDot status={mapLogStatus(log.status)} pulse />
                           <span
                             className="text-xs font-mono"
-                            style={{ color: "#9A9880" }}
+                            style={{ color: "var(--text-muted)" }}
                           >
                             {log.status}
                           </span>
@@ -184,11 +203,18 @@ export default function SystemPage() {
                       </td>
                       <td
                         className="font-mono text-xs"
-                        style={{ color: log.error ? "#f87171" : "#7A7968" }}
+                        style={{
+                          color: log.error
+                            ? "var(--error)"
+                            : "var(--text-subtle)",
+                        }}
                       >
                         {log.error ? truncate(log.error, 60) : "\u2014"}
                       </td>
-                      <td className="text-xs" style={{ color: "#7A7968" }}>
+                      <td
+                        className="text-xs"
+                        style={{ color: "var(--text-subtle)" }}
+                      >
                         {timeAgo(log.createdAt)}
                       </td>
                     </tr>
@@ -199,6 +225,6 @@ export default function SystemPage() {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }

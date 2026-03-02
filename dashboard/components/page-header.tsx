@@ -9,7 +9,7 @@ export function PageHeader({ title }: PageHeaderProps) {
     <div className="mb-8">
       <h1
         className="text-xl font-semibold tracking-tight"
-        style={{ color: "#E8E6DF" }}
+        style={{ color: "#111111" }}
       >
         {title}
       </h1>
@@ -17,7 +17,7 @@ export function PageHeader({ title }: PageHeaderProps) {
         style={{
           width: 40,
           height: 2,
-          background: "linear-gradient(90deg, #C4A35A, #A68B3E)",
+          background: "#1A1A1A",
           marginTop: 10,
           borderRadius: 1,
         }}

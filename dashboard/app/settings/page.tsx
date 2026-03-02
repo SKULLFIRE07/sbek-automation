@@ -336,8 +336,11 @@ function ChevronIcon({ open }: { open: boolean }) {
       fill="none"
       stroke="currentColor"
       strokeWidth="1.5"
-      className="transition-transform duration-300 ease-in-out"
-      style={{ transform: open ? "rotate(0deg)" : "rotate(-90deg)" }}
+      style={{
+        transition: "transform 300ms cubic-bezier(0.4, 0, 0.2, 1)",
+        transform: open ? "rotate(0deg)" : "rotate(-90deg)",
+        willChange: "transform",
+      }}
     >
       <path d="M3 5l4 4 4-4" />
     </svg>
@@ -348,14 +351,14 @@ function ValidationIcon({ filled }: { filled: boolean }) {
   if (filled) {
     return (
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="flex-shrink-0">
-        <circle cx="7" cy="7" r="6" stroke="#C5A572" strokeWidth="1.2" fill="none" />
-        <path d="M4 7l2 2 4-4" stroke="#C5A572" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="7" cy="7" r="6" stroke="var(--text-secondary)" strokeWidth="1.2" fill="none" />
+        <path d="M4 7l2 2 4-4" stroke="var(--text-secondary)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     );
   }
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="flex-shrink-0">
-      <circle cx="7" cy="7" r="6" stroke="#3A3B37" strokeWidth="1.2" fill="none" />
+      <circle cx="7" cy="7" r="6" stroke="var(--border-strong)" strokeWidth="1.2" fill="none" />
     </svg>
   );
 }
@@ -364,7 +367,7 @@ function ValidationIcon({ filled }: { filled: boolean }) {
 
 function Skeleton({ className }: { className?: string }) {
   return (
-    <div className={`animate-pulse ${className ?? ""}`} style={{ background: "#1A1B19" }} />
+    <div className={`animate-pulse ${className ?? ""}`} style={{ background: "var(--bg-hover)" }} />
   );
 }
 
@@ -372,7 +375,15 @@ function SettingsSkeleton() {
   return (
     <div className="space-y-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="border p-6" style={{ background: "#141513", borderColor: "#2A2B28" }}>
+        <div
+          key={i}
+          className="p-6"
+          style={{
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-md)",
+          }}
+        >
           <Skeleton className="h-4 w-32 mb-6" />
           <div className="space-y-4">
             <Skeleton className="h-3 w-24" />
@@ -398,11 +409,12 @@ function InlineToast({ result, onDismiss }: { result: ValidationResult; onDismis
 
   return (
     <div
-      className="flex items-start gap-2 px-3 py-2 mt-2 border text-[11px] font-mono leading-relaxed"
+      className="flex items-start gap-2 px-3 py-2 mt-2 text-[11px] font-mono leading-relaxed animate-enter-fade"
       style={{
-        background: result.valid ? "#141A13" : "#1a0a0a",
-        borderColor: result.valid ? "#2A3020" : "#3a1a1a",
-        color: result.valid ? "#C5A572" : "#f87171",
+        background: result.valid ? "#F0FAF0" : "#FFF0F0",
+        border: `1px solid ${result.valid ? "#D5E8D5" : "#E8D5D5"}`,
+        borderRadius: "var(--radius-sm)",
+        color: result.valid ? "var(--text-secondary)" : "var(--error)",
       }}
     >
       <span className="flex-shrink-0 mt-0.5">{result.valid ? "\u2713" : "\u2717"}</span>
@@ -410,8 +422,8 @@ function InlineToast({ result, onDismiss }: { result: ValidationResult; onDismis
       <button
         type="button"
         onClick={onDismiss}
-        className="flex-shrink-0 ml-2 opacity-50 hover:opacity-100"
-        style={{ color: result.valid ? "#C5A572" : "#f87171" }}
+        className="flex-shrink-0 ml-2 opacity-50 hover:opacity-100 transition-opacity"
+        style={{ color: result.valid ? "var(--text-secondary)" : "var(--error)" }}
       >
         \u2715
       </button>
@@ -459,12 +471,10 @@ function TestConnectionButton({
       type="button"
       onClick={handleTest}
       disabled={testing}
-      className="px-3 py-1.5 text-[11px] uppercase tracking-[0.08em] font-medium border transition-all duration-200"
+      className="btn-ghost px-3 py-1.5 text-[11px] uppercase tracking-[0.08em] font-medium"
       style={{
-        background: "#1A1B19",
-        borderColor: "#3A3B37",
-        color: testing ? "#656453" : "#9A9880",
         opacity: testing ? 0.7 : 1,
+        color: testing ? "var(--text-subtle)" : "var(--text-muted)",
       }}
     >
       <span className="flex items-center gap-1.5">
@@ -531,18 +541,22 @@ function DataManagementBar() {
 
   return (
     <div
-      className="border mb-6 p-4"
-      style={{ background: "#141513", borderColor: "#2A2B28" }}
+      className="mb-6 p-4"
+      style={{
+        background: "var(--bg-surface)",
+        border: "1px solid var(--border)",
+        borderRadius: "var(--radius-md)",
+      }}
     >
       <div className="flex items-center justify-between">
         <div>
           <h3
             className="text-xs uppercase tracking-[0.15em] font-medium mb-1"
-            style={{ color: "#9A9880" }}
+            style={{ color: "var(--text-muted)" }}
           >
             Demo Data
           </h3>
-          <p className="text-[11px]" style={{ color: "#656453" }}>
+          <p className="text-[11px]" style={{ color: "var(--text-subtle)" }}>
             Seed sample data to test the dashboard, or erase it before going live.
           </p>
         </div>
@@ -551,11 +565,11 @@ function DataManagementBar() {
             type="button"
             onClick={handleSeed}
             disabled={seedStatus === "loading" || resetStatus === "loading"}
-            className="px-4 py-2 text-[11px] uppercase tracking-[0.08em] font-medium border transition-all duration-200"
+            className="btn-ghost px-4 py-2 text-[11px] uppercase tracking-[0.08em] font-medium"
             style={{
-              background: seedStatus === "loading" ? "#1A1B19" : "#141A13",
-              borderColor: "#2A3020",
-              color: seedStatus === "loading" ? "#656453" : "#C5A572",
+              background: seedStatus === "loading" ? "var(--bg-hover)" : "#F0FAF0",
+              borderColor: "#D5E8D5",
+              color: seedStatus === "loading" ? "var(--text-subtle)" : "var(--text-secondary)",
               opacity: seedStatus === "loading" ? 0.7 : 1,
             }}
           >
@@ -565,11 +579,11 @@ function DataManagementBar() {
             type="button"
             onClick={handleReset}
             disabled={seedStatus === "loading" || resetStatus === "loading"}
-            className="px-4 py-2 text-[11px] uppercase tracking-[0.08em] font-medium border transition-all duration-200"
+            className="btn-ghost px-4 py-2 text-[11px] uppercase tracking-[0.08em] font-medium"
             style={{
-              background: confirmReset ? "#2a0a0a" : resetStatus === "loading" ? "#1A1B19" : "#1a0a0a",
-              borderColor: confirmReset ? "#f87171" : "#3a1a1a",
-              color: confirmReset ? "#f87171" : resetStatus === "loading" ? "#656453" : "#f87171",
+              background: confirmReset ? "#FFE8E8" : resetStatus === "loading" ? "var(--bg-hover)" : "#FFF0F0",
+              borderColor: confirmReset ? "var(--error)" : "#E8D5D5",
+              color: confirmReset ? "var(--error)" : resetStatus === "loading" ? "var(--text-subtle)" : "var(--error)",
               opacity: resetStatus === "loading" ? 0.7 : 1,
             }}
           >
@@ -585,14 +599,14 @@ function DataManagementBar() {
       </div>
       {message && (
         <div
-          className="mt-3 px-3 py-2 border text-[11px] font-mono"
+          className="mt-3 px-3 py-2 text-[11px] font-mono animate-enter-fade"
           style={{
             background:
-              seedStatus === "error" || resetStatus === "error" ? "#1a0a0a" : "#141A13",
-            borderColor:
-              seedStatus === "error" || resetStatus === "error" ? "#3a1a1a" : "#2A3020",
+              seedStatus === "error" || resetStatus === "error" ? "#FFF0F0" : "#F0FAF0",
+            border: `1px solid ${seedStatus === "error" || resetStatus === "error" ? "#E8D5D5" : "#D5E8D5"}`,
+            borderRadius: "var(--radius-sm)",
             color:
-              seedStatus === "error" || resetStatus === "error" ? "#f87171" : "#C5A572",
+              seedStatus === "error" || resetStatus === "error" ? "var(--error)" : "var(--text-secondary)",
           }}
         >
           {message}
@@ -621,22 +635,14 @@ function SettingsField({
   const isSelect = field.type === "select";
   const hasFill = value.trim().length > 0;
 
-  const inputStyle: React.CSSProperties = {
-    background: "#0C0D0B",
-    borderColor: "#2A2B28",
-    color: "#d4d3cc",
-  };
-
-  const inputClasses =
-    "w-full border px-3 py-2 text-sm font-mono focus:outline-none focus:border-[#4A4B47] transition-colors";
+  const inputClasses = "input w-full font-mono text-sm";
 
   const sourceBadge = source && source !== "none" && (
     <span
-      className="text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 border"
+      className="badge text-[9px] font-mono uppercase tracking-wider"
       style={{
-        color: source === "database" ? "#C5A572" : "#f59e0b",
-        borderColor: source === "database" ? "#2A3020" : "#3A2A0A",
-        background: source === "database" ? "#141A13" : "#1a1500",
+        color: source === "database" ? "var(--text-secondary)" : "var(--warning)",
+        background: source === "database" ? "#F0FAF0" : "#FFFEF0",
       }}
     >
       {source === "database" ? "DB" : "ENV"}
@@ -646,11 +652,11 @@ function SettingsField({
   const labelRow = (
     <div className="flex items-center gap-2 mb-1.5">
       <ValidationIcon filled={hasFill} />
-      <label className="text-xs" style={{ color: "#9A9880" }}>
+      <label className="text-xs" style={{ color: "var(--text-muted)" }}>
         {field.label}
       </label>
       {field.required && (
-        <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: "#b45050" }}>
+        <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: "#CC3333" }}>
           Required
         </span>
       )}
@@ -666,14 +672,14 @@ function SettingsField({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className={inputClasses}
-          style={{ ...inputStyle, appearance: "none" }}
+          style={{ appearance: "none" }}
         >
           <option value="">-- select --</option>
           {field.options?.map((opt) => (
             <option key={opt} value={opt}>{opt}</option>
           ))}
         </select>
-        {field.hint && <p className="text-[11px] mt-1" style={{ color: "#7A7968" }}>{field.hint}</p>}
+        {field.hint && <p className="text-[11px] mt-1" style={{ color: "var(--text-subtle)" }}>{field.hint}</p>}
       </div>
     );
   }
@@ -684,9 +690,9 @@ function SettingsField({
         <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-2">
             <ValidationIcon filled={hasFill} />
-            <label className="text-xs" style={{ color: "#9A9880" }}>{field.label}</label>
+            <label className="text-xs" style={{ color: "var(--text-muted)" }}>{field.label}</label>
             {field.required && (
-              <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: "#b45050" }}>
+              <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: "#CC3333" }}>
                 Required
               </span>
             )}
@@ -696,7 +702,7 @@ function SettingsField({
             type="button"
             onClick={() => setVisible(!visible)}
             className="p-1 transition-colors"
-            style={{ color: "#7A7968" }}
+            style={{ color: "var(--text-subtle)" }}
             title={visible ? "Hide value" : "Show value"}
           >
             {visible ? <EyeOffIcon /> : <EyeIcon />}
@@ -707,13 +713,12 @@ function SettingsField({
           onChange={(e) => onChange(e.target.value)}
           rows={4}
           className={`${inputClasses} resize-y`}
-          style={{
-            ...inputStyle,
-            ...(visible ? {} : ({ WebkitTextSecurity: "disc" } as React.CSSProperties)),
-          }}
+          style={
+            visible ? undefined : ({ WebkitTextSecurity: "disc" } as React.CSSProperties)
+          }
           spellCheck={false}
         />
-        {field.hint && <p className="text-[11px] mt-1" style={{ color: "#7A7968" }}>{field.hint}</p>}
+        {field.hint && <p className="text-[11px] mt-1" style={{ color: "var(--text-subtle)" }}>{field.hint}</p>}
       </div>
     );
   }
@@ -727,7 +732,6 @@ function SettingsField({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className={inputClasses}
-          style={inputStyle}
           spellCheck={false}
           autoComplete="off"
         />
@@ -736,14 +740,14 @@ function SettingsField({
             type="button"
             onClick={() => setVisible(!visible)}
             className="absolute right-2 top-1/2 -translate-y-1/2 p-1 transition-colors"
-            style={{ color: "#7A7968" }}
+            style={{ color: "var(--text-subtle)" }}
             title={visible ? "Hide value" : "Show value"}
           >
             {visible ? <EyeOffIcon /> : <EyeIcon />}
           </button>
         )}
       </div>
-      {field.hint && <p className="text-[11px] mt-1" style={{ color: "#7A7968" }}>{field.hint}</p>}
+      {field.hint && <p className="text-[11px] mt-1" style={{ color: "var(--text-subtle)" }}>{field.hint}</p>}
     </div>
   );
 }
@@ -819,25 +823,33 @@ function SettingsSection({
   const totalCount = section.fields.length;
 
   return (
-    <div className="border mb-4" style={{ borderColor: "#2A2B28", background: "#141513" }}>
+    <div
+      className="mb-4"
+      style={{
+        border: "1px solid var(--border)",
+        background: "var(--bg-surface)",
+        borderRadius: "var(--radius-md)",
+      }}
+    >
       <button
         type="button"
         onClick={toggleOpen}
-        className="w-full flex items-center justify-between px-5 py-4 text-left transition-colors hover:bg-[#181917]"
+        className="w-full flex items-center justify-between px-5 py-4 text-left row-hover"
+        style={{ borderRadius: "var(--radius-md)" }}
       >
         <div className="flex items-center gap-3">
-          <span className="text-base leading-none" style={{ color: "#656453" }}>{section.icon}</span>
-          <h2 className="text-xs uppercase tracking-[0.15em] font-medium" style={{ color: "#9A9880" }}>
+          <span className="text-base leading-none" style={{ color: "var(--text-subtle)" }}>{section.icon}</span>
+          <h2 className="text-xs uppercase tracking-[0.15em] font-medium" style={{ color: "var(--text-muted)" }}>
             {section.title}
           </h2>
           <span
             className="text-[10px] font-mono"
-            style={{ color: configuredCount === totalCount ? "#C5A572" : "#4A4B47" }}
+            style={{ color: configuredCount === totalCount ? "var(--text-secondary)" : "var(--text-disabled)" }}
           >
             {configuredCount}/{totalCount}
           </span>
         </div>
-        <span style={{ color: "#7A7968" }}>
+        <span style={{ color: "var(--text-subtle)" }}>
           <ChevronIcon open={open} />
         </span>
       </button>
@@ -851,8 +863,8 @@ function SettingsSection({
             transition: isAnimating ? "max-height 300ms cubic-bezier(0.4, 0, 0.2, 1)" : "none",
           }}
         >
-          <div className="px-5 pb-5 border-t" style={{ borderColor: "#1A1B19" }}>
-            <p className="text-[11px] leading-relaxed pt-4 pb-3" style={{ color: "#656453" }}>
+          <div className="px-5 pb-5" style={{ borderTop: "1px solid var(--border)" }}>
+            <p className="text-[11px] leading-relaxed pt-4 pb-3" style={{ color: "var(--text-subtle)" }}>
               {section.description}
             </p>
             <div>
@@ -868,8 +880,8 @@ function SettingsSection({
             </div>
             {section.testable && (
               <div
-                className="pt-3 mt-1 border-t flex items-center justify-between gap-3"
-                style={{ borderColor: "#1A1B19" }}
+                className="pt-3 mt-1 flex items-center justify-between gap-3"
+                style={{ borderTop: "1px solid var(--border)" }}
               >
                 <div className="flex-1 min-w-0">
                   {validationResult && (
@@ -902,17 +914,6 @@ function SettingsSection({
 /* ── Save status types ──────────────────────────────────────────────── */
 
 type SaveStatus = "idle" | "saving" | "success" | "error";
-
-const pulseKeyframes = `
-@keyframes saveGlow {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(197, 165, 114, 0);
-  }
-  50% {
-    box-shadow: 0 0 12px 2px rgba(197, 165, 114, 0.15);
-  }
-}
-`;
 
 /* ── Main Settings page ─────────────────────────────────────────────── */
 
@@ -1045,16 +1046,21 @@ export default function SettingsPage() {
   };
 
   return (
-    <>
-      <style>{pulseKeyframes}</style>
-
+    <div className="animate-enter">
       <PageHeader title="Settings" />
 
       {isLoading ? (
         <SettingsSkeleton />
       ) : fetchError ? (
-        <div className="border p-6" style={{ background: "#141513", borderColor: "#2A2B28" }}>
-          <p className="text-sm font-mono" style={{ color: "#f87171" }}>
+        <div
+          className="p-6"
+          style={{
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-md)",
+          }}
+        >
+          <p className="text-sm font-mono" style={{ color: "var(--error)" }}>
             Failed to load settings: {fetchError.message ?? "Unknown error"}
           </p>
         </div>
@@ -1062,44 +1068,47 @@ export default function SettingsPage() {
         <>
           <DataManagementBar />
 
-          {SECTIONS.map((section) => (
-            <SettingsSection
-              key={section.id}
-              section={section}
-              values={values}
-              sources={sources}
-              onChange={handleChange}
-              validationResult={validationResults[section.id]}
-              onValidationResult={handleValidationResult}
-            />
-          ))}
+          <div className="stagger">
+            {SECTIONS.map((section) => (
+              <SettingsSection
+                key={section.id}
+                section={section}
+                values={values}
+                sources={sources}
+                onChange={handleChange}
+                validationResult={validationResults[section.id]}
+                onValidationResult={handleValidationResult}
+              />
+            ))}
+          </div>
 
           {/* Save bar */}
           <div
-            className="border p-4 flex items-center justify-between sticky bottom-0 z-10"
+            className="p-4 flex items-center justify-between sticky bottom-0 z-10"
             style={{
-              background: "#1A1B19",
-              borderColor: "#3A3B37",
+              background: "var(--bg-elevated)",
+              border: "1px solid var(--border-strong)",
+              borderRadius: "var(--radius-md)",
               borderTopWidth: "2px",
-              borderTopColor: hasChanges ? "#656453" : "#3A3B37",
-              boxShadow: "0 -8px 24px rgba(0, 0, 0, 0.6)",
+              borderTopColor: hasChanges ? "var(--text-subtle)" : "var(--border-strong)",
+              boxShadow: "0 -4px 12px rgba(0, 0, 0, 0.06)",
             }}
           >
             <div className="flex items-center gap-3">
               {saveStatus === "success" && (
-                <span className="flex items-center gap-2 text-xs font-mono">
-                  <span className="inline-block w-1.5 h-1.5" style={{ background: "#C5A572", borderRadius: "50%" }} />
-                  <span style={{ color: "#9A9880" }}>Settings saved</span>
+                <span className="flex items-center gap-2 text-xs font-mono animate-enter-fade">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: "var(--success)" }} />
+                  <span style={{ color: "var(--text-muted)" }}>Settings saved</span>
                 </span>
               )}
               {saveStatus === "error" && (
-                <span className="flex items-center gap-2 text-xs font-mono">
-                  <span className="inline-block w-1.5 h-1.5" style={{ background: "#f87171", borderRadius: "50%" }} />
-                  <span style={{ color: "#f87171" }}>{saveError ?? "Save failed"}</span>
+                <span className="flex items-center gap-2 text-xs font-mono animate-enter-fade">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: "var(--error)" }} />
+                  <span style={{ color: "var(--error)" }}>{saveError ?? "Save failed"}</span>
                 </span>
               )}
               {hasChanges && saveStatus === "idle" && (
-                <span className="text-xs font-mono" style={{ color: "#7A7968" }}>
+                <span className="text-xs font-mono" style={{ color: "var(--text-subtle)" }}>
                   {dirtyKeys.length} unsaved change{dirtyKeys.length !== 1 ? "s" : ""}
                 </span>
               )}
@@ -1109,21 +1118,27 @@ export default function SettingsPage() {
               type="button"
               onClick={handleSave}
               disabled={!hasChanges || saveStatus === "saving"}
-              className="px-6 py-2.5 text-xs uppercase tracking-[0.1em] font-medium border transition-all duration-200"
-              style={{
-                background: hasChanges ? "#C5A572" : "#1A1B19",
-                color: hasChanges ? "#0C0D0B" : "#4A4B47",
-                borderColor: hasChanges ? "#C5A572" : "#2A2B28",
-                cursor: hasChanges ? "pointer" : "default",
-                opacity: saveStatus === "saving" ? 0.6 : 1,
-                animation: hasChanges ? "saveGlow 2s ease-in-out infinite" : "none",
-              }}
+              className={hasChanges ? "btn-solid px-6 py-2.5 text-xs uppercase tracking-[0.1em] font-medium" : "px-6 py-2.5 text-xs uppercase tracking-[0.1em] font-medium"}
+              style={
+                hasChanges
+                  ? {
+                      opacity: saveStatus === "saving" ? 0.6 : 1,
+                      borderRadius: "var(--radius-sm)",
+                    }
+                  : {
+                      background: "var(--bg-hover)",
+                      color: "var(--text-disabled)",
+                      border: "1px solid var(--border)",
+                      borderRadius: "var(--radius-sm)",
+                      cursor: "default",
+                    }
+              }
             >
               {saveStatus === "saving" ? "Saving..." : "Save All"}
             </button>
           </div>
         </>
       )}
-    </>
+    </div>
   );
 }

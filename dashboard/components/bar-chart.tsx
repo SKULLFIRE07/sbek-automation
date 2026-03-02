@@ -30,7 +30,7 @@ export function BarChart({ values, max: maxOverride }: BarChartProps) {
             y={height - barHeight}
             width={barWidth}
             height={barHeight}
-            fill="#fff"
+            fill="#111111"
           />
         );
       })}

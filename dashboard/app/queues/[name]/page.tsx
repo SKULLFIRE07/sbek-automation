@@ -15,12 +15,7 @@ type JobStatus = "completed" | "failed" | "active" | "waiting" | "delayed";
 const STATUSES: JobStatus[] = ["completed", "failed", "active", "waiting", "delayed"];
 
 function Skeleton({ className }: { className?: string }) {
-  return (
-    <div
-      className={`animate-pulse ${className || ""}`}
-      style={{ background: "#1A1B19" }}
-    />
-  );
+  return <div className={`skeleton ${className || ""}`} />;
 }
 
 export default function QueueDetailPage() {
@@ -60,27 +55,57 @@ export default function QueueDetailPage() {
     ok: "Healthy", error: "Has failures", warn: "Degraded", unknown: "Idle",
   };
 
-  return (
-    <>
-      {/* Breadcrumb + header */}
-      <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest mb-4"
-        style={{ color: "#656453" }}>
-        <Link href="/queues" className="hover:text-[#d4d3cc] transition-colors">Queues</Link>
-        <span>/</span>
-        <span style={{ color: "#9A9880" }}>{name}</span>
-      </div>
+  /* Progress bar segment data — colors match queue-card & queues page */
+  const progressSegments = [
+    { key: "active" as const, shade: "#1A1A1A" },
+    { key: "failed" as const, shade: "#C0392B" },
+    { key: "waiting" as const, shade: "#999999" },
+    { key: "delayed" as const, shade: "#B0B0B0" },
+    { key: "completed" as const, shade: "#CCCCCC" },
+  ];
 
-      <div className="flex items-center justify-between border-b pb-4 mb-6" style={{ borderColor: "#2A2B28" }}>
+  /* Calculate cumulative scaleX offset for each segment */
+  const segmentWidths = counts
+    ? progressSegments.map(({ key }) => (counts[key] ?? 0) / (total || 1))
+    : [];
+
+  return (
+    <div className="animate-enter">
+      {/* Breadcrumb */}
+      <nav
+        className="flex items-center gap-3 text-[10px] font-mono uppercase tracking-widest mb-4"
+        style={{ color: "var(--text-subtle)" }}
+      >
+        <Link
+          href="/queues"
+          className="transition-colors hover:text-[#1A1A1A]"
+          style={{ color: "var(--text-subtle)" }}
+        >
+          Queues
+        </Link>
+        <span style={{ color: "var(--border-strong)" }}>/</span>
+        <span style={{ color: "var(--text-muted)" }}>{name}</span>
+      </nav>
+
+      {/* Header bar */}
+      <div
+        className="flex items-center justify-between pb-4 mb-6"
+        style={{ borderBottom: "1px solid var(--border)" }}
+      >
         <div>
-          <h1 className="text-lg font-medium tracking-tight font-mono" style={{ color: "#d4d3cc" }}>{name}</h1>
+          <h1
+            className="text-lg font-medium tracking-tight font-mono"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            {name}
+          </h1>
           <div className="flex items-center gap-3 mt-1">
-            <span className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider"
-              style={{ color: "#9A9880" }}>
+            <span className="badge text-[10px] font-mono uppercase tracking-wider">
               <StatusDot status={queueStatus as "ok" | "error" | "warn" | "unknown"} />
               {statusLabels[queueStatus]}
             </span>
             {counts && (
-              <span className="text-[10px] font-mono" style={{ color: "#656453" }}>
+              <span className="text-[10px] font-mono" style={{ color: "var(--text-subtle)" }}>
                 {formatNumber(total)} total jobs
               </span>
             )}
@@ -90,8 +115,10 @@ export default function QueueDetailPage() {
         {/* Action buttons */}
         <div className="flex items-center gap-2">
           {actionResult && (
-            <span className="text-[10px] font-mono mr-2 flex items-center gap-1"
-              style={{ color: actionResult.type === "success" ? "#C5A572" : "#f87171" }}>
+            <span
+              className="text-[10px] font-mono mr-2 flex items-center gap-1"
+              style={{ color: actionResult.type === "success" ? "var(--success)" : "var(--error)" }}
+            >
               <StatusDot status={actionResult.type === "success" ? "ok" : "error"} />
               {actionResult.msg}
             </span>
@@ -99,39 +126,41 @@ export default function QueueDetailPage() {
           <button
             onClick={() => handleAction("retry-all")}
             disabled={actionLoading !== null}
-            className="px-4 py-2 text-[11px] font-mono uppercase tracking-wider border transition-all"
+            className="btn-ghost px-4 py-2 text-[11px] font-mono uppercase tracking-wider"
             style={{
-              borderColor: "#3A3B37",
-              color: actionLoading === "retry-all" ? "#656453" : "#d4d3cc",
-              background: actionLoading === "retry-all" ? "#1A1B19" : "transparent",
+              color: actionLoading === "retry-all" ? "var(--text-subtle)" : "var(--text-secondary)",
+              background: actionLoading === "retry-all" ? "var(--bg-hover)" : "transparent",
             }}
-            onMouseEnter={(e) => { if (!actionLoading) e.currentTarget.style.background = "#1A1B19"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = actionLoading ? "#1A1B19" : "transparent"; }}
           >
             {actionLoading === "retry-all" ? "Retrying..." : "Retry Failed"}
           </button>
           <button
             onClick={() => handleAction("clean")}
             disabled={actionLoading !== null}
-            className="px-4 py-2 text-[11px] font-mono uppercase tracking-wider border transition-all"
+            className="btn-ghost px-4 py-2 text-[11px] font-mono uppercase tracking-wider"
             style={{
-              borderColor: "#3A3B37",
-              color: actionLoading === "clean" ? "#656453" : "#d4d3cc",
-              background: actionLoading === "clean" ? "#1A1B19" : "transparent",
+              color: actionLoading === "clean" ? "var(--text-subtle)" : "var(--text-secondary)",
+              background: actionLoading === "clean" ? "var(--bg-hover)" : "transparent",
             }}
-            onMouseEnter={(e) => { if (!actionLoading) e.currentTarget.style.background = "#1A1B19"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = actionLoading ? "#1A1B19" : "transparent"; }}
           >
             {actionLoading === "clean" ? "Cleaning..." : "Clean"}
           </button>
         </div>
       </div>
 
-      {/* Stats strip */}
-      <div className="grid grid-cols-5 gap-px mb-8" style={{ background: "#2A2B28" }}>
+      {/* Stats strip - individual rounded cards */}
+      <div className="grid grid-cols-5 gap-3 mb-8">
         {isLoading || !counts ? (
           Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="px-5 py-5" style={{ background: "#141513" }}>
+            <div
+              key={i}
+              className="px-5 py-5"
+              style={{
+                background: "var(--bg)",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius-md)",
+              }}
+            >
               <Skeleton className="h-3 w-14 mb-2" />
               <Skeleton className="h-8 w-16" />
             </div>
@@ -144,22 +173,26 @@ export default function QueueDetailPage() {
               <button
                 key={s}
                 onClick={() => setActiveStatus(s)}
-                className="text-left px-5 py-5 transition-all"
+                className={`tab text-left px-5 py-5 ${isActive ? "tab-active" : ""}`}
                 style={{
-                  background: isActive ? "#1A1B19" : "#141513",
-                  borderBottom: isActive ? "2px solid #C5A572" : "2px solid transparent",
+                  border: isActive ? "1px solid var(--border-strong)" : "1px solid var(--border)",
+                  borderRadius: "var(--radius-md)",
                 }}
               >
-                <p className="text-[10px] uppercase tracking-widest font-mono mb-1"
-                  style={{ color: isActive ? "#9A9880" : "#656453" }}>
+                <p
+                  className="text-[10px] uppercase tracking-widest font-mono mb-1"
+                  style={{ color: isActive ? "var(--text-muted)" : "var(--text-subtle)" }}
+                >
                   {s}
                 </p>
-                <p className="text-2xl font-mono font-bold"
+                <p
+                  className="text-2xl font-mono font-bold"
                   style={{
                     color: s === "failed" && val > 0
-                      ? "#f87171"
-                      : isActive ? "#d4d3cc" : "#7A7968",
-                  }}>
+                      ? "var(--error)"
+                      : isActive ? "var(--text-secondary)" : "var(--text-subtle)",
+                  }}
+                >
                   {formatNumber(val)}
                 </p>
               </button>
@@ -168,41 +201,56 @@ export default function QueueDetailPage() {
         )}
       </div>
 
-      {/* Progress bar */}
+      {/* Progress bar - scaleX for 60fps */}
       {counts && total > 0 && (
         <div className="mb-8">
-          <div className="flex h-2 w-full overflow-hidden" style={{ background: "#1A1B19" }}>
-            {[
-              { key: "completed", shade: "#4A4B47" },
-              { key: "active", shade: "#C5A572" },
-              { key: "waiting", shade: "#656453" },
-              { key: "failed", shade: "#7A7968" },
-              { key: "delayed", shade: "#656453" },
-            ].map(({ key, shade }) => {
+          <div
+            className="flex h-2 w-full overflow-hidden"
+            style={{ background: "var(--bg-hover)", borderRadius: 999 }}
+          >
+            {progressSegments.map(({ key, shade }) => {
               const val = counts[key] ?? 0;
-              return val > 0 ? (
+              const fraction = val / total;
+              return fraction > 0 ? (
                 <div
                   key={key}
-                  className="h-full transition-all duration-500"
-                  style={{ width: `${(val / total) * 100}%`, background: shade }}
+                  className="h-full"
+                  style={{
+                    flex: `0 0 ${fraction * 100}%`,
+                    background: shade,
+                    transformOrigin: "left",
+                    transform: "scaleX(1)",
+                    transition: "transform 500ms cubic-bezier(0.16, 1, 0.3, 1)",
+                    borderRadius: 999,
+                  }}
                 />
               ) : null;
             })}
           </div>
           <div className="flex justify-between mt-1">
-            <span className="text-[9px] font-mono" style={{ color: "#656453" }}>0</span>
-            <span className="text-[9px] font-mono" style={{ color: "#656453" }}>{formatNumber(total)}</span>
+            <span className="text-[9px] font-mono" style={{ color: "var(--text-subtle)" }}>0</span>
+            <span className="text-[9px] font-mono" style={{ color: "var(--text-subtle)" }}>{formatNumber(total)}</span>
           </div>
         </div>
       )}
 
       {/* Jobs table */}
-      <div className="border" style={{ borderColor: "#2A2B28", background: "#141513" }}>
-        <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid #2A2B28" }}>
-          <span className="text-[10px] uppercase tracking-widest font-mono" style={{ color: "#656453" }}>
+      <div
+        style={{
+          border: "1px solid var(--border)",
+          borderRadius: "var(--radius-md)",
+          background: "var(--bg)",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          className="px-5 py-3 flex items-center justify-between"
+          style={{ borderBottom: "1px solid var(--border)" }}
+        >
+          <span className="text-[10px] uppercase tracking-widest font-mono" style={{ color: "var(--text-subtle)" }}>
             {activeStatus} jobs
           </span>
-          <span className="text-[10px] font-mono" style={{ color: "#656453" }}>
+          <span className="text-[10px] font-mono" style={{ color: "var(--text-subtle)" }}>
             showing up to 20 recent
           </span>
         </div>
@@ -219,6 +267,6 @@ export default function QueueDetailPage() {
           />
         )}
       </div>
-    </>
+    </div>
   );
 }

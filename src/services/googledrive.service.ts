@@ -10,23 +10,31 @@ import { JWT } from 'google-auth-library';
 import { Readable } from 'node:stream';
 import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
+import { settings } from './settings.service.js';
 
 class GoogleDriveService {
   private drive: ReturnType<typeof google.drive> | null = null;
   private folderId: string | null = null;
   private initialized = false;
+  /** Hash of the credentials used for the current connection */
+  private credHash = '';
 
   /**
    * Authenticate with Google via service-account JWT and initialise
    * the Drive client. Ensures the "SBEK Creatives" folder exists.
+   * Re-initializes if credentials are updated via Settings.
    */
   async init(): Promise<void> {
-    if (this.initialized) return;
+    const email = (await settings.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')) ?? env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    const privateKey = (await settings.get('GOOGLE_PRIVATE_KEY')) ?? env.GOOGLE_PRIVATE_KEY;
+    const hash = email ?? '';
+
+    if (this.initialized && hash === this.credHash) return;
 
     try {
       const auth = new JWT({
-        email: env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        key: (env.GOOGLE_PRIVATE_KEY ?? '').replace(/\\n/g, '\n'),
+        email,
+        key: (privateKey ?? '').replace(/\\n/g, '\n'),
         scopes: ['https://www.googleapis.com/auth/drive.file'],
       });
 
@@ -36,6 +44,7 @@ class GoogleDriveService {
       this.folderId = await this.ensureFolder('SBEK Creatives');
 
       this.initialized = true;
+      this.credHash = hash;
       logger.info({ folderId: this.folderId }, 'Google Drive service initialised');
     } catch (error) {
       logger.error({ err: error }, 'Failed to initialise Google Drive service');

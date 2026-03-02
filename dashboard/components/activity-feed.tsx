@@ -18,7 +18,7 @@ interface ActivityFeedProps {
 export function ActivityFeed({ items }: ActivityFeedProps) {
   if (items.length === 0) {
     return (
-      <p className="text-sm py-8 text-center" style={{ color: "#656453" }}>
+      <p className="text-sm py-8 text-center" style={{ color: "var(--text-subtle)" }}>
         No recent activity.
       </p>
     );
@@ -33,26 +33,17 @@ export function ActivityFeed({ items }: ActivityFeedProps) {
             key={item.id}
             className={`timeline-item ${
               isProcessed ? "timeline-processed" : ""
-            } flex gap-4 py-2.5 px-4`}
+            } row-hover flex gap-4 py-2.5 px-4`}
             style={{
               borderBottom:
-                i < items.length - 1 ? "1px solid #1A1B19" : "none",
-              transition: "background 0.15s ease",
-              background: isProcessed ? "transparent" : "#141513",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "#1A1B19";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = isProcessed
-                ? "transparent"
-                : "#141513";
+                i < items.length - 1 ? "1px solid var(--border-subtle)" : "none",
+              background: isProcessed ? "transparent" : "var(--bg-surface)",
             }}
           >
             {/* Timestamp */}
             <span
               className="font-mono text-xs shrink-0 w-16"
-              style={{ color: "#656453" }}
+              style={{ color: "var(--text-subtle)" }}
             >
               {timeAgo(item.createdAt)}
             </span>
@@ -61,16 +52,9 @@ export function ActivityFeed({ items }: ActivityFeedProps) {
             <div className="min-w-0 flex-1">
               <p
                 className="text-sm truncate"
-                style={{ color: isProcessed ? "#9A9880" : "#d4d3cc" }}
+                style={{ color: isProcessed ? "var(--text-muted)" : "var(--text-secondary)" }}
               >
-                <span
-                  className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded mr-2"
-                  style={{
-                    color: "#9A9880",
-                    background: "#1A1B19",
-                    border: "1px solid #2A2B28",
-                  }}
-                >
+                <span className="badge text-[10px] font-mono uppercase tracking-wider mr-2">
                   {item.source}
                 </span>
                 {item.event}
@@ -86,7 +70,7 @@ export function ActivityFeed({ items }: ActivityFeedProps) {
               />
               <span
                 className="text-[10px] font-mono"
-                style={{ color: isProcessed ? "#656453" : "#f59e0b" }}
+                style={{ color: isProcessed ? "var(--text-subtle)" : "var(--warning)" }}
               >
                 {isProcessed ? "done" : "pending"}
               </span>

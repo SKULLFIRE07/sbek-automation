@@ -137,8 +137,12 @@ class WhatsAppService {
 
   /**
    * Low-level POST to the WhatsApp Cloud API with a 30-second timeout.
+   * Always resolves the latest credentials from settings before sending.
    */
   private async post(endpoint: string, body: unknown): Promise<WhatsAppResponse> {
+    // Resolve latest credentials before every request
+    await this.refreshClient();
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30_000);
 

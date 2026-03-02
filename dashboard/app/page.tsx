@@ -8,59 +8,21 @@ import { QueueCard } from "@/components/queue-card";
 import { ActivityFeed } from "@/components/activity-feed";
 import { formatNumber } from "@/lib/utils";
 
-/* ── Keyframe styles (injected once) ──────────────────────────────────── */
-
-const GLOBAL_STYLES = `
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(18px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeInScale {
-  from { opacity: 0; transform: scale(0.97) translateY(10px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
-}
-@keyframes livePulse {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.25; }
-}
-@keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-@keyframes gentleFadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-.fade-in-section {
-  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-.fade-in-section-delay-1 { animation-delay: 0.12s; }
-.fade-in-section-delay-2 { animation-delay: 0.28s; }
-.fade-in-section-delay-3 { animation-delay: 0.44s; }
-.fade-in-section-delay-4 { animation-delay: 0.60s; }
-`;
-
 /* ── Skeleton primitives ─────────────────────────────────────────────── */
 
 function Skeleton({ className }: { className?: string }) {
-  return (
-    <div
-      className={`rounded ${className ?? ""}`}
-      style={{
-        background:
-          "linear-gradient(90deg, #1A1B19 25%, #222320 50%, #1A1B19 75%)",
-        backgroundSize: "200% 100%",
-        animation: "shimmer 1.8s ease-in-out infinite",
-      }}
-    />
-  );
+  return <div className={`skeleton ${className ?? ""}`} />;
 }
 
 function StatSkeleton() {
   return (
     <div
-      className="px-6 py-8 rounded-lg min-h-[170px] flex flex-col justify-between"
-      style={{ background: "#141513", border: "1px solid #1E1F1C" }}
+      className="px-6 py-8 min-h-[170px] flex flex-col justify-between"
+      style={{
+        background: "var(--bg-surface)",
+        border: "1px solid var(--border)",
+        borderRadius: "var(--radius-md)",
+      }}
     >
       <Skeleton className="h-3 w-24 mb-3 rounded-full" />
       <div>
@@ -74,8 +36,12 @@ function StatSkeleton() {
 function QueueCardSkeleton() {
   return (
     <div
-      className="p-5 rounded-lg"
-      style={{ background: "#141513", border: "1px solid #1E1F1C" }}
+      className="p-5"
+      style={{
+        background: "var(--bg-surface)",
+        border: "1px solid var(--border)",
+        borderRadius: "var(--radius-md)",
+      }}
     >
       <div className="flex items-center justify-between mb-4">
         <Skeleton className="h-4 w-32 rounded-full" />
@@ -89,15 +55,9 @@ function QueueCardSkeleton() {
 
 function ActivitySkeleton() {
   return (
-    <div className="p-5 space-y-4">
+    <div className="p-5 space-y-4 stagger">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div
-          key={i}
-          className="flex gap-4 items-center"
-          style={{
-            animation: `gentleFadeIn 0.4s ease-out ${i * 0.06}s both`,
-          }}
-        >
+        <div key={i} className="flex gap-4 items-center">
           <Skeleton className="h-3 w-14 shrink-0 rounded-full" />
           <Skeleton className="h-3 w-full rounded-full" />
         </div>
@@ -111,10 +71,14 @@ function ActivitySkeleton() {
 function EmptyState({ message }: { message: string }) {
   return (
     <div
-      className="rounded-lg py-16 text-center"
-      style={{ background: "#141513", border: "1px solid #1E1F1C" }}
+      className="py-16 text-center"
+      style={{
+        background: "var(--bg-surface)",
+        border: "1px solid var(--border)",
+        borderRadius: "var(--radius-md)",
+      }}
     >
-      <p className="text-sm" style={{ color: "#7A7968" }}>
+      <p className="text-sm" style={{ color: "var(--text-subtle)" }}>
         {message}
       </p>
     </div>
@@ -128,13 +92,15 @@ function SectionHeader({ label }: { label: string }) {
     <div className="flex items-center gap-4 mb-5">
       <h2
         className="text-sm font-medium tracking-wide whitespace-nowrap"
-        style={{ color: "#9A9880" }}
+        style={{ color: "var(--text-muted)" }}
       >
         {label}
       </h2>
       <div
         className="flex-1 h-px"
-        style={{ background: "linear-gradient(to right, #2A2B28, transparent)" }}
+        style={{
+          background: "linear-gradient(to right, var(--border), transparent)",
+        }}
       />
     </div>
   );
@@ -162,23 +128,22 @@ function LiveHeader({
   return (
     <div
       className="pb-6 mb-8"
-      style={{ borderBottom: "1px solid #1E1F1C" }}
+      style={{ borderBottom: "1px solid var(--border)" }}
     >
       <div className="flex items-center justify-between">
         {/* Left: title + live dot */}
         <div className="flex items-center gap-3">
           <h1
             className="text-xl font-semibold tracking-tight"
-            style={{ color: "#d4d3cc" }}
+            style={{ color: "var(--text-secondary)" }}
           >
             Dashboard
           </h1>
           <span
-            className="inline-block w-2 h-2 rounded-full"
+            className="inline-block w-2 h-2 rounded-full live-dot"
             style={{
-              background: "#C5A572",
-              boxShadow: "0 0 8px rgba(197, 165, 114, 0.4)",
-              animation: "livePulse 2.4s ease-in-out infinite",
+              background: "var(--text-secondary)",
+              boxShadow: "0 0 8px rgba(0, 0, 0, 0.1)",
             }}
             title="Live"
           />
@@ -188,7 +153,7 @@ function LiveHeader({
         {secondsAgo != null && (
           <span
             className="text-xs"
-            style={{ color: "#656453" }}
+            style={{ color: "var(--text-subtle)" }}
           >
             Updated {secondsAgo === 0 ? "just now" : `${secondsAgo}s ago`}
           </span>
@@ -215,25 +180,14 @@ export default function DashboardPage() {
     if (hasStats) setDataTimestamp(Date.now());
   }, [stats, hasStats]);
 
-  // Inject keyframe styles once
-  useEffect(() => {
-    const id = "sbek-dashboard-styles";
-    if (typeof document !== "undefined" && !document.getElementById(id)) {
-      const style = document.createElement("style");
-      style.id = id;
-      style.textContent = GLOBAL_STYLES;
-      document.head.appendChild(style);
-    }
-  }, []);
-
   return (
-    <>
+    <div className="animate-enter">
       {/* ── Header with live dot + last-updated ticker ─────────────── */}
       <LiveHeader dataTimestamp={dataTimestamp} />
 
       {/* ── Stat cards (4-up row) ──────────────────────────────────── */}
-      <div className="fade-in-section fade-in-section-delay-1">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-10">
+      <div className="mb-10">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 stagger">
           {statsLoading || !hasStats ? (
             <>
               <StatSkeleton />
@@ -276,35 +230,45 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Queue Status section ───────────────────────────────────── */}
-      <div className="mb-10 fade-in-section fade-in-section-delay-2">
+      <div className="mb-10">
         <SectionHeader label="Queue Status" />
 
-        {queuesLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <QueueCardSkeleton key={i} />
-            ))}
-          </div>
-        ) : hasQueues && queues.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {queues.map((q: QueueItem) => (
-              <QueueCard key={q.name} {...q} />
-            ))}
-          </div>
-        ) : (
-          <EmptyState message="No queues registered yet" />
-        )}
+        <div
+          style={{
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-md)",
+            padding: "20px",
+          }}
+        >
+          {queuesLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 stagger">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <QueueCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : hasQueues && queues.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 stagger">
+              {queues.map((q: QueueItem) => (
+                <QueueCard key={q.name} {...q} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState message="No queues registered yet" />
+          )}
+        </div>
       </div>
 
       {/* ── Recent Activity section ────────────────────────────────── */}
-      <div className="mb-10 fade-in-section fade-in-section-delay-3">
+      <div className="mb-10">
         <SectionHeader label="Recent Activity" />
 
         <div
-          className="rounded-lg relative overflow-hidden"
+          className="relative overflow-hidden"
           style={{
-            border: "1px solid #1E1F1C",
-            background: "#141513",
+            border: "1px solid var(--border)",
+            background: "var(--bg-surface)",
+            borderRadius: "var(--radius-md)",
             minHeight: 400,
           }}
         >
@@ -319,19 +283,19 @@ export default function DashboardPage() {
                 style={{
                   height: 80,
                   background:
-                    "linear-gradient(to bottom, transparent, #141513)",
+                    "linear-gradient(to bottom, transparent, var(--bg-surface))",
                 }}
               />
             </>
           ) : (
             <div className="py-16 text-center">
-              <p className="text-sm" style={{ color: "#7A7968" }}>
+              <p className="text-sm" style={{ color: "var(--text-subtle)" }}>
                 No activity yet
               </p>
             </div>
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }

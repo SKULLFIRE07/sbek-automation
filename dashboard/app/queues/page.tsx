@@ -7,31 +7,9 @@ import { PageHeader } from "@/components/page-header";
 import { StatusDot } from "@/components/status-dot";
 import { formatNumber } from "@/lib/utils";
 
-/* ── Brand palette ──────────────────────────────────────────────── */
-const color = {
-  gold: "#C5A572",
-  surface: "#141513",
-  elevated: "#1A1B19",
-  muted: "#7A7968",
-  primary: "#d4d3cc",
-  border: "#2A2B28",
-  completed: "#3A3B37",
-  active: "#C5A572",
-  failed: "#ef4444",
-  failedText: "#f87171",
-  waiting: "#656453",
-  delayed: "#f59e0b",
-  subtleMuted: "#656453",
-};
-
 /* ── Skeleton loader ────────────────────────────────────────────── */
 function Skeleton({ className }: { className?: string }) {
-  return (
-    <div
-      className={`animate-pulse rounded ${className || ""}`}
-      style={{ background: color.elevated }}
-    />
-  );
+  return <div className={`skeleton ${className || ""}`} />;
 }
 
 /* ── Derive queue health status ─────────────────────────────────── */
@@ -43,7 +21,7 @@ function deriveStatus(q: QueueItem): "ok" | "error" | "warn" | "unknown" {
   return "ok";
 }
 
-/* ── StatusBadge (kept as-is) ───────────────────────────────────── */
+/* ── StatusBadge ────────────────────────────────────────────────── */
 function StatusBadge({ status }: { status: "ok" | "error" | "warn" | "unknown" }) {
   const labels: Record<string, string> = {
     ok: "Healthy",
@@ -52,10 +30,7 @@ function StatusBadge({ status }: { status: "ok" | "error" | "warn" | "unknown" }
     unknown: "Idle",
   };
   return (
-    <span
-      className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider"
-      style={{ color: "#9A9880" }}
-    >
+    <span className="badge text-[10px] font-mono uppercase tracking-wider">
       <StatusDot status={status} />
       {labels[status]}
     </span>
@@ -72,20 +47,27 @@ function ProgressBar({
 }) {
   if (total === 0) {
     return (
-      <div className="h-1.5 w-full rounded-full" style={{ background: color.elevated }} />
+      <div
+        className="h-1.5 w-full"
+        style={{ background: "var(--bg-elevated)", borderRadius: 999 }}
+      />
     );
   }
   return (
     <div
-      className="flex h-1.5 w-full overflow-hidden rounded-full"
-      style={{ background: color.elevated }}
+      className="flex h-1.5 w-full overflow-hidden"
+      style={{ background: "var(--bg-elevated)", borderRadius: 999 }}
     >
       {segments.map((seg) =>
         seg.value > 0 ? (
           <div
             key={seg.label}
             className="h-full transition-all duration-500"
-            style={{ width: `${(seg.value / total) * 100}%`, background: seg.shade }}
+            style={{
+              width: `${(seg.value / total) * 100}%`,
+              background: seg.shade,
+              borderRadius: 999,
+            }}
             title={`${seg.label}: ${seg.value}`}
           />
         ) : null
@@ -97,10 +79,10 @@ function ProgressBar({
 /* ── Legend item ─────────────────────────────────────────────────── */
 function LegendItem({ shade, label }: { shade: string; label: string }) {
   return (
-    <span className="flex items-center gap-2 text-xs" style={{ color: color.muted }}>
+    <span className="flex items-center gap-2 text-xs" style={{ color: "var(--text-subtle)" }}>
       <span
-        className="inline-block w-3 h-1.5 rounded-full"
-        style={{ background: shade }}
+        className="inline-block w-3 h-1.5"
+        style={{ background: shade, borderRadius: 999 }}
       />
       {label}
     </span>
@@ -122,31 +104,36 @@ export default function QueuesPage() {
   const totalWaiting = queues?.reduce((sum, q) => sum + q.waiting, 0) ?? 0;
 
   return (
-    <>
+    <div className="animate-enter">
       {/* ── Page header (title only, no subtitle) ──────────────── */}
       <PageHeader title="Queues" />
 
       {/* ── Summary strip ──────────────────────────────────────── */}
-      <div
-        className="grid grid-cols-2 sm:grid-cols-4 gap-px mb-10 rounded-lg overflow-hidden"
-        style={{ background: color.border }}
-      >
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
         {[
           { label: "Total Jobs", value: formatNumber(totalJobs) },
           { label: "Active", value: formatNumber(totalActive) },
           { label: "Waiting", value: formatNumber(totalWaiting) },
           { label: "Failed", value: formatNumber(totalFailed), highlight: totalFailed > 0 },
         ].map((item) => (
-          <div key={item.label} className="px-6 py-5" style={{ background: color.surface }}>
+          <div
+            key={item.label}
+            className="px-6 py-5"
+            style={{
+              background: "var(--bg-surface)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius-md)",
+            }}
+          >
             <p
               className="text-[11px] uppercase tracking-widest mb-1.5"
-              style={{ color: color.muted, fontFamily: "inherit" }}
+              style={{ color: "var(--text-subtle)", fontFamily: "inherit" }}
             >
               {item.label}
             </p>
             <p
               className="text-2xl font-semibold tabular-nums"
-              style={{ color: item.highlight ? color.failedText : color.primary }}
+              style={{ color: item.highlight ? "var(--error)" : "var(--text-secondary)" }}
             >
               {item.value}
             </p>
@@ -156,12 +143,17 @@ export default function QueuesPage() {
 
       {/* ── Queue cards grid ───────────────────────────────────── */}
       {isLoading || !queues ? (
-        <div
-          className="grid grid-cols-1 md:grid-cols-2 gap-px rounded-lg overflow-hidden"
-          style={{ background: color.border }}
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 stagger">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="p-7" style={{ background: color.surface }}>
+            <div
+              key={i}
+              className="p-7"
+              style={{
+                background: "var(--bg-surface)",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius-md)",
+              }}
+            >
               <Skeleton className="h-4 w-36 mb-5" />
               <Skeleton className="h-1.5 w-full mb-5" />
               <div className="flex gap-8">
@@ -173,39 +165,29 @@ export default function QueuesPage() {
           ))}
         </div>
       ) : (
-        <div
-          className="grid grid-cols-1 md:grid-cols-2 gap-px rounded-lg overflow-hidden"
-          style={{ background: color.border }}
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 stagger">
           {queues.map((q) => {
             const total = q.waiting + q.active + q.completed + q.failed + q.delayed;
             const status = deriveStatus(q);
             const segments = [
-              { label: "Completed", value: q.completed, shade: color.completed },
-              { label: "Active", value: q.active, shade: color.active },
-              { label: "Waiting", value: q.waiting, shade: color.waiting },
-              { label: "Failed", value: q.failed, shade: color.failed },
-              { label: "Delayed", value: q.delayed, shade: color.delayed },
+              { label: "Active", value: q.active, shade: "#1A1A1A" },
+              { label: "Failed", value: q.failed, shade: "#C0392B" },
+              { label: "Waiting", value: q.waiting, shade: "#999999" },
+              { label: "Delayed", value: q.delayed, shade: "#B0B0B0" },
+              { label: "Completed", value: q.completed, shade: "#CCCCCC" },
             ];
 
             return (
               <Link
                 key={q.name}
                 href={`/queues/${encodeURIComponent(q.name)}`}
-                className="block p-7 transition-colors duration-200 group"
-                style={{ background: color.surface }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = color.elevated;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = color.surface;
-                }}
+                className="card block p-7 group"
               >
                 {/* Header row */}
                 <div className="flex items-center justify-between mb-5">
                   <span
                     className="text-sm font-medium tracking-wide group-hover:underline underline-offset-4"
-                    style={{ color: color.primary }}
+                    style={{ color: "var(--text-secondary)" }}
                   >
                     {q.name}
                   </span>
@@ -227,13 +209,13 @@ export default function QueuesPage() {
                     <div key={col.label}>
                       <p
                         className="text-[10px] uppercase tracking-widest mb-1"
-                        style={{ color: color.subtleMuted, fontFamily: "inherit" }}
+                        style={{ color: "var(--text-subtle)", fontFamily: "inherit" }}
                       >
                         {col.label}
                       </p>
                       <p
                         className="text-lg font-semibold tabular-nums"
-                        style={{ color: col.danger ? color.failedText : color.primary }}
+                        style={{ color: col.danger ? "var(--error)" : "var(--text-secondary)" }}
                       >
                         {col.value}
                       </p>
@@ -244,17 +226,17 @@ export default function QueuesPage() {
                 {/* Total footer */}
                 <div
                   className="mt-4 pt-4 flex items-center justify-between"
-                  style={{ borderTop: `1px solid ${color.border}` }}
+                  style={{ borderTop: "1px solid var(--border)" }}
                 >
                   <span
                     className="text-[10px] uppercase tracking-widest"
-                    style={{ color: color.subtleMuted, fontFamily: "inherit" }}
+                    style={{ color: "var(--text-subtle)", fontFamily: "inherit" }}
                   >
                     Total
                   </span>
                   <span
                     className="text-sm font-semibold tabular-nums"
-                    style={{ color: color.muted }}
+                    style={{ color: "var(--text-subtle)" }}
                   >
                     {formatNumber(total)}
                   </span>
@@ -267,12 +249,12 @@ export default function QueuesPage() {
 
       {/* ── Legend ──────────────────────────────────────────────── */}
       <div className="mt-8 flex flex-wrap items-center gap-6">
-        <LegendItem shade={color.completed} label="Completed" />
-        <LegendItem shade={color.active} label="Active" />
-        <LegendItem shade={color.waiting} label="Waiting" />
-        <LegendItem shade={color.failed} label="Failed" />
-        <LegendItem shade={color.delayed} label="Delayed" />
+        <LegendItem shade="#1A1A1A" label="Active" />
+        <LegendItem shade="#C0392B" label="Failed" />
+        <LegendItem shade="#999999" label="Waiting" />
+        <LegendItem shade="#B0B0B0" label="Delayed" />
+        <LegendItem shade="#CCCCCC" label="Completed" />
       </div>
-    </>
+    </div>
   );
 }

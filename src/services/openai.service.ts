@@ -4,6 +4,7 @@ import { systemConfig } from '../db/schema.js';
 import { inArray } from 'drizzle-orm';
 import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
+import { settings } from './settings.service.js';
 
 // ── Service ─────────────────────────────────────────────────────────────────
 
@@ -54,6 +55,12 @@ class AIService {
       this.cacheTime = Date.now();
     } catch (err) {
       logger.warn({ err }, 'Failed to read AI config from system_config table, falling back to env');
+    }
+
+    // Also check the settings service for OPENAI_API_KEY (set via dashboard)
+    if (!this.cachedKey) {
+      const settingsKey = await settings.get('OPENAI_API_KEY');
+      if (settingsKey) this.cachedKey = settingsKey;
     }
 
     // Final fallback to env var

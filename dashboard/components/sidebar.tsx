@@ -9,8 +9,8 @@ const navItems = [
     href: "/",
     icon: (
       <svg
-        width="20"
-        height="20"
+        width="18"
+        height="18"
         viewBox="0 0 20 20"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -67,8 +67,8 @@ const navItems = [
     href: "/queues",
     icon: (
       <svg
-        width="20"
-        height="20"
+        width="18"
+        height="18"
         viewBox="0 0 20 20"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -99,8 +99,8 @@ const navItems = [
     href: "/system",
     icon: (
       <svg
-        width="20"
-        height="20"
+        width="18"
+        height="18"
         viewBox="0 0 20 20"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -127,8 +127,8 @@ const navItems = [
     href: "/activity",
     icon: (
       <svg
-        width="20"
-        height="20"
+        width="18"
+        height="18"
         viewBox="0 0 20 20"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -148,8 +148,8 @@ const navItems = [
     href: "/settings",
     icon: (
       <svg
-        width="20"
-        height="20"
+        width="18"
+        height="18"
         viewBox="0 0 20 20"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -205,8 +205,9 @@ export function Sidebar() {
         top: 0,
         bottom: 0,
         width: 260,
-        background: "#0C0D0B",
-        borderRight: "1px solid #2A2B28",
+        background: "var(--bg)",
+        borderRight: "1px solid var(--border)",
+        borderRadius: "0 var(--radius-md) var(--radius-md) 0",
         display: "flex",
         flexDirection: "column",
         zIndex: 50,
@@ -214,71 +215,34 @@ export function Sidebar() {
     >
       {/* Brand */}
       <div
+        className="sidebar-brand"
         style={{
-          padding: "24px 24px 20px",
-          position: "relative",
+          padding: "24px 20px 20px",
+          borderBottom: "1px solid var(--border)",
         }}
       >
-        <img src="/sbek-logo.svg" alt="SBEK" style={{ height: 22 }} />
-        {/* Gold gradient underline */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 24,
-            right: 24,
-            height: 1,
-            background:
-              "linear-gradient(90deg, #C5A572 0%, rgba(197, 165, 114, 0.3) 60%, transparent 100%)",
-          }}
-        />
+        <img src="/sbek-logo-dark.svg" alt="SBEK" style={{ height: 22 }} />
       </div>
 
       {/* Navigation */}
-      <nav style={{ flex: 1, paddingTop: 12, paddingBottom: 16 }}>
+      <nav
+        className="stagger"
+        style={{
+          flex: 1,
+          padding: "12px 12px 16px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+        }}
+      >
         {navItems.map((item) => {
           const active = isActive(item.href);
           return (
             <Link
               key={item.href}
               href={item.href}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 14,
-                padding: "12px 24px",
-                fontSize: 13,
-                fontWeight: active ? 500 : 400,
-                color: active ? "#C5A572" : "#7A7968",
-                textDecoration: "none",
-                borderLeft: active
-                  ? "2px solid #C5A572"
-                  : "2px solid transparent",
-                background: active
-                  ? "rgba(197, 165, 114, 0.10)"
-                  : "transparent",
-                borderRadius: "0 8px 8px 0",
-                marginRight: 12,
-                transition:
-                  "color 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease",
-                letterSpacing: "0.01em",
-              }}
-              onMouseEnter={(e) => {
-                if (!active) {
-                  e.currentTarget.style.color = "#d4d3cc";
-                  e.currentTarget.style.background =
-                    "rgba(197, 165, 114, 0.05)";
-                  e.currentTarget.style.boxShadow =
-                    "inset 0 0 20px rgba(197, 165, 114, 0.03)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!active) {
-                  e.currentTarget.style.color = "#7A7968";
-                  e.currentTarget.style.background = "transparent";
-                  e.currentTarget.style.boxShadow = "none";
-                }
-              }}
+              className={`nav-link${active ? " active" : ""}`}
+              style={{ textDecoration: "none" }}
             >
               <span
                 style={{
@@ -286,8 +250,6 @@ export function Sidebar() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  opacity: active ? 1 : 0.65,
-                  transition: "opacity 0.2s ease",
                 }}
               >
                 {item.icon}
@@ -297,6 +259,31 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      {/* User avatar */}
+      <div
+        style={{
+          padding: "16px 20px",
+          borderTop: "1px solid var(--border)",
+        }}
+      >
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: "50%",
+            background: "var(--bg-elevated)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 13,
+            fontWeight: 600,
+            color: "var(--text-secondary)",
+          }}
+        >
+          N
+        </div>
+      </div>
     </aside>
   );
 }

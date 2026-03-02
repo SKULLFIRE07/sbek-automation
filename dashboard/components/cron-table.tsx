@@ -33,7 +33,7 @@ export function CronTable({ runs }: CronTableProps) {
     return (
       <p
         className="text-sm py-8 text-center"
-        style={{ color: "#7A7968" }}
+        style={{ color: "var(--text-subtle)" }}
       >
         No cron runs recorded.
       </p>
@@ -41,23 +41,26 @@ export function CronTable({ runs }: CronTableProps) {
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div
+      className="overflow-x-auto"
+      style={{ borderRadius: "var(--radius-md)", overflow: "hidden" }}
+    >
       <table className="w-full border-collapse">
         <thead>
-          <tr style={{ borderBottom: "1px solid #2A2B28" }}>
-            <th className={TH} style={{ color: "#7A7968" }}>
+          <tr className="border-b border-[var(--border)]">
+            <th className={TH} style={{ color: "var(--text-subtle)" }}>
               Job Name
             </th>
-            <th className={TH} style={{ color: "#7A7968" }}>
+            <th className={TH} style={{ color: "var(--text-subtle)" }}>
               Started
             </th>
-            <th className={TH} style={{ color: "#7A7968" }}>
+            <th className={TH} style={{ color: "var(--text-subtle)" }}>
               Completed
             </th>
-            <th className={TH} style={{ color: "#7A7968" }}>
+            <th className={TH} style={{ color: "var(--text-subtle)" }}>
               Items Processed
             </th>
-            <th className={TH} style={{ color: "#7A7968" }}>
+            <th className={TH} style={{ color: "var(--text-subtle)" }}>
               Status
             </th>
           </tr>
@@ -69,25 +72,24 @@ export function CronTable({ runs }: CronTableProps) {
               <tr
                 key={`${run.jobName}-${i}`}
                 className="hoverable-row"
-                style={{ borderBottom: "1px solid #1A1B19" }}
               >
-                <td className={TD} style={{ color: "#d4d3cc" }}>
+                <td className={TD} style={{ color: "var(--text-secondary)" }}>
                   {run.jobName}
                 </td>
-                <td className={TD} style={{ color: "#9A9880" }}>
+                <td className={TD} style={{ color: "var(--text-muted)" }}>
                   {timeAgo(run.startedAt)}
                 </td>
-                <td className={TD} style={{ color: "#9A9880" }}>
+                <td className={TD} style={{ color: "var(--text-muted)" }}>
                   {run.completedAt ? timeAgo(run.completedAt) : "--"}
                 </td>
-                <td className={TD} style={{ color: "#9A9880" }}>
+                <td className={TD} style={{ color: "var(--text-muted)" }}>
                   {run.itemsProcessed !== undefined
                     ? run.itemsProcessed
                     : "--"}
                 </td>
                 <td className={`${TD} flex items-center gap-2`}>
                   <StatusDot status={st.dot} pulse />
-                  <span className="text-xs" style={{ color: "#7A7968" }}>
+                  <span className="text-xs" style={{ color: "var(--text-subtle)" }}>
                     {st.label}
                   </span>
                 </td>

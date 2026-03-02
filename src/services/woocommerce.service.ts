@@ -2,6 +2,7 @@ import WooCommerceRestApiPkg from '@woocommerce/woocommerce-rest-api';
 const WooCommerceRestApi = (WooCommerceRestApiPkg as any).default || WooCommerceRestApiPkg;
 import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
+import { settings } from './settings.service.js';
 
 // ── Interfaces ──────────────────────────────────────────────────────────────
 
@@ -139,6 +140,8 @@ export interface ParsedOrderRow {
 
 class WooCommerceService {
   private api: any;
+  /** Hash of the credentials used to create the current API client */
+  private credHash = '';
 
   constructor() {
     this.api = new WooCommerceRestApi({
@@ -149,13 +152,45 @@ class WooCommerceService {
       queryStringAuth: true,
       timeout: 30_000,
     });
+    this.credHash = this.hashCreds(env.WOO_URL, env.WOO_CONSUMER_KEY, env.WOO_CONSUMER_SECRET);
+  }
+
+  /**
+   * Get the WooCommerce API client, re-creating it if credentials have
+   * been updated via the Settings dashboard.
+   */
+  private async getApi(): Promise<any> {
+    const url = (await settings.get('WOO_URL')) ?? env.WOO_URL;
+    const key = (await settings.get('WOO_CONSUMER_KEY')) ?? env.WOO_CONSUMER_KEY;
+    const secret = (await settings.get('WOO_CONSUMER_SECRET')) ?? env.WOO_CONSUMER_SECRET;
+    const hash = this.hashCreds(url, key, secret);
+
+    if (hash !== this.credHash) {
+      this.api = new WooCommerceRestApi({
+        url,
+        consumerKey: key,
+        consumerSecret: secret,
+        version: 'wc/v3',
+        queryStringAuth: true,
+        timeout: 30_000,
+      });
+      this.credHash = hash;
+      logger.info('WooCommerce API client re-created with updated credentials');
+    }
+
+    return this.api;
+  }
+
+  private hashCreds(...parts: (string | undefined)[]): string {
+    return parts.map((p) => p ?? '').join('|');
   }
 
   // ── Order Methods ───────────────────────────────────────────────────────
 
   async getOrder(orderId: number): Promise<WooOrder> {
     try {
-      const response = await this.api.get(`orders/${orderId}`);
+      const api = await this.getApi();
+      const response = await api.get(`orders/${orderId}`);
       return response.data as WooOrder;
     } catch (error) {
       logger.error({ err: error, orderId }, 'Failed to fetch WooCommerce order');
@@ -167,7 +202,8 @@ class WooCommerceService {
     params?: { status?: string; per_page?: number; page?: number },
   ): Promise<WooOrder[]> {
     try {
-      const response = await this.api.get('orders', params ?? {});
+      const api = await this.getApi();
+      const response = await api.get('orders', params ?? {});
       return response.data as WooOrder[];
     } catch (error) {
       logger.error({ err: error, params }, 'Failed to list WooCommerce orders');
@@ -180,7 +216,8 @@ class WooCommerceService {
     data: Record<string, unknown>,
   ): Promise<WooOrder> {
     try {
-      const response = await this.api.put(`orders/${orderId}`, data);
+      const api = await this.getApi();
+      const response = await api.put(`orders/${orderId}`, data);
       return response.data as WooOrder;
     } catch (error) {
       logger.error({ err: error, orderId, data }, 'Failed to update WooCommerce order');
@@ -192,7 +229,8 @@ class WooCommerceService {
     orderId: number,
   ): Promise<Array<{ id: number; note: string; customer_note: boolean; date_created: string }>> {
     try {
-      const response = await this.api.get(`orders/${orderId}/notes`);
+      const api = await this.getApi();
+      const response = await api.get(`orders/${orderId}/notes`);
       return response.data;
     } catch (error) {
       logger.error({ err: error, orderId }, 'Failed to fetch WooCommerce order notes');
@@ -206,7 +244,8 @@ class WooCommerceService {
     customerNote: boolean = false,
   ): Promise<{ id: number; note: string; customer_note: boolean; date_created: string }> {
     try {
-      const response = await this.api.post(`orders/${orderId}/notes`, {
+      const api = await this.getApi();
+      const response = await api.post(`orders/${orderId}/notes`, {
         note,
         customer_note: customerNote,
       });
@@ -221,7 +260,8 @@ class WooCommerceService {
 
   async getProduct(productId: number): Promise<WooProduct> {
     try {
-      const response = await this.api.get(`products/${productId}`);
+      const api = await this.getApi();
+      const response = await api.get(`products/${productId}`);
       return response.data as WooProduct;
     } catch (error) {
       logger.error({ err: error, productId }, 'Failed to fetch WooCommerce product');
@@ -233,7 +273,8 @@ class WooCommerceService {
     params?: { category?: number; per_page?: number; page?: number; status?: string },
   ): Promise<WooProduct[]> {
     try {
-      const response = await this.api.get('products', params ?? {});
+      const api = await this.getApi();
+      const response = await api.get('products', params ?? {});
       return response.data as WooProduct[];
     } catch (error) {
       logger.error({ err: error, params }, 'Failed to list WooCommerce products');
@@ -246,7 +287,8 @@ class WooCommerceService {
     data: Record<string, unknown>,
   ): Promise<WooProduct> {
     try {
-      const response = await this.api.put(`products/${productId}`, data);
+      const api = await this.getApi();
+      const response = await api.put(`products/${productId}`, data);
       return response.data as WooProduct;
     } catch (error) {
       logger.error({ err: error, productId, data }, 'Failed to update WooCommerce product');
@@ -296,7 +338,8 @@ class WooCommerceService {
     secret: string,
   ): Promise<{ id: number; topic: string; delivery_url: string; status: string }> {
     try {
-      const response = await this.api.post('webhooks', {
+      const api = await this.getApi();
+      const response = await api.post('webhooks', {
         topic,
         delivery_url: deliveryUrl,
         secret,
@@ -315,7 +358,8 @@ class WooCommerceService {
     Array<{ id: number; topic: string; delivery_url: string; status: string }>
   > {
     try {
-      const response = await this.api.get('webhooks');
+      const api = await this.getApi();
+      const response = await api.get('webhooks');
       return response.data;
     } catch (error) {
       logger.error({ err: error }, 'Failed to list WooCommerce webhooks');
@@ -336,16 +380,17 @@ class WooCommerceService {
     status: 'publish' | 'draft' = 'publish',
   ): Promise<{ id: number; slug: string; link: string }> {
     try {
-      const searchRes = await this.api.get('pages', { slug, per_page: 1 });
+      const api = await this.getApi();
+      const searchRes = await api.get('pages', { slug, per_page: 1 });
       const existing = searchRes.data?.[0];
 
       if (existing) {
-        const updated = await this.api.put(`pages/${existing.id}`, { title, content, status });
+        const updated = await api.put(`pages/${existing.id}`, { title, content, status });
         logger.info({ pageId: existing.id, slug }, 'WordPress page updated');
         return { id: updated.data.id, slug: updated.data.slug, link: updated.data.link };
       }
 
-      const created = await this.api.post('pages', { title, content, slug, status });
+      const created = await api.post('pages', { title, content, slug, status });
       logger.info({ pageId: created.data.id, slug }, 'WordPress page created');
       return { id: created.data.id, slug: created.data.slug, link: created.data.link };
     } catch (error) {
@@ -366,10 +411,11 @@ class WooCommerceService {
     categories?: number[],
   ): Promise<{ id: number; slug: string; link: string }> {
     try {
+      const api = await this.getApi();
       const data: Record<string, unknown> = { title, content, status };
       if (categories?.length) data.categories = categories;
 
-      const response = await this.api.post('posts', data);
+      const response = await api.post('posts', data);
       logger.info({ postId: response.data.id }, 'WordPress post created');
       return { id: response.data.id, slug: response.data.slug, link: response.data.link };
     } catch (error) {
@@ -392,7 +438,9 @@ class WooCommerceService {
       const categoryId = product.categories?.[0]?.id;
       if (!categoryId) return [];
 
-      const response = await this.api.get('products', {
+      const api = await this.getApi();
+      const wooUrl = (await settings.get('WOO_URL')) ?? env.WOO_URL;
+      const response = await api.get('products', {
         category: categoryId,
         per_page: limit + 1,
         status: 'publish',
@@ -405,7 +453,7 @@ class WooCommerceService {
           id: p.id,
           name: p.name,
           slug: p.slug,
-          link: `${env.WOO_URL}/product/${p.slug}/`,
+          link: `${wooUrl}/product/${p.slug}/`,
         }));
     } catch (error) {
       logger.error({ err: error, productId }, 'Failed to fetch related products');
@@ -419,7 +467,7 @@ class WooCommerceService {
    * Ping Google and Bing to re-crawl the sitemap after product changes.
    */
   async pingSitemap(): Promise<void> {
-    const siteUrl = env.WOO_URL || env.BRAND_WEBSITE;
+    const siteUrl = (await settings.get('WOO_URL')) ?? env.WOO_URL ?? env.BRAND_WEBSITE;
     if (!siteUrl) return;
 
     const sitemapUrl = `${siteUrl}/sitemap_index.xml`;

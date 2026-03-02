@@ -1,5 +1,6 @@
 import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
+import { settings } from './settings.service.js';
 
 // ── Interfaces ──────────────────────────────────────────────────────
 
@@ -13,14 +14,16 @@ interface CreatePostData {
 // ── Service ─────────────────────────────────────────────────────────
 
 class PostizService {
-  private readonly baseUrl: string;
-  private readonly headers: Record<string, string>;
-
-  constructor() {
-    this.baseUrl = env.POSTIZ_BASE_URL;
-    this.headers = {
-      'X-API-KEY': env.POSTIZ_API_KEY ?? '',
-      'Content-Type': 'application/json',
+  /** Resolve the current base URL and headers from settings (with env fallback) */
+  private async getConfig(): Promise<{ baseUrl: string; headers: Record<string, string> }> {
+    const apiKey = (await settings.get('POSTIZ_API_KEY')) ?? env.POSTIZ_API_KEY ?? '';
+    const baseUrl = (await settings.get('POSTIZ_BASE_URL')) ?? env.POSTIZ_BASE_URL;
+    return {
+      baseUrl,
+      headers: {
+        'X-API-KEY': apiKey,
+        'Content-Type': 'application/json',
+      },
     };
   }
 
@@ -109,13 +112,14 @@ class PostizService {
    * Low-level HTTP request to the Postiz API with a 30-second timeout.
    */
   private async request(method: string, path: string, body?: unknown): Promise<any> {
+    const { baseUrl, headers } = await this.getConfig();
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30_000);
 
     try {
-      const response = await fetch(`${this.baseUrl}${path}`, {
+      const response = await fetch(`${baseUrl}${path}`, {
         method,
-        headers: this.headers,
+        headers,
         ...(body ? { body: JSON.stringify(body) } : {}),
         signal: controller.signal,
       });

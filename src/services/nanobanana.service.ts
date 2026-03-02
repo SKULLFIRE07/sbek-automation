@@ -36,20 +36,31 @@ class NanoBananaService {
   private client: GoogleGenAI | null = null;
   private readonly model = 'gemini-2.0-flash-preview-image-generation';
   private readonly outputDir: string;
+  /** The API key currently used by the client */
+  private currentKey = '';
 
   constructor() {
     const apiKey = env.GEMINI_API_KEY;
     if (apiKey) {
       this.client = new GoogleGenAI({ apiKey });
+      this.currentKey = apiKey;
     }
     this.outputDir = join(process.cwd(), 'creatives', 'generated');
   }
 
-  /** Re-initialize the Gemini client with the latest API key from settings */
+  /**
+   * Re-initialize the Gemini client if the API key has changed in settings.
+   * Always checks settings first, falls back to env.
+   */
   async refreshClient(): Promise<void> {
-    const key = await settings.get('GEMINI_API_KEY');
-    if (key) {
+    const key = (await settings.get('GEMINI_API_KEY')) ?? env.GEMINI_API_KEY ?? '';
+    if (key && key !== this.currentKey) {
       this.client = new GoogleGenAI({ apiKey: key });
+      this.currentKey = key;
+      logger.info('Gemini client re-created with updated API key');
+    } else if (!key) {
+      this.client = null;
+      this.currentKey = '';
     }
   }
 
@@ -67,10 +78,8 @@ class NanoBananaService {
     prompt: string,
     options: NanoBananaOptions = {},
   ): Promise<GeneratedImage> {
-    // Ensure we have a client (lazy init from settings DB)
-    if (!this.client) {
-      await this.refreshClient();
-    }
+    // Always check for updated credentials before generating
+    await this.refreshClient();
     if (!this.client) {
       throw new Error('Nano Banana: GEMINI_API_KEY is not configured. Set it via Settings or .env');
     }

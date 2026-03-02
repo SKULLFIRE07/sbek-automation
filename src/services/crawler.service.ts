@@ -1,5 +1,6 @@
 import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
+import { settings } from './settings.service.js';
 
 // ── Interfaces ──────────────────────────────────────────────────────
 
@@ -26,10 +27,9 @@ export interface CrawlResult {
 // ── Service ─────────────────────────────────────────────────────────
 
 class CrawlerService {
-  private readonly baseUrl: string;
-
-  constructor() {
-    this.baseUrl = env.CRAWLER_BASE_URL;
+  /** Resolve the crawler base URL from settings (with env fallback) */
+  private async getBaseUrl(): Promise<string> {
+    return (await settings.get('CRAWLER_BASE_URL')) ?? env.CRAWLER_BASE_URL;
   }
 
   // ── Public methods ───────────────────────────────────────────────
@@ -87,11 +87,12 @@ class CrawlerService {
    * Uses a 60-second timeout because crawling is inherently slow.
    */
   private async request(method: string, path: string, body?: unknown): Promise<any> {
+    const baseUrl = await this.getBaseUrl();
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 60_000);
 
     try {
-      const response = await fetch(`${this.baseUrl}${path}`, {
+      const response = await fetch(`${baseUrl}${path}`, {
         method,
         headers: { 'Content-Type': 'application/json' },
         ...(body ? { body: JSON.stringify(body) } : {}),

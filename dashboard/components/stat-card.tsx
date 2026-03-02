@@ -55,7 +55,7 @@ function TrendIndicator({
   return (
     <span
       className="inline-flex items-center gap-1 text-[11px]"
-      style={{ color: "#656453" }}
+      style={{ color: "#999999" }}
     >
       {arrow}
       {label && <span>{label}</span>}
@@ -71,35 +71,18 @@ export function StatCard({
   trendLabel,
 }: StatCardProps) {
   return (
-    <div
-      className="px-6 py-8 rounded-lg flex flex-col justify-between min-h-[170px]"
-      style={{
-        background: "#141513",
-        border: "1px solid #1E1F1C",
-        transition: "background 0.25s ease, border-color 0.25s ease",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = "#1A1B19";
-        e.currentTarget.style.borderColor = "#2A2B28";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = "#141513";
-        e.currentTarget.style.borderColor = "#1E1F1C";
-      }}
-    >
+    <div className="card px-6 py-8 flex flex-col justify-between min-h-[170px]">
       <p
         className="text-[11px] uppercase tracking-[0.15em] mb-4 font-medium"
-        style={{ color: "#7A7968" }}
+        style={{ color: "var(--text-subtle)" }}
       >
         {label}
       </p>
       <div>
         <p
-          className="font-semibold leading-none"
+          className="font-mono font-semibold text-4xl leading-none tracking-tight"
           style={{
-            color: "#d4d3cc",
-            fontSize: "2.75rem",
-            lineHeight: 1,
+            color: "var(--text-secondary)",
             letterSpacing: "-0.03em",
           }}
         >
@@ -108,7 +91,7 @@ export function StatCard({
         <div className="flex items-center gap-3 mt-4 min-h-[18px]">
           {trend && <TrendIndicator trend={trend} label={trendLabel} />}
           {subtitle && (
-            <span className="text-[11px]" style={{ color: "#656453" }}>
+            <span className="text-[11px]" style={{ color: "#999999" }}>
               {subtitle}
             </span>
           )}

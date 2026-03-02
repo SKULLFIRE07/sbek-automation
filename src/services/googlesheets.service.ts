@@ -11,6 +11,7 @@ import { JWT } from 'google-auth-library';
 import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
 import { sanitizeForSheets, sanitizeRow } from '../utils/sanitize.js';
+import { settings } from './settings.service.js';
 
 // ── Tab name constants ──────────────────────────────────────────────────────
 
@@ -116,6 +117,8 @@ class GoogleSheetsService {
   private doc: GoogleSpreadsheet | null = null;
   private sheetCache: Map<string, GoogleSpreadsheetWorksheet> = new Map();
   private initialized = false;
+  /** Hash of the credentials used for the current connection */
+  private credHash = '';
 
   // ── Initialization ──────────────────────────────────────────────────────
 
@@ -123,19 +126,27 @@ class GoogleSheetsService {
    * Authenticate with Google via service-account JWT, load the spreadsheet,
    * and cache references to every expected tab. If a tab does not exist it is
    * created with the correct header row.
+   *
+   * Re-initializes automatically if credentials are updated via Settings.
    */
   async init(): Promise<void> {
-    if (this.initialized) return;
+    const email = (await settings.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')) ?? env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    const privateKey = (await settings.get('GOOGLE_PRIVATE_KEY')) ?? env.GOOGLE_PRIVATE_KEY;
+    const sheetId = (await settings.get('GOOGLE_SHEET_ID')) ?? env.GOOGLE_SHEET_ID;
+    const hash = [email ?? '', sheetId ?? ''].join('|');
+
+    if (this.initialized && hash === this.credHash) return;
 
     try {
       const auth = new JWT({
-        email: env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        key: (env.GOOGLE_PRIVATE_KEY ?? '').replace(/\\n/g, '\n'),
+        email,
+        key: (privateKey ?? '').replace(/\\n/g, '\n'),
         scopes: ['https://www.googleapis.com/auth/spreadsheets'],
       });
 
-      this.doc = new GoogleSpreadsheet(env.GOOGLE_SHEET_ID ?? '', auth);
+      this.doc = new GoogleSpreadsheet(sheetId ?? '', auth);
       await this.doc.loadInfo();
+      this.credHash = hash;
 
       logger.info(
         { title: this.doc.title, sheetId: env.GOOGLE_SHEET_ID },

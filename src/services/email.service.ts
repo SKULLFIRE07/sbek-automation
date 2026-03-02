@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
+import { settings } from './settings.service.js';
 
 // ── ES-module __dirname equivalent ──────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
@@ -43,8 +44,10 @@ Handlebars.registerHelper('formatCurrency', (value: number) => {
 // ── Service ─────────────────────────────────────────────────────────
 
 class EmailService {
-  private readonly transporter: Transporter;
+  private transporter: Transporter;
   private readonly templates = new Map<string, HandlebarsTemplateDelegate>();
+  /** Hash of SMTP credentials used to create the current transporter */
+  private smtpHash = '';
 
   constructor() {
     this.transporter = nodemailer.createTransport({
@@ -56,8 +59,39 @@ class EmailService {
         pass: env.SMTP_PASS,
       },
     });
+    this.smtpHash = this.hashCreds(env.SMTP_HOST, String(env.SMTP_PORT), env.SMTP_USER, env.SMTP_PASS);
 
     this.loadTemplates();
+  }
+
+  /**
+   * Get the SMTP transporter, re-creating it if credentials have been
+   * updated via the Settings dashboard.
+   */
+  private async getTransporter(): Promise<Transporter> {
+    const host = (await settings.get('SMTP_HOST')) ?? env.SMTP_HOST;
+    const port = (await settings.get('SMTP_PORT')) ?? String(env.SMTP_PORT);
+    const user = (await settings.get('SMTP_USER')) ?? env.SMTP_USER;
+    const pass = (await settings.get('SMTP_PASS')) ?? env.SMTP_PASS;
+    const hash = this.hashCreds(host, port, user, pass);
+
+    if (hash !== this.smtpHash) {
+      const portNum = parseInt(port, 10) || 587;
+      this.transporter = nodemailer.createTransport({
+        host,
+        port: portNum,
+        secure: portNum === 465,
+        auth: { user, pass },
+      });
+      this.smtpHash = hash;
+      logger.info('SMTP transporter re-created with updated credentials');
+    }
+
+    return this.transporter;
+  }
+
+  private hashCreds(...parts: (string | undefined)[]): string {
+    return parts.map((p) => p ?? '').join('|');
   }
 
   // ── Public methods ───────────────────────────────────────────────
@@ -66,17 +100,23 @@ class EmailService {
    * Brand-level defaults injected into every email template.
    * Individual template data can override these.
    */
-  private getBrandDefaults(): Record<string, string> {
+  private async getBrandDefaults(): Promise<Record<string, string>> {
+    const brandName = (await settings.get('BRAND_NAME')) ?? env.BRAND_NAME ?? 'SBEK';
+    const brandWebsite = (await settings.get('BRAND_WEBSITE')) ?? env.BRAND_WEBSITE ?? '';
+    const supportPhone = (await settings.get('BRAND_SUPPORT_PHONE')) ?? env.BRAND_SUPPORT_PHONE ?? '';
+    const supportEmail = (await settings.get('BRAND_SUPPORT_EMAIL')) ?? env.BRAND_SUPPORT_EMAIL ?? '';
+    const reviewUrl = (await settings.get('REVIEW_URL')) ?? env.REVIEW_URL ?? '';
+
     return {
-      brand_name: env.BRAND_NAME || 'SBEK',
-      brand_website: env.BRAND_WEBSITE || '',
-      support_phone: env.BRAND_SUPPORT_PHONE || '',
-      support_email: env.BRAND_SUPPORT_EMAIL || '',
-      instagram_url: env.BRAND_WEBSITE ? `${env.BRAND_WEBSITE}/instagram` : 'https://instagram.com/sbek.jewelry',
-      facebook_url: env.BRAND_WEBSITE ? `${env.BRAND_WEBSITE}/facebook` : 'https://facebook.com/sbekjewelry',
-      pinterest_url: env.BRAND_WEBSITE ? `${env.BRAND_WEBSITE}/pinterest` : 'https://pinterest.com/sbekjewelry',
-      unsubscribe_url: env.BRAND_WEBSITE ? `${env.BRAND_WEBSITE}/unsubscribe` : '#',
-      review_url: env.REVIEW_URL || '',
+      brand_name: brandName,
+      brand_website: brandWebsite,
+      support_phone: supportPhone,
+      support_email: supportEmail,
+      instagram_url: brandWebsite ? `${brandWebsite}/instagram` : 'https://instagram.com/sbek.jewelry',
+      facebook_url: brandWebsite ? `${brandWebsite}/facebook` : 'https://facebook.com/sbekjewelry',
+      pinterest_url: brandWebsite ? `${brandWebsite}/pinterest` : 'https://pinterest.com/sbekjewelry',
+      unsubscribe_url: brandWebsite ? `${brandWebsite}/unsubscribe` : '#',
+      review_url: reviewUrl,
     };
   }
 
@@ -90,11 +130,14 @@ class EmailService {
     data: Record<string, string>,
   ): Promise<void> {
     const template = this.getTemplate(templateName);
-    const html = template({ ...this.getBrandDefaults(), ...data });
+    const brandDefaults = await this.getBrandDefaults();
+    const html = template({ ...brandDefaults, ...data });
+    const transporter = await this.getTransporter();
+    const emailFrom = (await settings.get('EMAIL_FROM')) ?? env.EMAIL_FROM;
 
     try {
-      const info = await this.transporter.sendMail({
-        from: env.EMAIL_FROM,
+      const info = await transporter.sendMail({
+        from: emailFrom,
         to,
         subject,
         html,
@@ -115,8 +158,10 @@ class EmailService {
     html: string,
   ): Promise<void> {
     try {
-      const info = await this.transporter.sendMail({
-        from: env.EMAIL_FROM,
+      const transporter = await this.getTransporter();
+      const emailFrom = (await settings.get('EMAIL_FROM')) ?? env.EMAIL_FROM;
+      const info = await transporter.sendMail({
+        from: emailFrom,
         to,
         subject,
         html,
@@ -133,7 +178,8 @@ class EmailService {
    */
   async verifyConnection(): Promise<boolean> {
     try {
-      await this.transporter.verify();
+      const transporter = await this.getTransporter();
+      await transporter.verify();
       logger.info('SMTP connection verified');
       return true;
     } catch (error) {

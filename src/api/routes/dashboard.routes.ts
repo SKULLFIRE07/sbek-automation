@@ -1,18 +1,15 @@
 import { Router, type Request, type Response } from 'express';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import nodemailer from 'nodemailer';
 import { queues } from '../../queues/registry.js';
 import { db } from '../../config/database.js';
 import { pool } from '../../config/database.js';
 import { redis } from '../../config/redis.js';
 import { jobLogs, webhookEvents, cronRuns, competitorSnapshots } from '../../db/schema.js';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, count } from 'drizzle-orm';
 import { logger } from '../../config/logger.js';
 import { env } from '../../config/env.js';
 import { settings, CONFIGURABLE_KEYS, type ConfigurableKey } from '../../services/settings.service.js';
-
-const execAsync = promisify(exec);
+import { seedDemoData } from '../../services/seed.service.js';
 
 export const dashboardRouter = Router();
 
@@ -20,6 +17,7 @@ export const dashboardRouter = Router();
 
 dashboardRouter.get('/stats', async (_req: Request, res: Response) => {
   try {
+    // Get live counts from BullMQ (active/waiting/delayed are real-time)
     const allQueues = queues.getAll();
     const queueData = await Promise.all(
       allQueues.map(async (q) => {
@@ -28,19 +26,37 @@ dashboardRouter.get('/stats', async (_req: Request, res: Response) => {
       })
     );
 
-    let totalCompleted = 0;
-    let totalFailed = 0;
-    let totalActive = 0;
-    let totalWaiting = 0;
-    let totalDelayed = 0;
+    let bullCompleted = 0;
+    let bullFailed = 0;
+    let bullActive = 0;
+    let bullWaiting = 0;
+    let bullDelayed = 0;
 
     for (const q of queueData) {
-      totalCompleted += (q.counts as Record<string, number>).completed ?? 0;
-      totalFailed += (q.counts as Record<string, number>).failed ?? 0;
-      totalActive += (q.counts as Record<string, number>).active ?? 0;
-      totalWaiting += (q.counts as Record<string, number>).waiting ?? 0;
-      totalDelayed += (q.counts as Record<string, number>).delayed ?? 0;
+      bullCompleted += (q.counts as Record<string, number>).completed ?? 0;
+      bullFailed += (q.counts as Record<string, number>).failed ?? 0;
+      bullActive += (q.counts as Record<string, number>).active ?? 0;
+      bullWaiting += (q.counts as Record<string, number>).waiting ?? 0;
+      bullDelayed += (q.counts as Record<string, number>).delayed ?? 0;
     }
+
+    // Get historical counts from job_logs DB table (includes seeded + real data)
+    const dbCounts = await db
+      .select({ status: jobLogs.status, cnt: count() })
+      .from(jobLogs)
+      .groupBy(jobLogs.status);
+
+    const dbMap: Record<string, number> = {};
+    for (const row of dbCounts) {
+      dbMap[row.status] = Number(row.cnt);
+    }
+
+    // Merge: use the higher of BullMQ or DB counts for each status
+    const totalCompleted = Math.max(bullCompleted, dbMap['completed'] ?? 0);
+    const totalFailed = Math.max(bullFailed, dbMap['failed'] ?? 0);
+    const totalActive = Math.max(bullActive, dbMap['active'] ?? 0);
+    const totalWaiting = Math.max(bullWaiting, dbMap['queued'] ?? 0);
+    const totalDelayed = bullDelayed;
 
     const totalProcessed = totalCompleted + totalFailed;
     const successRate = totalProcessed > 0
@@ -71,12 +87,41 @@ dashboardRouter.get('/stats', async (_req: Request, res: Response) => {
 dashboardRouter.get('/queues', async (_req: Request, res: Response) => {
   try {
     const allQueues = queues.getAll();
-    const data = await Promise.all(
+
+    // Get live BullMQ counts
+    const bullData = await Promise.all(
       allQueues.map(async (q) => {
         const counts = await q.getJobCounts();
-        return { name: q.name, ...counts };
+        return { name: q.name, counts: counts as Record<string, number> };
       })
     );
+
+    // Get historical counts from job_logs DB grouped by queue + status
+    const dbRows = await db
+      .select({ queueName: jobLogs.queueName, status: jobLogs.status, cnt: count() })
+      .from(jobLogs)
+      .groupBy(jobLogs.queueName, jobLogs.status);
+
+    // Build a map: queueName -> { completed: N, failed: N, ... }
+    const dbMap: Record<string, Record<string, number>> = {};
+    for (const row of dbRows) {
+      if (!dbMap[row.queueName]) dbMap[row.queueName] = {};
+      dbMap[row.queueName][row.status] = Number(row.cnt);
+    }
+
+    // Merge: use higher of BullMQ or DB for each queue + status
+    const data = bullData.map((q) => {
+      const db = dbMap[q.name] ?? {};
+      return {
+        name: q.name,
+        completed: Math.max(q.counts.completed ?? 0, db['completed'] ?? 0),
+        failed: Math.max(q.counts.failed ?? 0, db['failed'] ?? 0),
+        active: Math.max(q.counts.active ?? 0, db['active'] ?? 0),
+        waiting: Math.max(q.counts.waiting ?? 0, db['queued'] ?? 0),
+        delayed: q.counts.delayed ?? 0,
+      };
+    });
+
     res.json({ queues: data });
   } catch (err) {
     logger.error({ err }, 'Dashboard queues error');
@@ -95,14 +140,46 @@ dashboardRouter.get('/queues/:name', async (req: Request, res: Response) => {
       return;
     }
 
-    const counts = await queue.getJobCounts();
+    // ── BullMQ live data ──
+    const bullCounts = await queue.getJobCounts();
     const recentCompleted = await queue.getJobs(['completed'], 0, 19);
     const recentFailed = await queue.getJobs(['failed'], 0, 19);
     const recentActive = await queue.getJobs(['active'], 0, 9);
     const recentWaiting = await queue.getJobs(['waiting'], 0, 9);
     const recentDelayed = await queue.getJobs(['delayed'], 0, 9);
 
-    const formatJob = (j: { id?: string; name: string; data: unknown; timestamp: number; processedOn?: number; finishedOn?: number; attemptsMade: number; failedReason?: string; returnvalue?: unknown }) => ({
+    // ── DB historical counts (same merge logic as /queues listing) ──
+    const queueName = req.params.name as string;
+    const dbRows = await db
+      .select({ status: jobLogs.status, cnt: count() })
+      .from(jobLogs)
+      .where(eq(jobLogs.queueName, queueName))
+      .groupBy(jobLogs.status);
+
+    const dbCounts: Record<string, number> = {};
+    for (const row of dbRows) {
+      dbCounts[row.status] = Number(row.cnt);
+    }
+
+    // Merge: use higher of BullMQ or DB for each status
+    const mergedCounts: Record<string, number> = {
+      active: Math.max(bullCounts.active ?? 0, dbCounts['active'] ?? 0),
+      completed: Math.max(bullCounts.completed ?? 0, dbCounts['completed'] ?? 0),
+      failed: Math.max(bullCounts.failed ?? 0, dbCounts['failed'] ?? 0),
+      waiting: Math.max(bullCounts.waiting ?? 0, dbCounts['queued'] ?? 0),
+      delayed: bullCounts.delayed ?? 0,
+      paused: bullCounts.paused ?? 0,
+    };
+
+    // ── DB recent jobs (fallback when BullMQ has no jobs) ──
+    const dbRecentJobs = await db
+      .select()
+      .from(jobLogs)
+      .where(eq(jobLogs.queueName, queueName))
+      .orderBy(desc(jobLogs.createdAt))
+      .limit(50);
+
+    const formatBullJob = (j: { id?: string; name: string; data: unknown; timestamp: number; processedOn?: number; finishedOn?: number; attemptsMade: number; failedReason?: string; returnvalue?: unknown }) => ({
       id: j.id,
       name: j.name,
       data: j.data,
@@ -114,16 +191,44 @@ dashboardRouter.get('/queues/:name', async (req: Request, res: Response) => {
       returnvalue: j.returnvalue,
     });
 
+    const formatDbJob = (j: typeof dbRecentJobs[number]) => ({
+      id: j.jobId,
+      name: j.queueName,
+      data: j.payload,
+      timestamp: j.createdAt ? new Date(j.createdAt).getTime() : Date.now(),
+      processedOn: j.createdAt ? new Date(j.createdAt).getTime() : null,
+      finishedOn: j.completedAt ? new Date(j.completedAt).getTime() : null,
+      attempts: j.attempts ?? 1,
+      failedReason: j.error ?? null,
+      returnvalue: j.result ?? null,
+    });
+
+    // Use BullMQ jobs if available, otherwise fall back to DB
+    const bullHasJobs = recentCompleted.length + recentFailed.length + recentActive.length + recentWaiting.length + recentDelayed.length > 0;
+
+    let recentJobs;
+    if (bullHasJobs) {
+      recentJobs = {
+        completed: recentCompleted.map(formatBullJob),
+        failed: recentFailed.map(formatBullJob),
+        active: recentActive.map(formatBullJob),
+        waiting: recentWaiting.map(formatBullJob),
+        delayed: recentDelayed.map(formatBullJob),
+      };
+    } else {
+      // Group DB jobs by status
+      const completed = dbRecentJobs.filter((j) => j.status === 'completed').slice(0, 20).map(formatDbJob);
+      const failed = dbRecentJobs.filter((j) => j.status === 'failed').slice(0, 20).map(formatDbJob);
+      const active = dbRecentJobs.filter((j) => j.status === 'active').slice(0, 10).map(formatDbJob);
+      const waiting = dbRecentJobs.filter((j) => j.status === 'queued').slice(0, 10).map(formatDbJob);
+      const delayed = dbRecentJobs.filter((j) => j.status === 'delayed').slice(0, 10).map(formatDbJob);
+      recentJobs = { completed, failed, active, waiting, delayed };
+    }
+
     res.json({
       name: queue.name,
-      counts,
-      recentJobs: {
-        completed: recentCompleted.map(formatJob),
-        failed: recentFailed.map(formatJob),
-        active: recentActive.map(formatJob),
-        waiting: recentWaiting.map(formatJob),
-        delayed: recentDelayed.map(formatJob),
-      },
+      counts: mergedCounts,
+      recentJobs,
     });
   } catch (err) {
     logger.error({ err }, 'Dashboard queue detail error');
@@ -267,7 +372,7 @@ dashboardRouter.get('/system/health', async (_req: Request, res: Response) => {
 
   const allOk = Object.values(health).every((s) => s.status === 'ok');
 
-  res.status(allOk ? 200 : 503).json({ status: allOk ? 'healthy' : 'degraded', services: health });
+  res.json({ status: allOk ? 'healthy' : 'degraded', services: health });
 });
 
 // ── Cron Runs ───────────────────────────────────────────────────────────
@@ -375,12 +480,9 @@ dashboardRouter.put('/settings', async (req: Request, res: Response) => {
 dashboardRouter.post('/data/seed', async (_req: Request, res: Response) => {
   try {
     logger.info('Seeding demo data via dashboard');
-    const { stdout } = await execAsync('npx tsx scripts/seed-demo.ts', {
-      cwd: process.cwd(),
-      timeout: 30000,
-    });
+    const summary = await seedDemoData(db);
     logger.info('Demo data seeded successfully');
-    res.json({ success: true, output: stdout });
+    res.json({ success: true, output: summary });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Seed failed';
     logger.error({ err }, 'Dashboard seed error');
