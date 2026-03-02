@@ -23,8 +23,11 @@ webhooksRouter.post(
       const webhookId = req.headers['x-wc-webhook-id'] as string;
       const payload = req.body;
 
-      // WooCommerce sends a ping on webhook creation — just acknowledge it
-      if (topic === 'action.woocommerce_webhook_payload') {
+      // WooCommerce sends a ping on webhook creation/save — acknowledge it.
+      // Pings may have no topic, or topic 'action.woocommerce_webhook_payload',
+      // or body with just webhook_id (no order data).
+      if (!topic || topic === 'action.woocommerce_webhook_payload' || (!payload?.id && payload?.webhook_id)) {
+        logger.info({ topic, webhookId }, 'WooCommerce webhook ping acknowledged');
         res.json({ received: true, type: 'ping' });
         return;
       }
