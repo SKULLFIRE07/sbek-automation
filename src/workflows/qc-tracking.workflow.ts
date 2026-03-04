@@ -102,7 +102,7 @@ export async function evaluateQCResults(orderId: number): Promise<'passed' | 'fa
             product_name: order['Product'] || '',
             ship_date: formatDate(shipDate),
           },
-        });
+        }, { jobId: `notify-qc-passed-${orderId}` });
       }
     }
 
@@ -132,19 +132,20 @@ export async function evaluateQCResults(orderId: number): Promise<'passed' | 'fa
 
     // Send internal alert
     const adminPhone = env.BRAND_SUPPORT_PHONE;
-    if (!adminPhone) {
+    if (adminPhone) {
+      await notification.add(`qc-failed-alert-${orderId}`, {
+        channel: 'whatsapp',
+        recipientPhone: adminPhone,
+        recipientName: 'Production Team',
+        templateName: 'qc_failed_alert',
+        templateData: {
+          order_id: String(orderId),
+          failed_items: failedItems,
+        },
+      }, { jobId: `notify-qc-failed-${orderId}` });
+    } else {
       logger.warn({ orderId }, 'No BRAND_SUPPORT_PHONE configured — skipping QC failure WhatsApp alert');
     }
-    await notification.add(`qc-failed-alert-${orderId}`, {
-      channel: 'whatsapp',
-      recipientPhone: adminPhone || undefined,
-      recipientName: 'Production Team',
-      templateName: 'qc_failed_alert',
-      templateData: {
-        order_id: String(orderId),
-        failed_items: failedItems,
-      },
-    });
 
     logger.info({ orderId, failedItems }, 'QC failed -- rework initiated');
     return 'failed';

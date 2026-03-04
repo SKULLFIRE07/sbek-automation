@@ -39,7 +39,7 @@ export async function runDailyReviewRequests(): Promise<void> {
         customerPhone: phone,
         productName,
         deliveredDate: lastUpdated,
-      });
+      }, { jobId: `daily-review-${orderId}` });
 
       // Mark as review sent to prevent duplicates
       await sheets.updateOrder(String(orderId), {

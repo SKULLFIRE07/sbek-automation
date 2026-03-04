@@ -1,4 +1,5 @@
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { inArray } from 'drizzle-orm';
 import {
   jobLogs,
   webhookEvents,
@@ -7,6 +8,7 @@ import {
   systemConfig,
 } from '../db/schema.js';
 import { logger } from '../config/logger.js';
+import { CONFIGURABLE_KEYS } from './settings.service.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -328,12 +330,18 @@ function generateSystemConfig() {
 export async function seedDemoData(db: NodePgDatabase<any>): Promise<string> {
   logger.info('Seeding demo data (inline)...');
 
-  // Clear existing demo data
+  // Clear existing demo data (preserve user-configured API keys)
   await db.delete(jobLogs);
   await db.delete(webhookEvents);
   await db.delete(cronRuns);
   await db.delete(competitorSnapshots);
-  await db.delete(systemConfig);
+
+  // Only delete non-credential config entries — preserve user API keys/secrets
+  const demoConfigKeys = generateSystemConfig().map((c) => c.key);
+  const safeToDelete = demoConfigKeys.filter((k) => !CONFIGURABLE_KEYS.includes(k));
+  if (safeToDelete.length > 0) {
+    await db.delete(systemConfig).where(inArray(systemConfig.key, safeToDelete));
+  }
 
   // Insert fresh demo data
   const webhookData = generateWebhookEvents();
@@ -349,7 +357,10 @@ export async function seedDemoData(db: NodePgDatabase<any>): Promise<string> {
   await db.insert(competitorSnapshots).values(snapshotData);
 
   const configData = generateSystemConfig();
-  await db.insert(systemConfig).values(configData);
+  // Use onConflictDoNothing to preserve any user-set values
+  for (const entry of configData) {
+    await db.insert(systemConfig).values(entry).onConflictDoNothing().catch(() => {});
+  }
 
   const summary = `Seeded: ${webhookData.length} webhook events, ${jobLogData.length} job logs, ${cronRunData.length} cron runs, ${snapshotData.length} competitor snapshots, ${configData.length} config entries`;
   logger.info(summary);

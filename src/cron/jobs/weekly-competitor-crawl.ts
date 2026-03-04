@@ -21,7 +21,7 @@ export async function runWeeklyCompetitorCrawl(): Promise<void> {
     await competitorCrawl.add(`crawl-${competitor.name}`, {
       competitorName: competitor.name,
       url: competitor.url,
-    });
+    }, { jobId: `weekly-crawl-${competitor.name}` });
     enqueued++;
   }
 

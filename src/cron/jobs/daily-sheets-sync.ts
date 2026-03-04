@@ -32,7 +32,7 @@ export async function runDailySheetsSync(): Promise<void> {
           orderId: order.id,
           event: 'order.updated',
           rawPayload: order as unknown as Record<string, unknown>,
-        });
+        }, { jobId: `daily-sync-${order.id}` });
         enqueued++;
       }
 

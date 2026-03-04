@@ -33,7 +33,7 @@ export async function runWeeklyContentGeneration(): Promise<void> {
           productId: product.id,
           productName: product.name,
           type,
-        });
+        }, { jobId: `weekly-${type}-${product.id}` });
         enqueued++;
       }
 
@@ -49,7 +49,7 @@ export async function runWeeklyContentGeneration(): Promise<void> {
         productImageUrl: imageUrl,
         category,
         variants: ['white_bg', 'lifestyle', 'festive', 'minimal_text', 'story_format'],
-      });
+      }, { jobId: `weekly-creative-${product.id}` });
       enqueued++;
     }
   } catch (err) {

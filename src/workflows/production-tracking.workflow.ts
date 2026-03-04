@@ -138,7 +138,7 @@ export async function createProductionTask(payload: ProductionUpdatePayload): Pr
         engraving: order['Engraving'] || 'None',
         due_date: dueDate,
       },
-    });
+    }, { jobId: `production-brief-${orderId}` });
   }
 
   // Send customer notification
@@ -157,7 +157,7 @@ export async function createProductionTask(payload: ProductionUpdatePayload): Pr
         order_id: String(orderId),
         product_name: order['Product'] || '',
       },
-    });
+    }, { jobId: `notify-production-start-${orderId}` });
   }
 
   logger.info({ orderId, assignee }, 'Production task created');

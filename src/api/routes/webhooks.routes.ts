@@ -78,9 +78,7 @@ webhooksRouter.post(
       res.json({ received: true, orderId, event });
     } catch (err) {
       logger.error({ err }, 'Failed to process order webhook');
-      // Still return 200 to prevent WooCommerce from retrying
-      // The error is logged and we'll handle it via monitoring
-      res.json({ received: true, error: 'Processing failed, logged for retry' });
+      res.status(500).json({ error: 'Processing failed' });
     }
   }
 );
@@ -131,7 +129,7 @@ webhooksRouter.post(
           productId,
           productName,
           type: 'seo_meta',
-        }),
+        }, { jobId: `seo-${productId}` }),
       );
 
       // 2. FAQ generation
@@ -140,7 +138,7 @@ webhooksRouter.post(
           productId,
           productName,
           type: 'faq',
-        }),
+        }, { jobId: `faq-${productId}` }),
       );
 
       // 3. AEO knowledge base
@@ -149,7 +147,7 @@ webhooksRouter.post(
           productId,
           productName,
           type: 'aeo_kb',
-        }),
+        }, { jobId: `aeo-${productId}` }),
       );
 
       // 4. Comparison article
@@ -158,7 +156,7 @@ webhooksRouter.post(
           productId,
           productName,
           type: 'comparison',
-        }),
+        }, { jobId: `comparison-${productId}` }),
       );
 
       // 5. Schema injection
@@ -167,7 +165,7 @@ webhooksRouter.post(
           productId,
           productName,
           type: 'schema_inject',
-        }),
+        }, { jobId: `schema-${productId}` }),
       );
 
       // 6. Internal linking
@@ -176,7 +174,7 @@ webhooksRouter.post(
           productId,
           productName,
           type: 'internal_links',
-        }),
+        }, { jobId: `intlink-${productId}` }),
       );
 
       // 7. Ad creative generation (all 5 variants)
@@ -192,7 +190,7 @@ webhooksRouter.post(
           productImageUrl: imageUrl,
           category,
           variants: ['white_bg', 'lifestyle', 'festive', 'minimal_text', 'story_format'],
-        }),
+        }, { jobId: `creative-${productId}` }),
       );
 
       await Promise.all(jobs);
@@ -209,7 +207,7 @@ webhooksRouter.post(
       res.json({ received: true, productId, topic, jobsEnqueued: jobs.length });
     } catch (err) {
       logger.error({ err }, 'Failed to process product webhook');
-      res.json({ received: true, error: 'Processing failed' });
+      res.status(500).json({ error: 'Processing failed' });
     }
   }
 );

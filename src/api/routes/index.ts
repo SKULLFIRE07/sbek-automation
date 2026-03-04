@@ -5,6 +5,7 @@ import { jobsRouter } from './jobs.routes.js';
 import { dashboardRouter } from './dashboard.routes.js';
 import { settingsRouter } from './settings.routes.js';
 import { authRouter } from './auth.routes.js';
+import { requireAdminAuth } from '../middleware/adminAuth.js';
 
 export const router = Router();
 
@@ -14,14 +15,14 @@ router.use(healthRouter);
 // WooCommerce webhooks
 router.use('/webhooks', webhooksRouter);
 
-// Job queue status
-router.use('/jobs', jobsRouter);
+// Job queue status (admin only)
+router.use('/jobs', requireAdminAuth, jobsRouter);
 
-// Dashboard API (consumed by Next.js frontend)
-router.use('/dashboard', dashboardRouter);
+// Dashboard API — admin auth required (contains PII, API key reveal, queue controls)
+router.use('/dashboard', requireAdminAuth, dashboardRouter);
 
 // Admin settings with Basic auth (BYOK — Bring Your Own Keys)
 router.use('/admin/settings', settingsRouter);
 
-// Google OAuth flow (connect Google account for Sheets + Drive)
-router.use('/auth', authRouter);
+// Google OAuth flow (admin auth required — connect/disconnect Google account)
+router.use('/auth', requireAdminAuth, authRouter);
