@@ -21,10 +21,9 @@ import './queues/definitions/social-posting.queue.js';
 import './queues/definitions/competitor-crawl.queue.js';
 
 // Run database migrations on startup
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 try {
-  await migrate(db, { migrationsFolder: resolve(__dirname, 'db/migrations') });
+  const migrationsPath = resolve(process.cwd(), 'src/db/migrations');
+  await migrate(db, { migrationsFolder: migrationsPath });
   logger.info('Database migrations completed');
 } catch (err) {
   logger.warn({ err }, 'Database migration failed — tables may already exist');
