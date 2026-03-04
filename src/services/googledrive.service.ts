@@ -25,15 +25,34 @@ class GoogleDriveService {
    * folder exists. Re-initializes if credentials are updated via Settings.
    */
   async init(): Promise<void> {
-    const refreshToken = (await settings.get('GOOGLE_OAUTH_REFRESH_TOKEN')) ?? env.GOOGLE_OAUTH_REFRESH_TOKEN;
+    const serviceEmail = (await settings.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')) ?? env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    const privateKey = (await settings.get('GOOGLE_PRIVATE_KEY')) ?? env.GOOGLE_PRIVATE_KEY;
 
     let auth: JWT | OAuth2Client;
     let hash: string;
 
-    if (refreshToken) {
-      // OAuth2 path — user connected their Google account
+    if (serviceEmail && privateKey) {
+      // Service account JWT — preferred for Drive (has explicit drive.file scope)
+      hash = serviceEmail;
+
+      if (this.initialized && hash === this.credHash) return;
+
+      auth = new JWT({
+        email: serviceEmail,
+        key: privateKey.replace(/\\n/g, '\n'),
+        scopes: ['https://www.googleapis.com/auth/drive.file'],
+      });
+      logger.info('Google Drive: using service account JWT authentication');
+    } else {
+      // OAuth2 fallback — only works if token has drive.file scope (dashboard OAuth flow)
+      const refreshToken = (await settings.get('GOOGLE_OAUTH_REFRESH_TOKEN')) ?? env.GOOGLE_OAUTH_REFRESH_TOKEN;
       const clientId = (await settings.get('GOOGLE_OAUTH_CLIENT_ID')) ?? env.GOOGLE_OAUTH_CLIENT_ID;
       const clientSecret = (await settings.get('GOOGLE_OAUTH_CLIENT_SECRET')) ?? env.GOOGLE_OAUTH_CLIENT_SECRET;
+
+      if (!refreshToken) {
+        throw new Error('No Google credentials configured — set service account or connect via OAuth');
+      }
+
       hash = `oauth|${clientId ?? ''}`;
 
       if (this.initialized && hash === this.credHash) return;
@@ -42,20 +61,6 @@ class GoogleDriveService {
       oauth2.setCredentials({ refresh_token: refreshToken });
       auth = oauth2;
       logger.info('Google Drive: using OAuth2 authentication');
-    } else {
-      // Service account JWT fallback
-      const email = (await settings.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')) ?? env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-      const privateKey = (await settings.get('GOOGLE_PRIVATE_KEY')) ?? env.GOOGLE_PRIVATE_KEY;
-      hash = email ?? '';
-
-      if (this.initialized && hash === this.credHash) return;
-
-      auth = new JWT({
-        email,
-        key: (privateKey ?? '').replace(/\\n/g, '\n'),
-        scopes: ['https://www.googleapis.com/auth/drive.file'],
-      });
-      logger.info('Google Drive: using service account JWT authentication');
     }
 
     try {

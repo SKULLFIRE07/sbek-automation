@@ -130,16 +130,35 @@ class GoogleSheetsService {
    * Re-initializes automatically if credentials are updated via Settings.
    */
   async init(): Promise<void> {
-    const refreshToken = (await settings.get('GOOGLE_OAUTH_REFRESH_TOKEN')) ?? env.GOOGLE_OAUTH_REFRESH_TOKEN;
     const sheetId = (await settings.get('GOOGLE_SHEET_ID')) ?? env.GOOGLE_SHEET_ID;
+    const serviceEmail = (await settings.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')) ?? env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    const privateKey = (await settings.get('GOOGLE_PRIVATE_KEY')) ?? env.GOOGLE_PRIVATE_KEY;
 
     let auth: JWT | OAuth2Client;
     let hash: string;
 
-    if (refreshToken) {
-      // OAuth2 path — user connected their Google account
+    if (serviceEmail && privateKey) {
+      // Service account JWT — preferred for Sheets (has explicit spreadsheets scope)
+      hash = [serviceEmail, sheetId ?? ''].join('|');
+
+      if (this.initialized && hash === this.credHash) return;
+
+      auth = new JWT({
+        email: serviceEmail,
+        key: privateKey.replace(/\\n/g, '\n'),
+        scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+      });
+      logger.info('Google Sheets: using service account JWT authentication');
+    } else {
+      // OAuth2 fallback — only works if token has spreadsheets scope (dashboard OAuth flow)
+      const refreshToken = (await settings.get('GOOGLE_OAUTH_REFRESH_TOKEN')) ?? env.GOOGLE_OAUTH_REFRESH_TOKEN;
       const clientId = (await settings.get('GOOGLE_OAUTH_CLIENT_ID')) ?? env.GOOGLE_OAUTH_CLIENT_ID;
       const clientSecret = (await settings.get('GOOGLE_OAUTH_CLIENT_SECRET')) ?? env.GOOGLE_OAUTH_CLIENT_SECRET;
+
+      if (!refreshToken) {
+        throw new Error('No Google credentials configured — set service account or connect via OAuth');
+      }
+
       hash = ['oauth', clientId ?? '', sheetId ?? ''].join('|');
 
       if (this.initialized && hash === this.credHash) return;
@@ -148,20 +167,6 @@ class GoogleSheetsService {
       oauth2.setCredentials({ refresh_token: refreshToken });
       auth = oauth2;
       logger.info('Google Sheets: using OAuth2 authentication');
-    } else {
-      // Service account JWT fallback
-      const email = (await settings.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')) ?? env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-      const privateKey = (await settings.get('GOOGLE_PRIVATE_KEY')) ?? env.GOOGLE_PRIVATE_KEY;
-      hash = [email ?? '', sheetId ?? ''].join('|');
-
-      if (this.initialized && hash === this.credHash) return;
-
-      auth = new JWT({
-        email,
-        key: (privateKey ?? '').replace(/\\n/g, '\n'),
-        scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-      });
-      logger.info('Google Sheets: using service account JWT authentication');
     }
 
     try {
