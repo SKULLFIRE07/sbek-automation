@@ -710,7 +710,10 @@ dashboardRouter.post('/settings/validate', async (req: Request, res: Response) =
           port: portNum,
           secure: portNum === 465,
           auth: { user, pass },
-          connectionTimeout: 10000,
+          connectionTimeout: 15000,
+          greetingTimeout: 15000,
+          socketTimeout: 15000,
+          tls: { rejectUnauthorized: false },
         });
         await transporter.verify();
         transporter.close();

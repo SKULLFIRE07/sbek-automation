@@ -471,11 +471,13 @@ function GoogleSection({
     sources["GOOGLE_SHEET_ID"] !== "none" && sources["GOOGLE_SHEET_ID"] !== undefined,
   ].filter(Boolean).length;
 
+  const allDoneGoogle = configuredCount >= 2;
+
   return (
     <div
       className="mb-4"
       style={{
-        border: "1px solid var(--border)",
+        border: `1px solid ${allDoneGoogle ? "#D5E8D5" : "var(--border)"}`,
         background: "var(--bg-surface)",
         borderRadius: "var(--radius-md)",
       }}
@@ -492,9 +494,15 @@ function GoogleSection({
           <h2 className="text-xs uppercase tracking-[0.15em] font-medium" style={{ color: "var(--text-muted)" }}>
             Google Sheets & Drive
           </h2>
+          {allDoneGoogle && (
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="flex-shrink-0">
+              <circle cx="7" cy="7" r="6" stroke="#2D8A4E" strokeWidth="1.2" fill="#F0FAF0" />
+              <path d="M4 7l2 2 4-4" stroke="#2D8A4E" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
           <span
             className="text-[10px] font-mono"
-            style={{ color: configuredCount >= 2 ? "var(--text-secondary)" : "var(--text-disabled)" }}
+            style={{ color: allDoneGoogle ? "#2D8A4E" : "var(--text-disabled)" }}
           >
             {configuredCount}/2
           </span>
@@ -624,9 +632,11 @@ function GoogleSection({
               <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
                 Google Sheet URL
               </span>
-              <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "#CC3333" }}>
-                Required
-              </span>
+              {!hasSheet && (
+                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "#CC3333" }}>
+                  Required
+                </span>
+              )}
               {sources["GOOGLE_SHEET_ID"] && sources["GOOGLE_SHEET_ID"] !== "none" && (
                 <span
                   className="badge text-[9px] font-mono uppercase tracking-wider"
@@ -899,7 +909,7 @@ function SettingsField({
       >
         {field.label}
       </label>
-      {field.required && (
+      {field.required && !hasFill && (
         <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#CC3333" }}>
           Required
         </span>
@@ -955,7 +965,7 @@ function SettingsField({
             >
               {field.label}
             </label>
-            {field.required && (
+            {field.required && !hasFill && (
               <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "#CC3333" }}>
                 Required
               </span>
@@ -1087,12 +1097,17 @@ function SettingsSection({
     (f) => sources[f.key] !== "none" && sources[f.key] !== undefined
   ).length;
   const totalCount = section.fields.length;
+  const requiredFields = section.fields.filter((f) => f.required);
+  const requiredDone = requiredFields.every(
+    (f) => sources[f.key] !== "none" && sources[f.key] !== undefined
+  );
+  const allDone = configuredCount === totalCount;
 
   return (
     <div
       className="mb-4"
       style={{
-        border: "1px solid var(--border)",
+        border: `1px solid ${allDone ? "#D5E8D5" : "var(--border)"}`,
         background: "var(--bg-surface)",
         borderRadius: "var(--radius-md)",
       }}
@@ -1108,9 +1123,15 @@ function SettingsSection({
           <h2 className="text-[13px] uppercase tracking-[0.12em] font-bold" style={{ color: "#333" }}>
             {section.title}
           </h2>
+          {requiredDone && (
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="flex-shrink-0">
+              <circle cx="7" cy="7" r="6" stroke="#2D8A4E" strokeWidth="1.2" fill="#F0FAF0" />
+              <path d="M4 7l2 2 4-4" stroke="#2D8A4E" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
           <span
             className="text-[10px] font-mono"
-            style={{ color: configuredCount === totalCount ? "var(--text-secondary)" : "var(--text-disabled)" }}
+            style={{ color: requiredDone ? "#2D8A4E" : "var(--text-disabled)" }}
           >
             {configuredCount}/{totalCount}
           </span>

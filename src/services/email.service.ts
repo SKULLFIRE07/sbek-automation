@@ -58,6 +58,7 @@ class EmailService {
         user: env.SMTP_USER,
         pass: env.SMTP_PASS,
       },
+      tls: { rejectUnauthorized: false },
     });
     this.smtpHash = this.hashCreds(env.SMTP_HOST, String(env.SMTP_PORT), env.SMTP_USER, env.SMTP_PASS);
 
@@ -82,6 +83,7 @@ class EmailService {
         port: portNum,
         secure: portNum === 465,
         auth: { user, pass },
+        tls: { rejectUnauthorized: false },
       });
       this.smtpHash = hash;
       logger.info('SMTP transporter re-created with updated credentials');
