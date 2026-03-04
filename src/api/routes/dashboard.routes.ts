@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import nodemailer from 'nodemailer';
+import { google } from 'googleapis';
 import { queues } from '../../queues/registry.js';
 import { db } from '../../config/database.js';
 import { pool } from '../../config/database.js';
@@ -696,12 +697,27 @@ dashboardRouter.post('/settings/validate', async (req: Request, res: Response) =
       }
 
       case 'email-smtp': {
+        // Try Gmail API first (works on Railway where SMTP ports are blocked)
+        const oauthClientId = await resolve('GOOGLE_OAUTH_CLIENT_ID');
+        const oauthClientSecret = await resolve('GOOGLE_OAUTH_CLIENT_SECRET');
+        const oauthRefreshToken = await resolve('GOOGLE_OAUTH_REFRESH_TOKEN');
+
+        if (oauthClientId && oauthClientSecret && oauthRefreshToken) {
+          const oauth2Client = new google.auth.OAuth2(oauthClientId, oauthClientSecret);
+          oauth2Client.setCredentials({ refresh_token: oauthRefreshToken });
+          const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+          const profile = await gmail.users.getProfile({ userId: 'me' });
+          res.json({ valid: true, message: `Gmail API connected — sending as ${profile.data.emailAddress}` });
+          return;
+        }
+
+        // Fallback: SMTP
         const host = await resolve('SMTP_HOST');
         const port = await resolve('SMTP_PORT');
         const user = await resolve('SMTP_USER');
         const pass = await resolve('SMTP_PASS');
         if (!host || !user || !pass) {
-          res.json({ valid: false, message: 'Host, User, and Password are required' });
+          res.json({ valid: false, message: 'Set up Gmail API (Google OAuth credentials) or provide SMTP Host, User, and Password' });
           return;
         }
         const portNum = parseInt(port) || 587;

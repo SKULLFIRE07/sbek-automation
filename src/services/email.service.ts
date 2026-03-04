@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
+import { google } from 'googleapis';
 import Handlebars from 'handlebars';
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve, dirname, basename } from 'node:path';
@@ -123,6 +124,82 @@ class EmailService {
   }
 
   /**
+   * Check if Gmail API OAuth credentials are available.
+   */
+  private async hasGmailApi(): Promise<boolean> {
+    const clientId = (await settings.get('GOOGLE_OAUTH_CLIENT_ID')) ?? env.GOOGLE_OAUTH_CLIENT_ID;
+    const clientSecret = (await settings.get('GOOGLE_OAUTH_CLIENT_SECRET')) ?? env.GOOGLE_OAUTH_CLIENT_SECRET;
+    const refreshToken = (await settings.get('GOOGLE_OAUTH_REFRESH_TOKEN')) ?? env.GOOGLE_OAUTH_REFRESH_TOKEN;
+    return !!(clientId && clientSecret && refreshToken);
+  }
+
+  /**
+   * Send an email via Gmail API (HTTPS, works on Railway/hosts that block SMTP ports).
+   */
+  private async sendViaGmailApi(
+    to: string,
+    subject: string,
+    html: string,
+    emailFrom: string | undefined,
+  ): Promise<string> {
+    const clientId = (await settings.get('GOOGLE_OAUTH_CLIENT_ID')) ?? env.GOOGLE_OAUTH_CLIENT_ID;
+    const clientSecret = (await settings.get('GOOGLE_OAUTH_CLIENT_SECRET')) ?? env.GOOGLE_OAUTH_CLIENT_SECRET;
+    const refreshToken = (await settings.get('GOOGLE_OAUTH_REFRESH_TOKEN')) ?? env.GOOGLE_OAUTH_REFRESH_TOKEN;
+
+    const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
+    oauth2Client.setCredentials({ refresh_token: refreshToken });
+
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+
+    const from = emailFrom || `SBEK <${(await settings.get('SMTP_USER')) ?? env.SMTP_USER}>`;
+    const messageParts = [
+      `From: ${from}`,
+      `To: ${to}`,
+      `Subject: ${subject}`,
+      'MIME-Version: 1.0',
+      'Content-Type: text/html; charset=utf-8',
+      '',
+      html,
+    ];
+    const rawMessage = Buffer.from(messageParts.join('\r\n')).toString('base64url');
+
+    const result = await gmail.users.messages.send({
+      userId: 'me',
+      requestBody: { raw: rawMessage },
+    });
+
+    return result.data.id ?? 'unknown';
+  }
+
+  /**
+   * Core send method: tries Gmail API first, falls back to SMTP.
+   */
+  private async send(to: string, subject: string, html: string): Promise<void> {
+    const emailFrom = (await settings.get('EMAIL_FROM')) ?? env.EMAIL_FROM;
+
+    // Try Gmail API first (works on Railway and other hosts that block SMTP)
+    if (await this.hasGmailApi()) {
+      try {
+        const messageId = await this.sendViaGmailApi(to, subject, html, emailFrom);
+        logger.info({ to, subject, messageId, via: 'gmail-api' }, 'Email sent via Gmail API');
+        return;
+      } catch (error) {
+        logger.warn({ to, subject, error }, 'Gmail API failed, falling back to SMTP');
+      }
+    }
+
+    // Fallback: SMTP
+    const transporter = await this.getTransporter();
+    const info = await transporter.sendMail({
+      from: emailFrom,
+      to,
+      subject,
+      html,
+    });
+    logger.info({ to, subject, messageId: info.messageId, via: 'smtp' }, 'Email sent via SMTP');
+  }
+
+  /**
    * Send an email rendered from a pre-compiled Handlebars template.
    */
   async sendEmail(
@@ -134,17 +211,9 @@ class EmailService {
     const template = this.getTemplate(templateName);
     const brandDefaults = await this.getBrandDefaults();
     const html = template({ ...brandDefaults, ...data });
-    const transporter = await this.getTransporter();
-    const emailFrom = (await settings.get('EMAIL_FROM')) ?? env.EMAIL_FROM;
 
     try {
-      const info = await transporter.sendMail({
-        from: emailFrom,
-        to,
-        subject,
-        html,
-      });
-      logger.info({ to, subject, messageId: info.messageId }, 'Email sent');
+      await this.send(to, subject, html);
     } catch (error) {
       logger.error({ to, subject, templateName, error }, 'Failed to send email');
       throw error;
@@ -160,15 +229,7 @@ class EmailService {
     html: string,
   ): Promise<void> {
     try {
-      const transporter = await this.getTransporter();
-      const emailFrom = (await settings.get('EMAIL_FROM')) ?? env.EMAIL_FROM;
-      const info = await transporter.sendMail({
-        from: emailFrom,
-        to,
-        subject,
-        html,
-      });
-      logger.info({ to, subject, messageId: info.messageId }, 'Raw HTML email sent');
+      await this.send(to, subject, html);
     } catch (error) {
       logger.error({ to, subject, error }, 'Failed to send raw HTML email');
       throw error;
@@ -176,17 +237,38 @@ class EmailService {
   }
 
   /**
-   * Verify the SMTP connection is working.
+   * Verify the email connection (Gmail API or SMTP).
    */
-  async verifyConnection(): Promise<boolean> {
+  async verifyConnection(): Promise<{ ok: boolean; via: string }> {
+    // Try Gmail API first
+    if (await this.hasGmailApi()) {
+      try {
+        const clientId = (await settings.get('GOOGLE_OAUTH_CLIENT_ID')) ?? env.GOOGLE_OAUTH_CLIENT_ID;
+        const clientSecret = (await settings.get('GOOGLE_OAUTH_CLIENT_SECRET')) ?? env.GOOGLE_OAUTH_CLIENT_SECRET;
+        const refreshToken = (await settings.get('GOOGLE_OAUTH_REFRESH_TOKEN')) ?? env.GOOGLE_OAUTH_REFRESH_TOKEN;
+
+        const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
+        oauth2Client.setCredentials({ refresh_token: refreshToken });
+
+        const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+        await gmail.users.getProfile({ userId: 'me' });
+        logger.info('Gmail API connection verified');
+        return { ok: true, via: 'gmail-api' };
+      } catch (error) {
+        logger.error({ error }, 'Gmail API verification failed');
+        return { ok: false, via: 'gmail-api' };
+      }
+    }
+
+    // Fallback: SMTP
     try {
       const transporter = await this.getTransporter();
       await transporter.verify();
       logger.info('SMTP connection verified');
-      return true;
+      return { ok: true, via: 'smtp' };
     } catch (error) {
       logger.error({ error }, 'SMTP connection verification failed');
-      return false;
+      return { ok: false, via: 'smtp' };
     }
   }
 

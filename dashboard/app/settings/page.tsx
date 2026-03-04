@@ -127,50 +127,47 @@ const SECTIONS: SectionDef[] = [
   // WhatsApp backup (Wati/Interakt) removed — handled internally
   {
     id: "email-smtp",
-    title: "Email (SMTP)",
+    title: "Email",
     icon: "\u2707",
     description:
-      "Outbound email for order confirmations, shipping updates, and marketing. For Gmail, use an App Password (not your regular password).",
+      "Outbound email for order confirmations, shipping updates, and marketing. Uses Gmail API (recommended) or SMTP fallback. Gmail API works on all hosting platforms including Railway.",
     testable: true,
     fields: [
-      {
-        key: "SMTP_HOST",
-        label: "SMTP Host",
-        type: "text",
-        hint: "e.g. smtp.gmail.com",
-        howToGet: "Gmail: smtp.gmail.com  |  Outlook: smtp.office365.com  |  Custom: check your email provider",
-        required: true,
-      },
-      {
-        key: "SMTP_PORT",
-        label: "SMTP Port",
-        type: "text",
-        hint: "587 for TLS (recommended), 465 for SSL",
-        howToGet: "Use 587 for Gmail/most providers",
-        required: true,
-      },
-      {
-        key: "SMTP_USER",
-        label: "Email Address",
-        type: "text",
-        hint: "Your full email address used to send",
-        howToGet: "e.g. orders@sbek.com or your Gmail address",
-        required: true,
-      },
-      {
-        key: "SMTP_PASS",
-        label: "Email Password / App Password",
-        type: "password",
-        hint: "For Gmail: must be an App Password, NOT your regular Gmail password",
-        howToGet: "Go to myaccount.google.com/security → Enable 2-Step Verification → Go to myaccount.google.com/apppasswords → App: Mail, Device: Other → type 'SBEK' → Generate → copy the 16-character password",
-        required: true,
-      },
       {
         key: "EMAIL_FROM",
         label: "From Display Name",
         type: "text",
         hint: "How emails appear to recipients",
         howToGet: 'Format: Brand Name <email@domain.com>  e.g. SBEK <orders@sbek.com>',
+        required: true,
+      },
+      {
+        key: "SMTP_HOST",
+        label: "SMTP Host (fallback)",
+        type: "text",
+        hint: "e.g. smtp.gmail.com — only needed if Gmail API is not set up",
+        howToGet: "Gmail: smtp.gmail.com  |  Outlook: smtp.office365.com  |  Not needed if using Gmail API",
+      },
+      {
+        key: "SMTP_PORT",
+        label: "SMTP Port (fallback)",
+        type: "text",
+        hint: "587 for TLS, 465 for SSL — only needed if Gmail API is not set up",
+        howToGet: "Use 587 for Gmail/most providers. Not needed if using Gmail API",
+      },
+      {
+        key: "SMTP_USER",
+        label: "SMTP Email Address (fallback)",
+        type: "text",
+        hint: "Your full email address — only needed if Gmail API is not set up",
+        howToGet: "e.g. orders@sbek.com or your Gmail address. Not needed if using Gmail API",
+      },
+      {
+        key: "SMTP_PASS",
+        label: "SMTP Password (fallback)",
+        type: "password",
+        hint: "App Password for Gmail — only needed if Gmail API is not set up",
+        howToGet: "Go to myaccount.google.com/apppasswords to generate. Not needed if using Gmail API",
       },
     ],
   },
@@ -762,11 +759,12 @@ function GoogleSection({
             {devOpen && (
               <div className="mt-3 pl-4" style={{ borderLeft: "2px solid var(--border)" }}>
               <p className="text-[10px] mb-3" style={{ color: "var(--text-disabled)" }}>
-                  These are managed by your developer. The service account credentials are already configured via environment variables. OAuth credentials are only needed if you want the &quot;Login with Google&quot; button instead.
+                  These are managed by your developer. OAuth credentials are also used for Gmail API email sending. Service account credentials are configured via environment variables.
                 </p>
                 {[
-                  { key: "GOOGLE_OAUTH_CLIENT_ID", label: "OAuth Client ID", type: "text" as const, hint: "Set by developer" },
-                  { key: "GOOGLE_OAUTH_CLIENT_SECRET", label: "OAuth Client Secret", type: "password" as const, hint: "Set by developer" },
+                  { key: "GOOGLE_OAUTH_CLIENT_ID", label: "OAuth Client ID", type: "text" as const, hint: "From Google Cloud Console → Credentials" },
+                  { key: "GOOGLE_OAUTH_CLIENT_SECRET", label: "OAuth Client Secret", type: "password" as const, hint: "From Google Cloud Console → Credentials" },
+                  { key: "GOOGLE_OAUTH_REFRESH_TOKEN", label: "OAuth Refresh Token", type: "password" as const, hint: "Generated via setup-gmail-oauth script — enables Gmail API email sending" },
                   { key: "GOOGLE_SERVICE_ACCOUNT_EMAIL", label: "Service Account Email", type: "text" as const, hint: "e.g. sbek-bot@project.iam.gserviceaccount.com" },
                   { key: "GOOGLE_PRIVATE_KEY", label: "Service Account Private Key", type: "textarea" as const, hint: "PEM-encoded private key" },
                 ].map((field) => (
