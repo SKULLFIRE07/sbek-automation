@@ -3,7 +3,7 @@ import { createApp } from './app.js';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
 import { redis } from './config/redis.js';
-import { pool, db } from './config/database.js';
+import { pool } from './config/database.js';
 import { queues } from './queues/registry.js';
 import { sheets } from './services/googlesheets.service.js';
 import { initScheduler } from './cron/scheduler.js';
