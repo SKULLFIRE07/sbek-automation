@@ -1,4 +1,5 @@
 import { logger } from '../../config/logger.js';
+import { redis } from '../../config/redis.js';
 import { sheets } from '../../services/googlesheets.service.js';
 import { createProductionTask } from '../../workflows/production-tracking.workflow.js';
 import { completeProduction } from '../../workflows/production-tracking.workflow.js';
@@ -14,16 +15,19 @@ import { webhookEvents } from '../../db/schema.js';
 // Resets on process restart — first poll re-seeds without triggering actions.
 const statusSnapshot = new Map<string, string>();
 let initialized = false;
-let polling = false;
+
+const LOCK_KEY = 'sbek:status-poller:lock';
+const LOCK_TTL = 120; // seconds — must be longer than a poll cycle
 
 // ── Public entry point (called by scheduler) ─────────────────────────────
 
 export async function runStatusPoller(): Promise<void> {
-  if (polling) {
-    logger.warn('Status poller: previous cycle still running, skipping');
+  // Distributed lock via Redis SETNX — safe across restarts and multiple instances
+  const acquired = await redis.set(LOCK_KEY, Date.now().toString(), 'EX', LOCK_TTL, 'NX');
+  if (acquired !== 'OK') {
+    logger.debug('Status poller: lock held by another cycle, skipping');
     return;
   }
-  polling = true;
 
   try {
     await sheets.init();
@@ -98,7 +102,7 @@ export async function runStatusPoller(): Promise<void> {
       logger.info({ changesDetected }, 'Status poller: cycle complete');
     }
   } finally {
-    polling = false;
+    await redis.del(LOCK_KEY).catch(() => {});
   }
 }
 

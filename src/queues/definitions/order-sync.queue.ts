@@ -36,11 +36,13 @@ export const orderSyncWorker = new Worker<OrderSyncPayload>(
 
 orderSyncWorker.on('completed', (job) => {
   logger.info({ jobId: job.id, orderId: job.data.orderId }, 'Order sync completed');
-  // Mark webhook event as processed in dashboard activity feed
-  db.update(webhookEvents)
-    .set({ processed: true, processedAt: new Date() })
-    .where(eq(webhookEvents.event, job.data.event))
-    .catch(() => {});
+  // Mark the specific webhook event as processed in dashboard activity feed
+  if (job.data.webhookEventId) {
+    db.update(webhookEvents)
+      .set({ processed: true, processedAt: new Date() })
+      .where(eq(webhookEvents.id, job.data.webhookEventId))
+      .catch(() => {});
+  }
 });
 
 orderSyncWorker.on('failed', (job, err) => {

@@ -5,6 +5,7 @@ export interface OrderSyncPayload {
   orderId: number;
   event: 'order.created' | 'order.updated';
   rawPayload: Record<string, unknown>;
+  webhookEventId?: number;
 }
 
 /** Notification dispatch (WhatsApp + Email) */

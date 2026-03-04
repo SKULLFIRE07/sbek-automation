@@ -43,6 +43,20 @@ webhooksRouter.post(
 
       const event = topic === 'order.created' ? 'order.created' as const : 'order.updated' as const;
 
+      // Log to webhook_events for dashboard activity feed (insert first to get ID)
+      let webhookEventId: number | undefined;
+      try {
+        const [row] = await db.insert(webhookEvents).values({
+          source: 'woocommerce',
+          event,
+          payload: { orderId, customer: payload?.billing?.first_name, total: payload?.total },
+          processed: false,
+        }).returning({ id: webhookEvents.id });
+        webhookEventId = row.id;
+      } catch (err) {
+        logger.warn({ err }, 'Failed to log webhook event to DB');
+      }
+
       // Enqueue for async processing
       await orderSync.add(
         `order-${orderId}-${event}`,
@@ -50,6 +64,7 @@ webhooksRouter.post(
           orderId,
           event,
           rawPayload: payload,
+          webhookEventId,
         },
         {
           // Deduplicate rapid webhook fires for the same order+event
@@ -58,14 +73,6 @@ webhooksRouter.post(
           delay: event === 'order.updated' ? 5000 : 0,
         }
       );
-
-      // Log to webhook_events for dashboard activity feed
-      await db.insert(webhookEvents).values({
-        source: 'woocommerce',
-        event,
-        payload: { orderId, customer: payload?.billing?.first_name, total: payload?.total },
-        processed: false,
-      }).catch((err) => { logger.warn({ err }, 'Failed to log webhook event to DB'); });
 
       logger.info({ orderId, event, webhookId }, 'Order webhook enqueued');
       res.json({ received: true, orderId, event });
