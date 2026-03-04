@@ -45,10 +45,7 @@ export const CONFIGURABLE_KEYS = [
   // OpenAI
   'OPENAI_API_KEY',
 
-  // Gemini / Nano Banana
-  'GEMINI_API_KEY',
-
-  // OpenRouter (text generation)
+  // OpenRouter (text + image generation)
   'OPENROUTER_API_KEY',
 
   // Google OAuth (alternative to service account)
@@ -220,7 +217,6 @@ const FULLY_MASKED_KEYS = new Set([
   'WHATSAPP_ACCESS_TOKEN',
   'SMTP_PASS',
   'OPENAI_API_KEY',
-  'GEMINI_API_KEY',
   'OPENROUTER_API_KEY',
   'GOOGLE_OAUTH_CLIENT_SECRET',
   'GOOGLE_OAUTH_REFRESH_TOKEN',

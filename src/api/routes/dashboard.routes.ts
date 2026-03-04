@@ -743,29 +743,8 @@ dashboardRouter.post('/settings/validate', async (req: Request, res: Response) =
           }
         }
 
-        // Gemini (image generation)
-        const geminiKey = await resolve('GEMINI_API_KEY');
-        if (geminiKey) {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 10000);
-          try {
-            const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${geminiKey}`, {
-              signal: controller.signal,
-            });
-            clearTimeout(timeout);
-            if (resp.ok) {
-              results.push({ key: 'GEMINI_API_KEY', valid: true, message: 'Gemini API key is valid (image generation)' });
-            } else {
-              results.push({ key: 'GEMINI_API_KEY', valid: false, message: `Gemini returned ${resp.status}` });
-            }
-          } catch (e) {
-            clearTimeout(timeout);
-            results.push({ key: 'GEMINI_API_KEY', valid: false, message: e instanceof Error ? e.message : 'Connection failed' });
-          }
-        }
-
         if (results.length === 0) {
-          res.json({ valid: false, message: 'No AI keys configured. Set OpenRouter key (text) and/or Gemini key (images).' });
+          res.json({ valid: false, message: 'No AI key configured. Set your OpenRouter API key.' });
           return;
         }
         const allValid = results.every((r) => r.valid);

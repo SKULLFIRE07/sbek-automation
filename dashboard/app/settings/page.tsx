@@ -179,23 +179,16 @@ const SECTIONS: SectionDef[] = [
     title: "AI — Text & Image Generation",
     icon: "\u2726",
     description:
-      "OpenRouter for text generation (product descriptions, SEO, captions, competitor analysis). Gemini for product image generation. If no OpenRouter key, Gemini is used for both.",
+      "OpenRouter powers all AI — text generation (product descriptions, SEO, captions) and image generation (ad creatives, lifestyle shots). One key for everything.",
     testable: true,
     fields: [
       {
         key: "OPENROUTER_API_KEY",
         label: "OpenRouter API Key",
         type: "password",
-        hint: "Powers all text generation — product descriptions, SEO, FAQs, captions, competitor analysis",
+        hint: "Powers ALL AI — text generation, image generation, captions, SEO, competitor analysis",
         howToGet: "Go to openrouter.ai → Sign Up → Dashboard → Keys (openrouter.ai/keys) → Create Key → copy. Add credits at openrouter.ai/credits (pay-as-you-go, ~$0.10-0.50 per product)",
         required: true,
-      },
-      {
-        key: "GEMINI_API_KEY",
-        label: "Gemini API Key",
-        type: "password",
-        hint: "Powers product image generation (ad creatives, lifestyle shots, festive themes)",
-        howToGet: "Go to aistudio.google.com/apikey → Sign in with Google → Create API Key → Select project → copy (starts with AIza...)",
       },
     ],
   },

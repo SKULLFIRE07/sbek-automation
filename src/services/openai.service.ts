@@ -73,10 +73,6 @@ class AIService {
       if (settingsKey) { this.cachedKey = settingsKey; this.cachedProvider = 'openrouter'; }
     }
     if (!this.cachedKey) {
-      const settingsKey = await settings.get('GEMINI_API_KEY');
-      if (settingsKey) { this.cachedKey = settingsKey; this.cachedProvider = 'gemini'; }
-    }
-    if (!this.cachedKey) {
       const settingsKey = await settings.get('OPENAI_API_KEY');
       if (settingsKey) { this.cachedKey = settingsKey; this.cachedProvider = 'openrouter'; }
     }
