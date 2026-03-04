@@ -6,6 +6,7 @@ import { db } from '../../config/database.js';
 import { webhookEvents } from '../../db/schema.js';
 import type { OrderSyncPayload } from '../types.js';
 import { processOrderSync } from '../../workflows/order-processing.workflow.js';
+import { logJobActive, logJobCompleted, logJobFailed } from '../job-logger.js';
 
 /** Parse REDIS_URL for BullMQ worker connection */
 function redisOpts() {
@@ -21,6 +22,7 @@ function redisOpts() {
 export const orderSyncWorker = new Worker<OrderSyncPayload>(
   'order-sync',
   async (job: Job<OrderSyncPayload>) => {
+    logJobActive('order-sync', job);
     logger.info({ jobId: job.id, orderId: job.data.orderId, event: job.data.event }, 'Processing order sync');
     return processOrderSync(job.data);
   },
@@ -36,6 +38,7 @@ export const orderSyncWorker = new Worker<OrderSyncPayload>(
 
 orderSyncWorker.on('completed', (job) => {
   logger.info({ jobId: job.id, orderId: job.data.orderId }, 'Order sync completed');
+  logJobCompleted('order-sync', job);
   // Mark the specific webhook event as processed in dashboard activity feed
   if (job.data.webhookEventId) {
     db.update(webhookEvents)
@@ -47,4 +50,5 @@ orderSyncWorker.on('completed', (job) => {
 
 orderSyncWorker.on('failed', (job, err) => {
   logger.error({ jobId: job?.id, orderId: job?.data.orderId, err: err.message }, 'Order sync failed');
+  logJobFailed('order-sync', job, err);
 });

@@ -52,7 +52,6 @@ const queueNames = [
   'review-request',
   'content-generation',
   'creative-generation',
-  'social-posting',
   'competitor-crawl',
 ];
 

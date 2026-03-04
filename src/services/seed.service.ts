@@ -67,7 +67,6 @@ const queueNames = [
   'review-request',
   'content-generation',
   'creative-generation',
-  'social-posting',
   'competitor-crawl',
 ];
 
@@ -206,9 +205,6 @@ function generateJobLogs() {
         break;
       case 'creative-generation':
         payload = { type: randomFrom(['product_image', 'banner', 'story_graphic']), dimensions: randomFrom(['1080x1080', '1200x628', '1080x1920']) };
-        break;
-      case 'social-posting':
-        payload = { platform: randomFrom(['instagram', 'facebook', 'pinterest']), postType: randomFrom(['feed', 'story', 'reel']) };
         break;
       case 'competitor-crawl':
         payload = { competitor: randomFrom(competitors).name, url: randomFrom(competitors).url };

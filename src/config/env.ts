@@ -55,13 +55,6 @@ const envSchema = z.object({
   // ── Interakt (WhatsApp backup) ───────────────────────
   INTERAKT_API_KEY: z.string().min(1).optional(),
 
-  // ── Postiz (social-media scheduling) ───────────────────
-  POSTIZ_API_KEY: z.string().min(1).optional(),
-  POSTIZ_BASE_URL: z
-    .string()
-    .url()
-    .default('https://app.postiz.com/api/v1'),
-
   // ── Crawler ────────────────────────────────────────────
   CRAWLER_BASE_URL: z.string().url().default('http://crawler:3001'),
 

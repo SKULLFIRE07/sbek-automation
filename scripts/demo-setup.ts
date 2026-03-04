@@ -71,7 +71,7 @@ const products = [
 
 const queueNames = [
   'order-sync', 'notification', 'review-request', 'content-generation',
-  'creative-generation', 'social-posting', 'competitor-crawl',
+  'creative-generation', 'competitor-crawl',
 ];
 
 const cronJobNames = [

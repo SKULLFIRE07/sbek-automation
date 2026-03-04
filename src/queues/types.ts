@@ -52,15 +52,6 @@ export interface CreativeGenerationPayload {
   )[];
 }
 
-/** Social media posting */
-export interface SocialPostingPayload {
-  platform: 'instagram' | 'facebook' | 'linkedin' | 'twitter' | 'pinterest' | 'all';
-  imageUrl: string;
-  caption: string;
-  productName: string;
-  scheduledFor?: string; // ISO date string
-  useOptimalTime?: boolean; // let the system pick the best posting time
-}
 
 /** Competitor crawl */
 export interface CompetitorCrawlPayload {

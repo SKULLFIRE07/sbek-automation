@@ -6,7 +6,6 @@ import type {
   ReviewRequestPayload,
   ContentGenerationPayload,
   CreativeGenerationPayload,
-  SocialPostingPayload,
   CompetitorCrawlPayload,
 } from './types.js';
 
@@ -75,10 +74,6 @@ export const contentGeneration = registry.getOrCreate<ContentGenerationPayload>(
 
 export const creativeGeneration = registry.getOrCreate<CreativeGenerationPayload>('creative-generation', {
   defaultJobOptions: { attempts: 3, backoff: { type: 'exponential', delay: 15_000 } },
-});
-
-export const socialPosting = registry.getOrCreate<SocialPostingPayload>('social-posting', {
-  defaultJobOptions: { attempts: 4, backoff: { type: 'exponential', delay: 5_000 } },
 });
 
 export const competitorCrawl = registry.getOrCreate<CompetitorCrawlPayload>('competitor-crawl', {

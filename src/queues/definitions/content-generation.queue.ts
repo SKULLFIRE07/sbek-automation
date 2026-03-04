@@ -3,6 +3,7 @@ import { env } from '../../config/env.js';
 import { logger } from '../../config/logger.js';
 import type { ContentGenerationPayload } from '../types.js';
 import { processContentGeneration } from '../../workflows/content-pipeline.workflow.js';
+import { logJobActive, logJobCompleted, logJobFailed } from '../job-logger.js';
 
 /** Parse REDIS_URL for BullMQ worker connection */
 function redisOpts() {
@@ -25,6 +26,7 @@ function redisOpts() {
 export const contentGenerationWorker = new Worker<ContentGenerationPayload>(
   'content-generation',
   async (job: Job<ContentGenerationPayload>) => {
+    logJobActive('content-generation', job);
     logger.info(
       { jobId: job.id, productId: job.data.productId, type: job.data.type },
       'Processing content generation',
@@ -42,6 +44,7 @@ contentGenerationWorker.on('completed', (job) => {
     { jobId: job.id, productId: job.data.productId, type: job.data.type },
     'Content generation completed',
   );
+  logJobCompleted('content-generation', job);
 });
 
 contentGenerationWorker.on('failed', (job, err) => {
@@ -49,4 +52,5 @@ contentGenerationWorker.on('failed', (job, err) => {
     { jobId: job?.id, productId: job?.data.productId, type: job?.data.type, err: err.message },
     'Content generation failed',
   );
+  logJobFailed('content-generation', job, err);
 });

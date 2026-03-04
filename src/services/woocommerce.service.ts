@@ -544,10 +544,11 @@ class WooCommerceService {
    */
   parseOrderForSheets(order: any): ParsedOrderRow {
     const billing = order.billing ?? {};
-    const customerName = [billing.first_name, billing.last_name]
-      .filter(Boolean)
-      .join(' ')
-      .trim();
+    const shipping = order.shipping ?? {};
+    const customerName =
+      [billing.first_name, billing.last_name].filter(Boolean).join(' ').trim() ||
+      [shipping.first_name, shipping.last_name].filter(Boolean).join(' ').trim() ||
+      (order.customer_note ? 'Customer' : 'Valued Customer');
 
     const lineItems: any[] = order.line_items ?? [];
 

@@ -3,6 +3,7 @@ import { env } from '../../config/env.js';
 import { logger } from '../../config/logger.js';
 import type { CreativeGenerationPayload } from '../types.js';
 import { processCreativeGeneration } from '../../workflows/creative-pipeline.workflow.js';
+import { logJobActive, logJobCompleted, logJobFailed } from '../job-logger.js';
 
 /** Parse REDIS_URL for BullMQ worker connection */
 function redisOpts() {
@@ -22,6 +23,7 @@ function redisOpts() {
 export const creativeGenerationWorker = new Worker<CreativeGenerationPayload>(
   'creative-generation',
   async (job: Job<CreativeGenerationPayload>) => {
+    logJobActive('creative-generation', job);
     logger.info(
       {
         jobId: job.id,
@@ -44,6 +46,7 @@ creativeGenerationWorker.on('completed', (job) => {
     { jobId: job.id, productId: job.data.productId },
     'Creative generation completed',
   );
+  logJobCompleted('creative-generation', job);
 });
 
 creativeGenerationWorker.on('failed', (job, err) => {
@@ -51,4 +54,5 @@ creativeGenerationWorker.on('failed', (job, err) => {
     { jobId: job?.id, productId: job?.data.productId, err: err.message },
     'Creative generation failed',
   );
+  logJobFailed('creative-generation', job, err);
 });

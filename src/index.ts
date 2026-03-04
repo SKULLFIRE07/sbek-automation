@@ -14,7 +14,6 @@ import './queues/definitions/notification.queue.js';
 import './queues/definitions/review-request.queue.js';
 import './queues/definitions/content-generation.queue.js';
 import './queues/definitions/creative-generation.queue.js';
-import './queues/definitions/social-posting.queue.js';
 import './queues/definitions/competitor-crawl.queue.js';
 
 // Run database migrations on startup — create tables if they don't exist

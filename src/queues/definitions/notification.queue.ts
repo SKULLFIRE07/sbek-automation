@@ -5,6 +5,7 @@ import type { NotificationPayload } from '../types.js';
 import { whatsapp } from '../../services/whatsapp.service.js';
 import { wati } from '../../services/wati.service.js';
 import { email } from '../../services/email.service.js';
+import { logJobActive, logJobCompleted, logJobFailed } from '../job-logger.js';
 
 function redisOpts() {
   const url = new URL(env.REDIS_URL);
@@ -23,7 +24,9 @@ function redisOpts() {
 export const notificationWorker = new Worker<NotificationPayload>(
   'notification',
   async (job: Job<NotificationPayload>) => {
+    logJobActive('notification', job);
     const { channel, recipientPhone, recipientEmail, recipientName, templateName, templateData } = job.data;
+    const safeName = recipientName || 'Valued Customer';
 
     const results: Record<string, string> = {};
 
@@ -33,7 +36,7 @@ export const notificationWorker = new Worker<NotificationPayload>(
         const subject = emailSubjects[templateName] || `SBEK — Update on your order`;
         await email.sendEmail(recipientEmail, subject, templateName, {
           ...templateData,
-          customer_name: recipientName,
+          customer_name: safeName,
         });
         results.email = 'sent';
         logger.info({ recipientEmail, templateName }, 'Email sent');
@@ -104,8 +107,10 @@ const emailSubjects: Record<string, string> = {
 
 notificationWorker.on('completed', (job) => {
   logger.info({ jobId: job.id, template: job.data.templateName }, 'Notification job completed');
+  logJobCompleted('notification', job);
 });
 
 notificationWorker.on('failed', (job, err) => {
   logger.error({ jobId: job?.id, err: err.message }, 'Notification job failed');
+  logJobFailed('notification', job, err);
 });

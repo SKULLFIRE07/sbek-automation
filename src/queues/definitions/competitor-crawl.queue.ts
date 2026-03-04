@@ -3,6 +3,7 @@ import { env } from '../../config/env.js';
 import { logger } from '../../config/logger.js';
 import type { CompetitorCrawlPayload } from '../types.js';
 import { processCompetitorCrawl } from '../../workflows/competitor-monitoring.workflow.js';
+import { logJobActive, logJobCompleted, logJobFailed } from '../job-logger.js';
 
 /** Parse REDIS_URL for BullMQ worker connection */
 function redisOpts() {
@@ -23,6 +24,7 @@ function redisOpts() {
 export const competitorCrawlWorker = new Worker<CompetitorCrawlPayload>(
   'competitor-crawl',
   async (job: Job<CompetitorCrawlPayload>) => {
+    logJobActive('competitor-crawl', job);
     logger.info(
       { jobId: job.id, competitor: job.data.competitorName, url: job.data.url },
       'Processing competitor crawl',
@@ -41,6 +43,7 @@ competitorCrawlWorker.on('completed', (job) => {
     { jobId: job.id, competitor: job.data.competitorName },
     'Competitor crawl completed',
   );
+  logJobCompleted('competitor-crawl', job);
 });
 
 competitorCrawlWorker.on('failed', (job, err) => {
@@ -48,4 +51,5 @@ competitorCrawlWorker.on('failed', (job, err) => {
     { jobId: job?.id, competitor: job?.data.competitorName, err: err.message },
     'Competitor crawl failed',
   );
+  logJobFailed('competitor-crawl', job, err);
 });

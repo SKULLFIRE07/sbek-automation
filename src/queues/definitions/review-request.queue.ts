@@ -3,6 +3,7 @@ import { env } from '../../config/env.js';
 import { logger } from '../../config/logger.js';
 import type { ReviewRequestPayload } from '../types.js';
 import { sendReviewRequest } from '../../workflows/review-collection.workflow.js';
+import { logJobActive, logJobCompleted, logJobFailed } from '../job-logger.js';
 
 function redisOpts() {
   const url = new URL(env.REDIS_URL);
@@ -21,6 +22,7 @@ function redisOpts() {
 export const reviewRequestWorker = new Worker<ReviewRequestPayload>(
   'review-request',
   async (job: Job<ReviewRequestPayload>) => {
+    logJobActive('review-request', job);
     logger.info({ jobId: job.id, orderId: job.data.orderId }, 'Processing review request');
     return sendReviewRequest(job.data);
   },
@@ -32,8 +34,10 @@ export const reviewRequestWorker = new Worker<ReviewRequestPayload>(
 
 reviewRequestWorker.on('completed', (job) => {
   logger.info({ jobId: job.id, orderId: job.data.orderId }, 'Review request completed');
+  logJobCompleted('review-request', job);
 });
 
 reviewRequestWorker.on('failed', (job, err) => {
   logger.error({ jobId: job?.id, err: err.message }, 'Review request failed');
+  logJobFailed('review-request', job, err);
 });

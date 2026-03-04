@@ -85,7 +85,6 @@ const queueNames = [
   'review-request',
   'content-generation',
   'creative-generation',
-  'social-posting',
   'competitor-crawl',
 ];
 
@@ -246,9 +245,6 @@ function generateJobLogs(): Array<{
       case 'creative-generation':
         payload = { type: randomFrom(['product_image', 'banner', 'story_graphic']), dimensions: randomFrom(['1080x1080', '1200x628', '1080x1920']) };
         break;
-      case 'social-posting':
-        payload = { platform: randomFrom(['instagram', 'facebook', 'pinterest']), postType: randomFrom(['feed', 'story', 'reel']) };
-        break;
       case 'competitor-crawl':
         payload = { competitor: randomFrom(competitors).name, url: randomFrom(competitors).url };
         break;
@@ -406,7 +402,6 @@ const queueSpecs: QueueSpec[] = [
   { name: 'review-request', completed: 32, waiting: 0, active: 0, delayed: 4, failed: 0 },
   { name: 'content-generation', completed: 28, waiting: 1, active: 2, delayed: 0, failed: 0 },
   { name: 'creative-generation', completed: 19, waiting: 1, active: 1, delayed: 0, failed: 0 },
-  { name: 'social-posting', completed: 42, waiting: 0, active: 1, delayed: 0, failed: 0 },
   { name: 'competitor-crawl', completed: 15, waiting: 0, active: 0, delayed: 0, failed: 0 },
 ];
 
