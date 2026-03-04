@@ -7,9 +7,6 @@ import { pool, db } from './config/database.js';
 import { queues } from './queues/registry.js';
 import { sheets } from './services/googlesheets.service.js';
 import { initScheduler } from './cron/scheduler.js';
-import { migrate } from 'drizzle-orm/node-postgres/migrator';
-import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
 
 // Import queue workers so they start processing jobs
 import './queues/definitions/order-sync.queue.js';
@@ -20,13 +17,56 @@ import './queues/definitions/creative-generation.queue.js';
 import './queues/definitions/social-posting.queue.js';
 import './queues/definitions/competitor-crawl.queue.js';
 
-// Run database migrations on startup
+// Run database migrations on startup — create tables if they don't exist
 try {
-  const migrationsPath = resolve(process.cwd(), 'src/db/migrations');
-  await migrate(db, { migrationsFolder: migrationsPath });
-  logger.info('Database migrations completed');
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS "system_config" (
+      "id" serial PRIMARY KEY NOT NULL,
+      "key" varchar(100) NOT NULL,
+      "value" jsonb NOT NULL,
+      "updated_at" timestamp DEFAULT now(),
+      CONSTRAINT "system_config_key_unique" UNIQUE("key")
+    );
+    CREATE TABLE IF NOT EXISTS "webhook_events" (
+      "id" serial PRIMARY KEY NOT NULL,
+      "source" varchar(50) NOT NULL,
+      "event" varchar(100) NOT NULL,
+      "payload" jsonb NOT NULL,
+      "processed" boolean DEFAULT false,
+      "processed_at" timestamp,
+      "created_at" timestamp DEFAULT now()
+    );
+    CREATE TABLE IF NOT EXISTS "job_logs" (
+      "id" serial PRIMARY KEY NOT NULL,
+      "queue_name" varchar(100) NOT NULL,
+      "job_id" varchar(100) NOT NULL,
+      "status" text DEFAULT 'queued' NOT NULL,
+      "payload" jsonb,
+      "result" jsonb,
+      "error" text,
+      "attempts" integer DEFAULT 0,
+      "created_at" timestamp DEFAULT now(),
+      "completed_at" timestamp
+    );
+    CREATE TABLE IF NOT EXISTS "cron_runs" (
+      "id" serial PRIMARY KEY NOT NULL,
+      "job_name" varchar(100) NOT NULL,
+      "started_at" timestamp DEFAULT now(),
+      "completed_at" timestamp,
+      "items_processed" integer DEFAULT 0,
+      "error" text
+    );
+    CREATE TABLE IF NOT EXISTS "competitor_snapshots" (
+      "id" serial PRIMARY KEY NOT NULL,
+      "competitor_name" varchar(200) NOT NULL,
+      "url" varchar(500) NOT NULL,
+      "data" jsonb NOT NULL,
+      "crawled_at" timestamp DEFAULT now()
+    );
+  `);
+  logger.info('Database tables ensured');
 } catch (err) {
-  logger.warn({ err }, 'Database migration failed — tables may already exist');
+  logger.error({ err }, 'Failed to create database tables');
 }
 
 const app = createApp();
