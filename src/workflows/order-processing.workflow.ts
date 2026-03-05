@@ -117,7 +117,7 @@ export async function processOrderSync(payload: OrderSyncPayload): Promise<void>
           amount: parsed.amount,
           order_date: parsed.orderDate || formatDate(new Date()),
           delivery_date: promisedDelivery,
-          tracking_url: env.BRAND_WEBSITE ? `${env.BRAND_WEBSITE}/my-account/orders/` : '#',
+          tracking_url: env.BRAND_WEBSITE ? `${env.BRAND_WEBSITE}/my-account/view-order/${parsed.orderId}/` : '#',
         },
       }, { jobId: `notify-order-confirm-${orderId}` });
     }
