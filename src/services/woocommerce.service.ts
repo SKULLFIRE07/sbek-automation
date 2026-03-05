@@ -369,11 +369,51 @@ class WooCommerceService {
     }
   }
 
+  // ── WordPress REST API helper (wp/v2 — NOT wc/v3) ──────────────────
+
+  /**
+   * Make a request to the WordPress REST API (wp/v2).
+   * Uses Basic Auth with WooCommerce consumer key:secret.
+   * This works because WooCommerce registers its API keys as valid
+   * application passwords when the site is on HTTPS.
+   */
+  private async wpRequest(
+    method: 'GET' | 'POST' | 'PUT',
+    endpoint: string,
+    body?: Record<string, unknown>,
+  ): Promise<any> {
+    const url = (await settings.get('WOO_URL')) ?? env.WOO_URL;
+    const key = (await settings.get('WOO_CONSUMER_KEY')) ?? env.WOO_CONSUMER_KEY;
+    const secret = (await settings.get('WOO_CONSUMER_SECRET')) ?? env.WOO_CONSUMER_SECRET;
+
+    const fullUrl = `${url}/wp-json/wp/v2/${endpoint}`;
+    const authHeader = 'Basic ' + Buffer.from(`${key}:${secret}`).toString('base64');
+
+    const options: RequestInit = {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': authHeader,
+      },
+      signal: AbortSignal.timeout(30_000),
+    };
+    if (body && method !== 'GET') {
+      options.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(fullUrl, options);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`WordPress API ${response.status}: ${errorText}`);
+    }
+    return response.json();
+  }
+
   // ── WordPress Pages (for AEO Knowledge Base) ──────────────────────────
 
   /**
    * Create or update a WordPress page (for AEO knowledge base content).
-   * Searches by slug; if found updates, otherwise creates.
+   * Uses WordPress REST API (wp/v2/pages), NOT WooCommerce API.
    */
   async upsertPage(
     slug: string,
@@ -382,19 +422,18 @@ class WooCommerceService {
     status: 'publish' | 'draft' = 'publish',
   ): Promise<{ id: number; slug: string; link: string }> {
     try {
-      const api = await this.getApi();
-      const searchRes = await api.get('pages', { slug, per_page: 1 });
-      const existing = searchRes.data?.[0];
+      const searchRes = await this.wpRequest('GET', `pages?slug=${encodeURIComponent(slug)}&per_page=1`);
+      const existing = Array.isArray(searchRes) ? searchRes[0] : null;
 
       if (existing) {
-        const updated = await api.put(`pages/${existing.id}`, { title, content, status });
+        const updated = await this.wpRequest('PUT', `pages/${existing.id}`, { title, content, status });
         logger.info({ pageId: existing.id, slug }, 'WordPress page updated');
-        return { id: updated.data.id, slug: updated.data.slug, link: updated.data.link };
+        return { id: updated.id, slug: updated.slug, link: updated.link };
       }
 
-      const created = await api.post('pages', { title, content, slug, status });
-      logger.info({ pageId: created.data.id, slug }, 'WordPress page created');
-      return { id: created.data.id, slug: created.data.slug, link: created.data.link };
+      const created = await this.wpRequest('POST', 'pages', { title, content, slug, status });
+      logger.info({ pageId: created.id, slug }, 'WordPress page created');
+      return { id: created.id, slug: created.slug, link: created.link };
     } catch (error) {
       logger.error({ err: error, slug }, 'Failed to upsert WordPress page');
       throw error;
@@ -405,6 +444,7 @@ class WooCommerceService {
 
   /**
    * Create a WordPress blog post (for comparison articles).
+   * Uses WordPress REST API (wp/v2/posts), NOT WooCommerce API.
    */
   async createPost(
     title: string,
@@ -413,13 +453,12 @@ class WooCommerceService {
     categories?: number[],
   ): Promise<{ id: number; slug: string; link: string }> {
     try {
-      const api = await this.getApi();
       const data: Record<string, unknown> = { title, content, status };
       if (categories?.length) data.categories = categories;
 
-      const response = await api.post('posts', data);
-      logger.info({ postId: response.data.id }, 'WordPress post created');
-      return { id: response.data.id, slug: response.data.slug, link: response.data.link };
+      const response = await this.wpRequest('POST', 'posts', data);
+      logger.info({ postId: response.id }, 'WordPress post created');
+      return { id: response.id, slug: response.slug, link: response.link };
     } catch (error) {
       logger.error({ err: error, title }, 'Failed to create WordPress post');
       throw error;

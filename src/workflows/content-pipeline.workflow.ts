@@ -134,14 +134,41 @@ async function handleFAQ(productId: number, productName: string): Promise<void> 
     })),
   };
 
+  const faqJsonLdStr = JSON.stringify(faqJsonLd);
+
+  // Build visible FAQ HTML + hidden JSON-LD for Google rich snippets
+  const faqHtml = faqs.map((faq) =>
+    `<div class="sbek-faq-item"><h4>${faq.question}</h4><p>${faq.answer}</p></div>`
+  ).join('\n');
+
+  const faqSection = `
+<div class="sbek-faq" style="margin-top:2em;padding-top:1em;border-top:1px solid #eee;">
+<h3>Frequently Asked Questions</h3>
+${faqHtml}
+</div>
+<script type="application/ld+json" class="sbek-faq-schema">${faqJsonLdStr}</script>`;
+
+  // Inject into product description
+  const currentDesc = product.description || '';
+  let updatedDesc: string;
+  if (currentDesc.includes('class="sbek-faq"')) {
+    updatedDesc = currentDesc.replace(
+      /<div class="sbek-faq"[\s\S]*?<\/div>\s*<script type="application\/ld\+json" class="sbek-faq-schema">[\s\S]*?<\/script>/,
+      faqSection.trim(),
+    );
+  } else {
+    updatedDesc = currentDesc + faqSection;
+  }
+
   await woocommerce.updateProduct(productId, {
+    description: updatedDesc,
     meta_data: [
-      { key: '_sbek_faq_json_ld', value: JSON.stringify(faqJsonLd) },
+      { key: '_sbek_faq_json_ld', value: faqJsonLdStr },
       { key: '_sbek_faqs', value: JSON.stringify(faqs) },
     ],
   });
 
-  logger.info({ productId }, 'WooCommerce product updated with FAQ JSON-LD');
+  logger.info({ productId }, 'WooCommerce product updated with FAQ section + JSON-LD');
 
   await sheets.logEvent(
     'INFO',
@@ -215,13 +242,29 @@ async function handleSchemaInjection(productId: number, productName: string): Pr
   // Combine both schemas
   const combinedSchema = JSON.stringify([productSchema, orgSchema]);
 
+  // Inject JSON-LD directly into product description so it renders
+  // regardless of WooCommerce theme. Also store in meta for reference.
+  const schemaScriptTag = `\n<script type="application/ld+json" class="sbek-schema">${combinedSchema}</script>`;
+
+  const currentDesc = product.description || '';
+  let updatedDesc: string;
+  if (currentDesc.includes('class="sbek-schema"')) {
+    updatedDesc = currentDesc.replace(
+      /<script type="application\/ld\+json" class="sbek-schema">[\s\S]*?<\/script>/,
+      schemaScriptTag.trim(),
+    );
+  } else {
+    updatedDesc = currentDesc + schemaScriptTag;
+  }
+
   await woocommerce.updateProduct(productId, {
+    description: updatedDesc,
     meta_data: [
       { key: '_sbek_schema_json_ld', value: combinedSchema },
     ],
   });
 
-  logger.info({ productId }, 'Product + Organization JSON-LD schema injected');
+  logger.info({ productId }, 'Product + Organization JSON-LD schema injected into description');
 
   await sheets.logEvent(
     'INFO',
