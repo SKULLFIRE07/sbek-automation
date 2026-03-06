@@ -17,7 +17,7 @@ const statusSnapshot = new Map<string, string>();
 let initialized = false;
 
 const LOCK_KEY = 'sbek:status-poller:lock';
-const LOCK_TTL = 30; // seconds — must be longer than a poll cycle
+const LOCK_TTL = 120; // seconds — must be longer than a full poll cycle including Sheets API calls
 
 // ── Public entry point (called by scheduler) ─────────────────────────────
 
@@ -126,16 +126,15 @@ export async function runStatusPoller(): Promise<void> {
 
         const result = await evaluateQCResults(Number(qcOrderId));
         if (result === 'passed') {
-          // evaluateQCResults already updates status to "Ready to Ship" + sends email
           statusSnapshot.set(qcOrderId, 'Ready to Ship');
           changesDetected++;
           logger.info({ orderId: qcOrderId }, 'QC auto-evaluated: PASSED → Ready to Ship');
-        } else {
-          // evaluateQCResults sets status back to "In Production" for rework
+        } else if (result === 'failed') {
           statusSnapshot.set(qcOrderId, 'In Production');
           changesDetected++;
           logger.info({ orderId: qcOrderId }, 'QC auto-evaluated: FAILED → rework');
         }
+        // 'pending' — do nothing, will re-check next cycle
       } catch (err) {
         logger.error({ err, orderId: qcOrderId }, 'QC auto-evaluation error');
       }

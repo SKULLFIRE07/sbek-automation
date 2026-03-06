@@ -30,10 +30,9 @@ export function logJobCompleted(queueName: string, job: Job, result?: unknown): 
       attempts: job.attemptsMade,
     })
     .where(eq(jobLogs.jobId, job.id ?? 'unknown'))
-    .then((res) => {
-      // If no row was updated (job was too fast / active log missed), insert one
+    .then(async (res) => {
       if (res.rowCount === 0) {
-        return db.insert(jobLogs).values({
+        await db.insert(jobLogs).values({
           queueName,
           jobId: job.id ?? 'unknown',
           status: 'completed',
@@ -44,7 +43,7 @@ export function logJobCompleted(queueName: string, job: Job, result?: unknown): 
         });
       }
     })
-    .catch((err) => logger.debug({ err }, 'Failed to log job completed'));
+    .catch((err) => logger.warn({ err, queueName, jobId: job.id }, 'Failed to log job completed'));
 }
 
 export function logJobFailed(queueName: string, job: Job | undefined, error: Error): void {
@@ -57,9 +56,9 @@ export function logJobFailed(queueName: string, job: Job | undefined, error: Err
       attempts: job.attemptsMade,
     })
     .where(eq(jobLogs.jobId, job.id ?? 'unknown'))
-    .then((res) => {
+    .then(async (res) => {
       if (res.rowCount === 0) {
-        return db.insert(jobLogs).values({
+        await db.insert(jobLogs).values({
           queueName,
           jobId: job.id ?? 'unknown',
           status: 'failed',
@@ -70,5 +69,5 @@ export function logJobFailed(queueName: string, job: Job | undefined, error: Err
         });
       }
     })
-    .catch((err) => logger.debug({ err }, 'Failed to log job failed'));
+    .catch((err) => logger.warn({ err, queueName, jobId: job.id }, 'Failed to log job failed'));
 }

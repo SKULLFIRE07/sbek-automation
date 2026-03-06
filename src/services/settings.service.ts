@@ -87,6 +87,8 @@ class SettingsService {
   /** In-memory cache: key → value. Populated on first read / after writes. */
   private cache = new Map<string, string>();
   private cacheLoaded = false;
+  private cacheLoadedAt = 0;
+  private readonly CACHE_TTL = 60_000; // 60 seconds — config changes take effect within 1 minute
 
   /**
    * Get the effective value for a config key.
@@ -195,13 +197,14 @@ class SettingsService {
     }
 
     this.cacheLoaded = true;
+    this.cacheLoadedAt = Date.now();
     logger.info({ count: rows.length }, 'Settings cache refreshed from database');
   }
 
   // ── Private ──────────────────────────────────────────────────────────
 
   private async ensureCache(): Promise<void> {
-    if (!this.cacheLoaded) {
+    if (!this.cacheLoaded || Date.now() - this.cacheLoadedAt > this.CACHE_TTL) {
       await this.refresh();
     }
   }

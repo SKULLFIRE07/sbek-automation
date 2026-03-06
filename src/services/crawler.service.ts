@@ -234,9 +234,26 @@ class CrawlerService {
   // ── Fetch strategies ──────────────────────────────────────────────
 
   /** Fetch a page using a headless Chromium browser — bypasses Cloudflare & JS challenges. */
-  private async fetchWithBrowser(url: string): Promise<string> {
-    const browser = await this.getBrowser();
+  private async fetchWithBrowser(url: string, retryCount = 0): Promise<string> {
+    let browser: Browser;
+    try {
+      browser = await this.getBrowser();
+    } catch (launchErr) {
+      // Browser launch failed — kill stale instance and retry once
+      logger.warn({ err: String(launchErr) }, 'Browser launch failed — resetting');
+      this.browser = null;
+      if (retryCount < 1) {
+        return this.fetchWithBrowser(url, retryCount + 1);
+      }
+      throw launchErr;
+    }
+
     const page = await browser.newPage();
+
+    // Hard timeout for the entire page operation — prevents infinite hangs
+    const pageTimeout = setTimeout(() => {
+      page.close().catch(() => {});
+    }, 45_000);
 
     try {
       const ua = randomUA();
@@ -254,18 +271,20 @@ class CrawlerService {
         timeout: 30_000,
       });
 
-      // Wait a bit for any JS-rendered content to load
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Wait for JS-rendered content
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // Scroll down to trigger lazy-loaded content
+      // Scroll down to trigger lazy-loaded content (capped iterations)
       await page.evaluate(async () => {
         await new Promise<void>((resolve) => {
           let totalHeight = 0;
           const distance = 400;
+          let iterations = 0;
           const timer = setInterval(() => {
             window.scrollBy(0, distance);
             totalHeight += distance;
-            if (totalHeight >= document.body.scrollHeight || totalHeight > 5000) {
+            iterations++;
+            if (totalHeight >= document.body.scrollHeight || totalHeight > 5000 || iterations > 20) {
               clearInterval(timer);
               resolve();
             }
@@ -273,22 +292,37 @@ class CrawlerService {
         });
       });
 
-      // Wait for any lazy content triggered by scroll
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
       const html = await page.content();
 
       // Check if we got a Cloudflare challenge page
       if (html.includes('Just a moment...') || html.includes('cf-browser-verification')) {
-        logger.warn({ url }, 'Cloudflare challenge detected — waiting longer');
-        await new Promise((resolve) => setTimeout(resolve, 8000));
+        logger.info({ url }, 'Cloudflare challenge detected — waiting for resolution');
+        await new Promise((resolve) => setTimeout(resolve, 6000));
         const retryHtml = await page.content();
+
+        // If still blocked, try one more time with different approach
+        if (retryHtml.includes('Just a moment...')) {
+          logger.warn({ url }, 'Cloudflare challenge still present after wait');
+          await new Promise((resolve) => setTimeout(resolve, 5000));
+          return await page.content();
+        }
+
         return retryHtml;
       }
 
       return html;
+    } catch (err) {
+      // If browser disconnected mid-crawl, reset and propagate
+      if (String(err).includes('Protocol error') || String(err).includes('Target closed') || String(err).includes('disconnected')) {
+        logger.warn({ url, err: String(err) }, 'Browser disconnected — resetting');
+        this.browser = null;
+      }
+      throw err;
     } finally {
-      await page.close();
+      clearTimeout(pageTimeout);
+      await page.close().catch(() => {});
     }
   }
 

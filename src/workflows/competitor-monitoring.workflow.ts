@@ -58,8 +58,9 @@ export async function processCompetitorCrawl(
   const productsFound = crawlData.products?.length ?? 0;
   logger.info({ competitorName, productsFound }, 'Competitor site crawled');
 
-  // Compute summary stats
-  const prices = crawlData.products
+  // Compute summary stats (null-safe)
+  const products = crawlData.products ?? [];
+  const prices = products
     .map((p) => p.price)
     .filter((p) => p > 0);
   const priceRange = prices.length > 0
@@ -68,13 +69,13 @@ export async function processCompetitorCrawl(
 
   // SEO score: simple heuristic (0-10)
   let seoScore = 0;
-  if (crawlData.meta.description) seoScore += 2;
-  if (crawlData.techSeo.hasSchema) seoScore += 2;
-  if (crawlData.techSeo.hasOpenGraph) seoScore += 1;
-  if (crawlData.techSeo.hasSitemap) seoScore += 2;
-  if (crawlData.techSeo.h1Tags.length > 0) seoScore += 1;
-  if (crawlData.meta.canonical) seoScore += 1;
-  if (crawlData.techSeo.robotsTxt) seoScore += 1;
+  if (crawlData.meta?.description) seoScore += 2;
+  if (crawlData.techSeo?.hasSchema) seoScore += 2;
+  if (crawlData.techSeo?.hasOpenGraph) seoScore += 1;
+  if (crawlData.techSeo?.hasSitemap) seoScore += 2;
+  if (crawlData.techSeo?.h1Tags?.length > 0) seoScore += 1;
+  if (crawlData.meta?.canonical) seoScore += 1;
+  if (crawlData.techSeo?.robotsTxt) seoScore += 1;
 
   // 3. Store new snapshot in DB
   try {
@@ -113,12 +114,16 @@ export async function processCompetitorCrawl(
   }
 
   // 6. Log full analysis to System Logs
-  await sheets.logEvent(
-    'info',
-    'competitor-monitoring',
-    `Competitor analysis: ${competitorName}`,
-    analysis,
-  );
+  try {
+    await sheets.logEvent(
+      'info',
+      'competitor-monitoring',
+      `Competitor analysis: ${competitorName}`,
+      analysis,
+    );
+  } catch (err) {
+    logger.warn({ err, competitorName }, 'Failed to log competitor analysis to Sheets');
+  }
 
   // 7. Send email report to admin
   const adminEmail = await settings.get('ADMIN_EMAIL');

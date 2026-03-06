@@ -57,12 +57,12 @@ export async function createQCChecklist(payload: QCCheckPayload): Promise<void> 
  * If all items pass -> update status to "Shipped" ready state, notify customer.
  * If any item fails -> send alert, create rework task.
  */
-export async function evaluateQCResults(orderId: number): Promise<'passed' | 'failed'> {
+export async function evaluateQCResults(orderId: number): Promise<'passed' | 'failed' | 'pending'> {
   const items = await sheets.getQCItems(String(orderId));
 
   if (!items || items.length === 0) {
     logger.warn({ orderId }, 'No QC items found');
-    return 'failed';
+    return 'pending';
   }
 
   const passedCount = items.filter((row) => row['Pass/Fail'] === 'Pass').length;
@@ -155,7 +155,7 @@ export async function evaluateQCResults(orderId: number): Promise<'passed' | 'fa
     return 'failed';
   }
 
-  // Some items still pending
-  logger.info({ orderId }, 'QC evaluation: some items still pending');
-  return 'failed';
+  // Some items still pending — don't treat as failure
+  logger.info({ orderId, passedCount, totalCount }, 'QC evaluation: some items still pending');
+  return 'pending';
 }

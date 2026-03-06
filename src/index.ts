@@ -62,6 +62,15 @@ try {
       "data" jsonb NOT NULL,
       "crawled_at" timestamp DEFAULT now()
     );
+
+    -- Performance indexes for common queries
+    CREATE INDEX IF NOT EXISTS "idx_job_logs_queue" ON "job_logs" ("queue_name");
+    CREATE INDEX IF NOT EXISTS "idx_job_logs_status" ON "job_logs" ("status");
+    CREATE INDEX IF NOT EXISTS "idx_webhook_events_processed" ON "webhook_events" ("processed");
+    CREATE INDEX IF NOT EXISTS "idx_webhook_events_created" ON "webhook_events" ("created_at");
+    CREATE INDEX IF NOT EXISTS "idx_competitor_snapshots_name" ON "competitor_snapshots" ("competitor_name");
+    CREATE INDEX IF NOT EXISTS "idx_competitor_snapshots_crawled" ON "competitor_snapshots" ("crawled_at");
+    CREATE INDEX IF NOT EXISTS "idx_cron_runs_job" ON "cron_runs" ("job_name");
   `);
   logger.info('Database tables ensured');
 } catch (err) {
@@ -70,10 +79,13 @@ try {
 
 const app = createApp();
 
-// Initialize Google Sheets connection
-sheets.init().catch((err) => {
+// Initialize Google Sheets connection (await so cron jobs don't race)
+try {
+  await sheets.init();
+  logger.info('Google Sheets initialized');
+} catch (err) {
   logger.warn({ err }, 'Google Sheets init failed — will retry on first use');
-});
+}
 
 // Start cron scheduler
 initScheduler();
@@ -85,6 +97,13 @@ const server = app.listen(env.PORT, () => {
 // Graceful shutdown
 async function shutdown(signal: string) {
   logger.info({ signal }, 'Received shutdown signal, draining...');
+
+  // Force exit after 15 seconds to prevent hanging
+  const forceTimer = setTimeout(() => {
+    logger.warn('Graceful shutdown timed out — forcing exit');
+    process.exit(1);
+  }, 15_000);
+  forceTimer.unref();
 
   server.close(() => {
     logger.info('HTTP server closed');

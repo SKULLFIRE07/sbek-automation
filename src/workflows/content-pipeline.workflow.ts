@@ -75,9 +75,9 @@ export async function processContentGeneration(
 async function handleSEOMeta(productId: number, productName: string): Promise<void> {
   const product = await woocommerce.getProduct(productId);
 
-  const category = product.categories.map((c) => c.name).join(', ') || 'Jewelry';
-  const attributes = product.attributes
-    .map((a) => `${a.name}: ${a.options.join(', ')}`)
+  const category = (product.categories ?? []).map((c) => c.name).join(', ') || 'Jewelry';
+  const attributes = (product.attributes ?? [])
+    .map((a) => `${a.name}: ${(a.options ?? []).join(', ')}`)
     .join('; ');
 
   const meta = await openai.generateSEOMeta(productName, category, attributes);
@@ -109,7 +109,7 @@ async function handleSEOMeta(productId: number, productName: string): Promise<vo
 async function handleFAQ(productId: number, productName: string): Promise<void> {
   const product = await woocommerce.getProduct(productId);
 
-  const category = product.categories.map((c) => c.name).join(', ') || 'Jewelry';
+  const category = (product.categories ?? []).map((c) => c.name).join(', ') || 'Jewelry';
   const description = product.description || product.short_description || '';
 
   const faqs = await openai.generateFAQs(productName, category, description);
@@ -219,8 +219,8 @@ async function handleSchemaInjection(productId: number, productName: string): Pr
         name: env.BRAND_NAME || 'SBEK',
       },
     },
-    category: product.categories.map((c) => c.name).join(' > '),
-    material: product.attributes.find((a) => a.name.toLowerCase().includes('metal'))?.options.join(', ') || undefined,
+    category: (product.categories ?? []).map((c) => c.name).join(' > '),
+    material: (product.attributes ?? []).find((a) => a.name.toLowerCase().includes('metal'))?.options?.join(', ') || undefined,
   };
 
   // Build Organization schema
@@ -297,7 +297,7 @@ async function handleInternalLinks(productId: number, productName: string): Prom
     .map((r) => `<li><a href="${r.link}" title="${r.name}">${r.name}</a></li>`)
     .join('\n');
 
-  const categoryLinks = product.categories
+  const categoryLinks = (product.categories ?? [])
     .map((c) => `<a href="${brandUrl}/product-category/${c.slug}/">${c.name}</a>`)
     .join(' | ');
 

@@ -11,14 +11,28 @@ export async function runWeeklyContentGeneration(): Promise<void> {
   let enqueued = 0;
 
   try {
-    const products = await woocommerce.listProducts({ per_page: 100, status: 'publish' });
+    // Paginate through ALL published products (not just first 100)
+    type ProductType = Awaited<ReturnType<typeof woocommerce.listProducts>>[number];
+    const allProducts: ProductType[] = [];
+    let page = 1;
+    const perPage = 100;
 
-    if (!products || products.length === 0) {
+    while (page <= 20) { // Safety cap at 2000 products
+      const batch = await woocommerce.listProducts({ per_page: perPage, status: 'publish', page });
+      if (!batch || batch.length === 0) break;
+      allProducts.push(...batch);
+      if (batch.length < perPage) break; // Last page
+      page++;
+    }
+
+    if (allProducts.length === 0) {
       logger.info('No published products found for content generation');
       return;
     }
 
-    for (const product of products) {
+    logger.info({ totalProducts: allProducts.length, pages: page }, 'Fetched all products for content generation');
+
+    for (const product of allProducts) {
       const contentTypes = [
         'seo_meta',
         'faq',
