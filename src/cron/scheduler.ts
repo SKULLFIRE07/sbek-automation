@@ -82,9 +82,9 @@ export function initScheduler(): void {
     }
   }, IST);
 
-  // Every 30 seconds — poll Orders sheet for manual status changes
+  // Every 10 seconds — poll Orders sheet for manual status changes
   // (not tracked in cronRuns — too frequent, would bloat the table)
-  cron.schedule('*/30 * * * * *', async () => {
+  cron.schedule('*/10 * * * * *', async () => {
     try {
       await runStatusPoller();
     } catch (err) {

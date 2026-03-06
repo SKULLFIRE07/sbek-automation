@@ -17,7 +17,7 @@ const statusSnapshot = new Map<string, string>();
 let initialized = false;
 
 const LOCK_KEY = 'sbek:status-poller:lock';
-const LOCK_TTL = 120; // seconds — must be longer than a poll cycle
+const LOCK_TTL = 30; // seconds — must be longer than a poll cycle
 
 // ── Public entry point (called by scheduler) ─────────────────────────────
 
