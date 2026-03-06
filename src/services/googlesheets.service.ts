@@ -229,10 +229,14 @@ class GoogleSheetsService {
         headerValues: headers,
       });
     } else if (headers) {
-      // Tab exists — make sure the header row is present
+      // Tab exists — make sure the header row is present and correct
       await sheet.loadHeaderRow().catch(() => null);
       if (!sheet.headerValues || sheet.headerValues.length === 0) {
         logger.info({ tabName }, 'Tab exists but has no headers — setting header row');
+        await sheet.setHeaderRow(headers);
+      } else if (sheet.headerValues[0] !== headers[0] || sheet.headerValues.length < headers.length) {
+        // Headers are mismatched (old schema) — update them
+        logger.info({ tabName, old: sheet.headerValues[0], expected: headers[0] }, 'Tab headers mismatch — updating');
         await sheet.setHeaderRow(headers);
       }
     }
