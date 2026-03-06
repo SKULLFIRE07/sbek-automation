@@ -971,7 +971,7 @@ dashboardRouter.get('/competitors/results', async (req: Request, res: Response) 
   }
 });
 
-/** Download crawl results as JSON */
+/** Download crawl results as PDF report */
 dashboardRouter.get('/competitors/results/download', async (req: Request, res: Response) => {
   try {
     const name = req.query.name as string | undefined;
@@ -987,24 +987,24 @@ dashboardRouter.get('/competitors/results/download', async (req: Request, res: R
 
     const snapshots = await query;
 
-    const filename = name
-      ? `competitor-${name.replace(/\s+/g, '-').toLowerCase()}-results.json`
-      : 'all-competitor-results.json';
+    if (snapshots.length === 0) {
+      res.status(404).json({ error: 'No crawl results found — run a crawl first' });
+      return;
+    }
 
-    res.setHeader('Content-Type', 'application/json');
+    const { generateCompetitorReport } = await import('../../utils/competitor-report.js');
+
+    const filename = name
+      ? `SBEK-Competitor-Report-${name.replace(/\s+/g, '-')}.pdf`
+      : 'SBEK-Competitor-Analysis-Report.pdf';
+
+    res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.json({
-      exportedAt: new Date().toISOString(),
-      totalResults: snapshots.length,
-      results: snapshots.map((s) => ({
-        competitor: s.competitorName,
-        url: s.url,
-        crawledAt: s.crawledAt,
-        data: s.data,
-      })),
-    });
+
+    const doc = generateCompetitorReport(snapshots, name);
+    doc.pipe(res);
   } catch (err) {
-    logger.error({ err }, 'Failed to download competitor results');
-    res.status(500).json({ error: 'Failed to download results' });
+    logger.error({ err }, 'Failed to generate competitor report');
+    res.status(500).json({ error: 'Failed to generate report' });
   }
 });
