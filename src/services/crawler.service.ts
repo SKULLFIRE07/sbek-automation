@@ -238,6 +238,18 @@ class CrawlerService {
     return crawlResult;
   }
 
+  /** Detect bot protection / challenge pages that didn't resolve */
+  private isBlockedPage(html: string): boolean {
+    return (
+      html.includes('Just a moment...') ||
+      html.includes('cf-browser-verification') ||
+      html.includes('Checking your browser') ||
+      html.includes('challenge-platform') ||
+      // Extremely short HTML = probably a redirect/block page
+      (html.length < 2000 && /<title>\s*(just a moment|attention required|access denied)/i.test(html))
+    );
+  }
+
   /** Health check — always healthy since this is built-in. */
   async getHealth(): Promise<{ status: string }> {
     return { status: 'ok' };
@@ -337,22 +349,25 @@ class CrawlerService {
 
       await new Promise((resolve) => setTimeout(resolve, 1200));
 
-      const html = await page.content();
+      let html = await page.content();
 
       // Check if we got a Cloudflare challenge page
-      if (html.includes('Just a moment...') || html.includes('cf-browser-verification')) {
-        logger.info({ url }, 'Cloudflare challenge detected — waiting for resolution');
-        await new Promise((resolve) => setTimeout(resolve, 6000));
-        const retryHtml = await page.content();
+      if (this.isBlockedPage(html)) {
+        logger.info({ url }, 'Cloudflare/bot challenge detected — waiting for resolution');
+        await new Promise((resolve) => setTimeout(resolve, 8000));
+        html = await page.content();
 
-        // If still blocked, try one more time with different approach
-        if (retryHtml.includes('Just a moment...')) {
-          logger.warn({ url }, 'Cloudflare challenge still present after wait');
-          await new Promise((resolve) => setTimeout(resolve, 5000));
-          return await page.content();
+        // If still blocked, try one more wait
+        if (this.isBlockedPage(html)) {
+          logger.warn({ url }, 'Challenge still present — waiting longer');
+          await new Promise((resolve) => setTimeout(resolve, 8000));
+          html = await page.content();
         }
 
-        return retryHtml;
+        // If STILL blocked after 16s of waiting, throw so we don't save garbage
+        if (this.isBlockedPage(html)) {
+          throw new Error(`Bot protection blocked crawl for ${url} — page never resolved`);
+        }
       }
 
       return html;
@@ -865,12 +880,41 @@ class CrawlerService {
   private deduplicateProducts(products: CrawlProduct[]): CrawlProduct[] {
     const seen = new Map<string, CrawlProduct>();
     for (const p of products) {
+      if (!this.isValidProduct(p)) continue;
       const key = p.name.toLowerCase().trim();
       if (key && !seen.has(key)) {
         seen.set(key, p);
       }
     }
     return [...seen.values()];
+  }
+
+  /** Filter out garbage / non-product entries */
+  private isValidProduct(p: CrawlProduct): boolean {
+    const name = p.name.trim().toLowerCase();
+
+    // Too short or too long
+    if (name.length < 3 || name.length > 200) return false;
+
+    // CTA / marketing text patterns (not real product names)
+    const garbagePatterns = [
+      /^hi[,!]?\s/i, /looking for/i, /something special/i,
+      /^shop\s/i, /^buy\s/i, /^view\s/i, /^explore\s/i, /^discover\s/i,
+      /^sign\s?(up|in)/i, /^log\s?in/i, /^subscribe/i, /^newsletter/i,
+      /^just a moment/i, /^loading/i, /^please wait/i,
+      /^add to (cart|bag|wishlist)/i, /^checkout/i,
+      /^free (shipping|delivery)/i, /^limited (time|offer)/i,
+      /^click here/i, /^learn more/i, /^read more/i,
+      /^contact us/i, /^help/i, /^faq/i,
+      /^home$/i, /^menu$/i, /^search$/i, /^close$/i,
+    ];
+    if (garbagePatterns.some((re) => re.test(name))) return false;
+
+    // Price sanity check for Indian jewelry (₹100 to ₹50,00,000 = 5 million)
+    // If price is set but wildly out of range, it's garbage
+    if (p.price > 0 && (p.price < 100 || p.price > 50_000_000)) return false;
+
+    return true;
   }
 
   // ── Sub-page crawling ────────────────────────────────────────────

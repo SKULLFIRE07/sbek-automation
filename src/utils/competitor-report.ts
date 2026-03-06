@@ -58,11 +58,9 @@ export function generateCompetitorReport(
   // ── Cover page ──────────────────────────────────────────────────
   drawCoverPage(doc, filterName, latest.size);
 
-  // ── Competitor sections ─────────────────────────────────────────
-  let isFirst = true;
+  // ── Competitor sections (each on a new page after the cover) ───
   for (const [name, snapshot] of latest) {
-    if (!isFirst) doc.addPage();
-    isFirst = false;
+    doc.addPage();
     drawCompetitorSection(doc, name, snapshot);
   }
 
@@ -88,30 +86,33 @@ export function generateCompetitorReport(
 function drawCoverPage(doc: PDFKit.PDFDocument, filterName: string | undefined, competitorCount: number) {
   doc.rect(0, 0, doc.page.width, doc.page.height).fill(BRAND.black);
 
-  // Brand mark
-  doc.fontSize(48).fillColor(BRAND.accent).font('Helvetica-Bold');
-  doc.text('SBEK', 50, 180, { align: 'center' });
+  // Brand mark — centered vertically in upper third
+  doc.fontSize(56).fillColor(BRAND.accent).font('Helvetica-Bold');
+  doc.text('SBEK', 50, 220, { align: 'center' });
 
   // Subtitle
-  doc.fontSize(14).fillColor(BRAND.light).font('Helvetica');
-  doc.text('LUXURY JEWELRY INTELLIGENCE', 50, 240, { align: 'center' });
+  doc.fontSize(13).fillColor(BRAND.light).font('Helvetica');
+  doc.text('LUXURY JEWELRY INTELLIGENCE', 50, 290, { align: 'center', characterSpacing: 3 });
 
   // Divider
   const cx = doc.page.width / 2;
-  doc.moveTo(cx - 60, 280).lineTo(cx + 60, 280).strokeColor(BRAND.accent).lineWidth(1).stroke();
+  doc.moveTo(cx - 80, 330).lineTo(cx + 80, 330).strokeColor(BRAND.accent).lineWidth(1.5).stroke();
 
   // Report title
-  doc.fontSize(24).fillColor(BRAND.white).font('Helvetica-Bold');
+  doc.fontSize(26).fillColor(BRAND.white).font('Helvetica-Bold');
   const title = filterName ? `${filterName}\nCompetitor Report` : 'Competitor\nAnalysis Report';
-  doc.text(title, 50, 310, { align: 'center' });
+  doc.text(title, 50, 360, { align: 'center', lineGap: 6 });
 
-  // Meta info
+  // Meta info — lower section
   doc.fontSize(11).fillColor(BRAND.light).font('Helvetica');
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
-  doc.text(`Generated: ${dateStr}`, 50, 420, { align: 'center' });
-  doc.text(`Competitors analysed: ${competitorCount}`, 50, 440, { align: 'center' });
-  doc.text('Confidential — For internal use only', 50, 480, { align: 'center' });
+  doc.text(`Generated: ${dateStr}`, 50, 480, { align: 'center' });
+  doc.text(`Competitors analysed: ${competitorCount}`, 50, 502, { align: 'center' });
+
+  // Confidential — near bottom
+  doc.fontSize(9).fillColor(BRAND.muted).font('Helvetica');
+  doc.text('Confidential — For internal use only', 50, doc.page.height - 80, { align: 'center' });
 }
 
 function drawCompetitorSection(doc: PDFKit.PDFDocument, name: string, snapshot: SnapshotRow) {
@@ -159,14 +160,14 @@ function drawCompetitorSection(doc: PDFKit.PDFDocument, name: string, snapshot: 
   // ── SEO Analysis ──
   y = sectionTitle(doc, 'SEO Analysis', y);
 
-  const title = data.title || 'N/A';
+  const pageTitle = data.title || 'N/A';
   const desc = data.meta?.description || 'No meta description found';
   const keywords = data.meta?.keywords?.join(', ') || 'None';
   const schemaTypes = data.techSeo?.schemaTypes?.join(', ') || 'None';
   const h1s = data.techSeo?.h1Tags?.join(' | ') || 'None';
 
   const seoRows = [
-    ['Page Title', title.slice(0, 80)],
+    ['Page Title', pageTitle.slice(0, 80)],
     ['Meta Description', desc.slice(0, 120)],
     ['Keywords', keywords.slice(0, 100)],
     ['Schema Types', schemaTypes.slice(0, 100)],
