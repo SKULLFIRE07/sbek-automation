@@ -111,6 +111,14 @@ webhooksRouter.post(
         return;
       }
 
+      // Only enqueue jobs for newly created products — product.updated fires on
+      // every order (stock changes) which would spam AI generation unnecessarily.
+      if (topic !== 'product.created') {
+        logger.info({ productId, topic }, 'Product webhook received — ignoring non-creation event');
+        res.json({ received: true, productId, topic, skipped: true });
+        return;
+      }
+
       // Only enqueue jobs for published products
       const status = payload?.status || '';
       if (status !== 'publish') {
