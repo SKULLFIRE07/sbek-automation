@@ -32,21 +32,26 @@ export async function runDailyReviewRequests(): Promise<void> {
       const phone = row['Phone'] || '';
       const productName = row['Product'] || '';
 
-      await reviewRequest.add(`daily-review-${orderId}`, {
-        orderId,
-        customerName,
-        customerEmail: email,
-        customerPhone: phone,
-        productName,
-        deliveredDate: lastUpdated,
-      }, { jobId: `daily-review-${orderId}` });
+      try {
+        // Use same jobId format as customer-comms webhook to prevent duplicates
+        await reviewRequest.add(`review-${orderId}`, {
+          orderId,
+          customerName,
+          customerEmail: email,
+          customerPhone: phone,
+          productName,
+          deliveredDate: lastUpdated,
+        }, { jobId: `review-req-${orderId}` });
 
-      // Mark as review sent to prevent duplicates
-      await sheets.updateOrder(String(orderId), {
-        'Notes': `${notes} | Review Sent ${new Date().toISOString().split('T')[0]}`.trim(),
-      });
+        // Only mark as sent AFTER successful enqueue
+        await sheets.updateOrder(String(orderId), {
+          'Notes': `${notes} | Review Sent ${new Date().toISOString().split('T')[0]}`.trim(),
+        });
 
-      enqueued++;
+        enqueued++;
+      } catch (err) {
+        logger.error({ err, orderId }, 'Failed to enqueue review request — will retry next cycle');
+      }
     }
   }
 

@@ -29,28 +29,36 @@ export async function runWeeklyContentGeneration(): Promise<void> {
       ] as const;
 
       for (const type of contentTypes) {
-        await contentGeneration.add(`${type}-${product.id}`, {
-          productId: product.id,
-          productName: product.name,
-          type,
-        }, { jobId: `weekly-${type}-${product.id}` });
-        enqueued++;
+        try {
+          await contentGeneration.add(`${type}-${product.id}`, {
+            productId: product.id,
+            productName: product.name,
+            type,
+          }, { jobId: `weekly-${type}-${product.id}` });
+          enqueued++;
+        } catch (err) {
+          logger.error({ err, productId: product.id, type }, 'Failed to enqueue content generation job');
+        }
       }
 
       // Also enqueue creative generation for products
-      const description = (product.short_description || product.description || '').replace(/<[^>]*>/g, '');
-      const category = product.categories?.[0]?.name || 'Jewelry';
-      const imageUrl = product.images?.[0]?.src || '';
+      try {
+        const description = (product.short_description || product.description || '').replace(/<[^>]*>/g, '');
+        const category = product.categories?.[0]?.name || 'Jewelry';
+        const imageUrl = product.images?.[0]?.src || '';
 
-      await creativeGeneration.add(`creative-weekly-${product.id}`, {
-        productId: product.id,
-        productName: product.name,
-        productDescription: description.slice(0, 500),
-        productImageUrl: imageUrl,
-        category,
-        variants: ['white_bg', 'lifestyle', 'festive', 'minimal_text', 'story_format'],
-      }, { jobId: `weekly-creative-${product.id}` });
-      enqueued++;
+        await creativeGeneration.add(`creative-weekly-${product.id}`, {
+          productId: product.id,
+          productName: product.name,
+          productDescription: description.slice(0, 500),
+          productImageUrl: imageUrl,
+          category,
+          variants: ['white_bg', 'lifestyle', 'festive', 'minimal_text', 'story_format'],
+        }, { jobId: `weekly-creative-${product.id}` });
+        enqueued++;
+      } catch (err) {
+        logger.error({ err, productId: product.id }, 'Failed to enqueue creative generation job');
+      }
     }
   } catch (err) {
     logger.error({ err }, 'Weekly content generation failed');

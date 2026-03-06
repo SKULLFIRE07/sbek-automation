@@ -104,6 +104,8 @@ const emailSubjects: Record<string, string> = {
   'delivered': 'Your SBEK order has been delivered',
   'order_delivered': 'Your SBEK order has been delivered',
   'review_request': "We'd love your feedback on your SBEK purchase",
+  'production_brief': 'SBEK Production Brief - New Order Assignment',
+  'qc_failed_alert': 'SBEK QC Alert - Rework Required',
 };
 
 notificationWorker.on('completed', (job) => {

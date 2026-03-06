@@ -201,14 +201,19 @@ webhooksRouter.post(
         }, { jobId: `creative-${productId}` }),
       );
 
-      await Promise.all(jobs);
+      const results = await Promise.allSettled(jobs);
+      const failed = results.filter((r) => r.status === 'rejected').length;
+      if (failed > 0) {
+        logger.warn({ productId, failed, total: jobs.length }, 'Some content generation jobs failed to enqueue');
+      }
 
       // Log to webhook_events for dashboard activity feed
       await db.insert(webhookEvents).values({
         source: 'woocommerce',
-        event: topic || 'product.updated',
-        payload: { productId, productName, jobsEnqueued: jobs.length },
-        processed: false,
+        event: topic || 'product.created',
+        payload: { productId, productName, jobsEnqueued: jobs.length - failed, jobsFailed: failed },
+        processed: true,
+        processedAt: new Date(),
       }).catch((err) => { logger.warn({ err }, 'Failed to log webhook event to DB'); });
 
       logger.info({ productId, productName, jobCount: jobs.length }, 'Product webhook jobs enqueued');
