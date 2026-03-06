@@ -1123,6 +1123,224 @@ dashboardRouter.get('/competitors/results/download', async (req: Request, res: R
   }
 });
 
+// ── Email Templates ───────────────────────────────────────────────────────
+
+/** List all email templates with metadata */
+dashboardRouter.get('/email-templates', async (_req: Request, res: Response) => {
+  try {
+    const { readdirSync, readFileSync } = await import('node:fs');
+    const { resolve } = await import('node:path');
+
+    // Try multiple possible template directories
+    const possibleDirs = [
+      resolve(process.cwd(), 'src/templates/email'),
+      resolve(process.cwd(), 'dist/templates/email'),
+      resolve(process.cwd(), 'templates/email'),
+    ];
+
+    let templateDir = '';
+    for (const dir of possibleDirs) {
+      try {
+        readdirSync(dir);
+        templateDir = dir;
+        break;
+      } catch { /* try next */ }
+    }
+
+    if (!templateDir) {
+      res.json({ templates: [] });
+      return;
+    }
+
+    const files = readdirSync(templateDir).filter((f: string) => f.endsWith('.hbs'));
+    const templates = files.map((file: string) => {
+      const name = file.replace('.hbs', '');
+      const html = readFileSync(resolve(templateDir, file), 'utf-8');
+
+      // Extract variable placeholders like {{variable_name}}
+      const vars = [...new Set(
+        (html.match(/\{\{(?!#|\/|>|!)([a-zA-Z_][a-zA-Z0-9_]*)\}\}/g) || [])
+          .map((m: string) => m.replace(/\{\{|\}\}/g, ''))
+          .filter((v: string) => !['if', 'else', 'each', 'unless', 'with'].includes(v))
+      )];
+
+      // Determine category
+      const isInternal = ['production-brief', 'qc-failed-alert', 'competitor-alert', 'price-alert'].includes(name);
+
+      return {
+        name,
+        displayName: name.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+        category: isInternal ? 'internal' : 'customer',
+        variables: vars,
+        htmlLength: html.length,
+      };
+    });
+
+    res.json({ templates });
+  } catch (err) {
+    logger.error({ err }, 'Failed to list email templates');
+    res.json({ templates: [] });
+  }
+});
+
+/** Get rendered preview of an email template */
+dashboardRouter.get('/email-templates/:name/preview', async (req: Request, res: Response) => {
+  try {
+    const { email } = await import('../../services/email.service.js');
+    const templateName = req.params.name as string;
+
+    // Sample data for preview
+    const sampleData: Record<string, string> = {
+      customer_name: 'Priya Sharma',
+      order_id: 'SBEK-2026-0042',
+      product_name: 'Royal Heritage Gold Necklace',
+      amount: '₹1,85,000',
+      order_date: '6 Mar 2026',
+      delivery_date: '20 Mar 2026',
+      carrier_name: 'BlueDart',
+      tracking_number: 'BD9876543210',
+      tracking_url: '#',
+      ship_date: '15 Mar 2026',
+      ring_size: '16',
+      metal_type: '22K Gold',
+      engraving: 'With Love',
+      due_date: '18 Mar 2026',
+      qc_passed: '12',
+      qc_total: '12',
+      review_url: '#',
+      support_phone: '+919876543210',
+      competitor_name: 'Tanishq',
+      crawl_date: '6 Mar 2026',
+      products_found: '41',
+      pages_scraped: '7',
+      price_range: '₹15,000 - ₹4,50,000',
+      seo_score: '7/10',
+      analysis: 'Tanishq continues to dominate with aggressive pricing in the mid-range segment. New festive collection detected with 15 new products.',
+      changes_detected: 'New festive collection launched with competitive pricing.',
+      alert_date: '6 Mar 2026',
+      change_count: '3',
+      summary: 'Competitor has made 3 significant price changes. Review recommended.',
+      competitor_url: 'https://www.tanishq.co.in',
+      failed_items: 'Stone alignment check, Polish uniformity',
+    };
+
+    const rendered = await email.renderTemplate(templateName, sampleData);
+    if (!rendered) {
+      res.status(404).json({ error: `Template "${templateName}" not found` });
+      return;
+    }
+
+    res.setHeader('Content-Type', 'text/html');
+    res.send(rendered);
+  } catch (err) {
+    logger.error({ err, template: req.params.name }, 'Failed to render email template preview');
+    res.status(500).json({ error: 'Failed to render template' });
+  }
+});
+
+/** Send a test email with a specific template */
+dashboardRouter.post('/email-templates/:name/test', async (req: Request, res: Response) => {
+  try {
+    const { email: emailService } = await import('../../services/email.service.js');
+    const templateName = req.params.name as string;
+    const { to } = req.body as { to?: string };
+
+    const adminEmail = (await settings.get('ADMIN_EMAIL')) || to;
+    if (!adminEmail) {
+      res.status(400).json({ error: 'No recipient email — set ADMIN_EMAIL in Settings or pass "to" in body' });
+      return;
+    }
+
+    const sampleData: Record<string, string> = {
+      customer_name: 'Test Customer',
+      order_id: 'SBEK-TEST-001',
+      product_name: 'Sample Gold Necklace',
+      amount: '₹1,50,000',
+      order_date: new Date().toLocaleDateString('en-IN'),
+      delivery_date: '2 weeks from now',
+      competitor_name: 'Test Competitor',
+      crawl_date: new Date().toLocaleDateString('en-IN'),
+      products_found: '25',
+      pages_scraped: '5',
+      price_range: '₹10,000 - ₹5,00,000',
+      seo_score: '8/10',
+      analysis: 'This is a test email preview.',
+      changes_detected: '',
+    };
+
+    await emailService.sendEmail(
+      adminEmail,
+      `[TEST] SBEK Email Template: ${templateName}`,
+      templateName,
+      sampleData,
+    );
+
+    res.json({ sent: true, to: adminEmail });
+  } catch (err) {
+    logger.error({ err }, 'Failed to send test email');
+    res.status(500).json({ error: 'Failed to send test email' });
+  }
+});
+
+// ── SEO / AEO ─────────────────────────────────────────────────────────────
+
+/** Get all SEO/AEO configuration data */
+dashboardRouter.get('/seo', async (_req: Request, res: Response) => {
+  try {
+    const { readdirSync, readFileSync } = await import('node:fs');
+    const { resolve } = await import('node:path');
+
+    // Load schema templates
+    const schemaDirs = [
+      resolve(process.cwd(), 'seo/schema-templates'),
+      resolve(process.cwd(), 'dist/../seo/schema-templates'),
+    ];
+    const schemas: Array<{ name: string; content: unknown }> = [];
+    for (const dir of schemaDirs) {
+      try {
+        const files = readdirSync(dir).filter((f: string) => f.endsWith('.json'));
+        for (const file of files) {
+          const content = JSON.parse(readFileSync(resolve(dir, file), 'utf-8'));
+          schemas.push({ name: file.replace('.json', ''), content });
+        }
+        break;
+      } catch { /* try next */ }
+    }
+
+    // Load prompts
+    const promptDirs = [
+      resolve(process.cwd(), 'seo/prompts'),
+      resolve(process.cwd(), 'dist/../seo/prompts'),
+    ];
+    const prompts: Array<{ name: string; content: string }> = [];
+    for (const dir of promptDirs) {
+      try {
+        const files = readdirSync(dir).filter((f: string) => f.endsWith('.txt'));
+        for (const file of files) {
+          const content = readFileSync(resolve(dir, file), 'utf-8');
+          prompts.push({ name: file.replace('.txt', ''), content });
+        }
+        break;
+      } catch { /* try next */ }
+    }
+
+    // Content pipeline types
+    const contentTypes = [
+      { type: 'seo_meta', label: 'SEO Meta Tags', description: 'AI-generated title & description pushed to Yoast/RankMath fields on WooCommerce products' },
+      { type: 'faq', label: 'FAQ Generation', description: 'Generates 5 FAQ pairs per product with JSON-LD schema markup injected into product page' },
+      { type: 'aeo_kb', label: 'AEO Knowledge Base', description: 'Brand knowledge pages optimized for AI engines (ChatGPT, Gemini, Perplexity)' },
+      { type: 'comparison', label: 'Comparison Articles', description: '800-1200 word fair comparison articles published as blog posts' },
+      { type: 'schema_inject', label: 'Schema Injection', description: 'Product + Organization JSON-LD structured data injected into product pages' },
+      { type: 'internal_links', label: 'Internal Linking', description: 'Related products and category browsing sections appended to product descriptions' },
+    ];
+
+    res.json({ schemas, prompts, contentTypes });
+  } catch (err) {
+    logger.error({ err }, 'Failed to load SEO data');
+    res.json({ schemas: [], prompts: [], contentTypes: [] });
+  }
+});
+
 // ── Notification History ──────────────────────────────────────────────────
 
 dashboardRouter.get('/notifications/history', async (req: Request, res: Response) => {

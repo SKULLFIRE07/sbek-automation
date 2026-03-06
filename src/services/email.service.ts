@@ -223,6 +223,23 @@ class EmailService {
   }
 
   /**
+   * Render a template with sample data and return the HTML string.
+   * Returns null if the template is not found.
+   */
+  async renderTemplate(
+    templateName: string,
+    data: Record<string, string>,
+  ): Promise<string | null> {
+    try {
+      const template = this.getTemplate(templateName);
+      const brandDefaults = await this.getBrandDefaults();
+      return template({ ...brandDefaults, ...data });
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Send an email with raw HTML content (no template).
    */
   async sendRawHtml(
