@@ -39,9 +39,10 @@ export interface CrawlResult {
 // ── User-Agent rotation to avoid blocking ───────────────────────────
 
 const USER_AGENTS = [
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Safari/605.1.15',
 ];
 
 // ── Service ─────────────────────────────────────────────────────────
@@ -56,7 +57,24 @@ class CrawlerService {
     logger.info({ url }, 'Starting built-in site crawl');
 
     const baseUrl = new URL(url).origin;
-    const mainPageHtml = await this.fetchPage(url);
+
+    let mainPageHtml: string;
+    try {
+      mainPageHtml = await this.fetchPage(url);
+    } catch (err) {
+      logger.warn({ url, err: String(err) }, 'Main page fetch failed — returning minimal result');
+      return {
+        url,
+        title: `Failed to crawl: ${String(err)}`,
+        products: [],
+        meta: {},
+        techSeo: { hasSchema: false, schemaTypes: [], h1Tags: [], h2Tags: [], hasOpenGraph: false, hasSitemap: false, robotsTxt: '' },
+        links: [],
+        pageCount: 0,
+        crawledAt: new Date().toISOString(),
+      };
+    }
+
     const $ = cheerio.load(mainPageHtml);
 
     const title = $('title').text().trim();
@@ -267,21 +285,35 @@ class CrawlerService {
 
   private async fetchPage(url: string): Promise<string> {
     const ua = USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
+    const parsedUrl = new URL(url);
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15_000);
+    const timeout = setTimeout(() => controller.abort(), 20_000);
 
     try {
       const response = await fetch(url, {
         headers: {
           'User-Agent': ua,
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.9',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Language': 'en-IN,en-US;q=0.9,en;q=0.8,hi;q=0.7',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Referer': `${parsedUrl.origin}/`,
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'same-origin',
+          'Sec-Fetch-User': '?1',
+          'Sec-CH-UA': '"Chromium";v="131", "Not_A Brand";v="24"',
+          'Sec-CH-UA-Mobile': '?0',
+          'Sec-CH-UA-Platform': '"Windows"',
+          'Upgrade-Insecure-Requests': '1',
+          'Cache-Control': 'max-age=0',
+          'Connection': 'keep-alive',
         },
         signal: controller.signal,
         redirect: 'follow',
       });
 
       if (!response.ok) {
+        logger.warn({ url, status: response.status }, 'Crawl fetch failed — site may block bots');
         throw new Error(`HTTP ${response.status} for ${url}`);
       }
 
