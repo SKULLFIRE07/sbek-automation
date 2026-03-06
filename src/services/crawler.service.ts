@@ -104,6 +104,17 @@ async function applyStealthPatches(page: Page): Promise<void> {
   });
 }
 
+// ── Known product listing paths for Indian jewelry competitors ──────
+
+const KNOWN_PRODUCT_PATHS: Record<string, string[]> = {
+  'tanishq.co.in': ['/jewellery/all.html', '/jewellery/gold.html', '/jewellery/diamond.html', '/collections', '/jewellery/rings.html', '/jewellery/earrings.html'],
+  'caratlane.com': ['/jewellery.html', '/rings.html', '/earrings.html', '/necklaces.html', '/bracelets.html', '/bangles.html'],
+  'bluestone.com': ['/jewellery.html', '/rings.html', '/earrings.html', '/pendants.html', '/bangles-bracelets.html'],
+  'kalyanjewellers.net': ['/gold-jewellery-designs.php', '/diamond-jewellery-designs.php', '/brands/buy-online-jewellery-candere.php'],
+  'melorra.com': ['/jewellery', '/earrings', '/rings', '/necklaces', '/bracelets', '/bangles'],
+  'pngjewellers.com': ['/collections/all', '/collections/gold-jewellery', '/collections/diamond-jewellery', '/collections/rings', '/collections/earrings'],
+};
+
 // ── Service ─────────────────────────────────────────────────────────
 
 class CrawlerService {
@@ -143,6 +154,7 @@ class CrawlerService {
     logger.info({ url }, 'Starting site crawl');
 
     const baseUrl = new URL(url).origin;
+    const hostname = new URL(url).hostname.replace('www.', '');
 
     // Try headless browser first, fallback to plain fetch
     let mainPageHtml: string;
@@ -167,6 +179,8 @@ class CrawlerService {
       }
     }
 
+    logger.info({ url, htmlLength: mainPageHtml.length }, 'Main page fetched');
+
     const $ = cheerio.load(mainPageHtml);
 
     const title = $('title').text().trim();
@@ -176,18 +190,24 @@ class CrawlerService {
     // Collect internal links for deeper crawl
     const internalLinks = this.extractInternalLinks($, baseUrl);
 
-    // Find product/collection pages (max 8 sub-pages)
-    const productPages = internalLinks
-      .filter((l) => /\/(product|shop|collection|jewel|ring|necklace|earring|bracelet|pendant|category|catalog|bangles|chains|mangalsutra|gold|diamond|silver|platinum|solitaire|engagement|wedding|gift|new-arrival|best-seller|trending|offers)/i.test(l))
-      .slice(0, 8);
+    // Find product/collection pages — combine link discovery with known paths
+    const linkDiscovered = internalLinks
+      .filter((l) => /\/(product|shop|collection|jewel|ring|necklace|earring|bracelet|pendant|category|catalog|bangles|chains|mangalsutra|gold|diamond|silver|platinum|solitaire|engagement|wedding|gift|new-arrival|best-seller|trending|offers|brand|designs)/i.test(l))
+      .slice(0, 6);
+
+    // Add known product listing paths for this domain (if we have them)
+    const knownPaths = KNOWN_PRODUCT_PATHS[hostname] || [];
+    const allCandidatePaths = [...new Set([...linkDiscovered, ...knownPaths])].slice(0, 10);
+
+    logger.info({ url, discoveredPaths: linkDiscovered.length, knownPaths: knownPaths.length, totalPaths: allCandidatePaths.length }, 'Product page paths identified');
 
     const allProducts: CrawlProduct[] = [];
 
     // Extract products from main page
     allProducts.push(...this.extractProducts($, baseUrl));
 
-    // Crawl sub-pages
-    const subPageResults = await this.crawlSubPages(productPages, baseUrl);
+    // Crawl sub-pages for products
+    const subPageResults = await this.crawlSubPages(allCandidatePaths, baseUrl);
     for (const result of subPageResults) {
       allProducts.push(...result.products);
     }
@@ -277,7 +297,20 @@ class CrawlerService {
       // Try to wait for common product container selectors
       try {
         await page.waitForSelector(
-          '.product-card, .product-item, .product, [class*="ProductCard"], [class*="productCard"], [class*="product-card"], [class*="plp-product"], [class*="catalog-product"], [itemtype*="Product"]',
+          [
+            '.product-card', '.product-item', '.product',
+            '[class*="ProductCard"]', '[class*="productCard"]', '[class*="product-card"]',
+            '[class*="plp-product"]', '[class*="catalog-product"]',
+            '[itemtype*="Product"]',
+            // BlueStone specific
+            '[class*="pid-"]', '.product-details',
+            // Melorra specific
+            '.card.product-card',
+            // PNG / Shopify specific
+            '.card-wrapper.product-card-wrapper', '.card__inner',
+            // CaratLane specific
+            '[class*="ProductCard"]', '[class*="product_card"]',
+          ].join(', '),
           { timeout: 5000 },
         );
       } catch {
@@ -424,7 +457,7 @@ class CrawlerService {
       try {
         const resolved = new URL(href, baseUrl);
         if (resolved.origin === baseUrl) {
-          links.add(resolved.pathname);
+          links.add(resolved.pathname + resolved.search);
         }
       } catch { /* skip malformed URLs */ }
     });
@@ -434,62 +467,179 @@ class CrawlerService {
   private extractProducts($: cheerio.CheerioAPI, baseUrl: string): CrawlProduct[] {
     const products: CrawlProduct[] = [];
 
-    // Strategy 1: JSON-LD Product schema (most reliable)
+    // ────────────────────────────────────────────────────────────────
+    // Strategy 1: JSON-LD structured data (most reliable — works for Melorra, some BlueStone pages)
+    // ────────────────────────────────────────────────────────────────
     $('script[type="application/ld+json"]').each((_, el) => {
       try {
         const json = JSON.parse($(el).text());
-        const candidates = json['@type'] === 'Product' ? [json]
-          : json['@type'] === 'ItemList' && Array.isArray(json.itemListElement)
-            ? json.itemListElement.map((i: Record<string, unknown>) => i.item || i).filter((i: Record<string, string>) => i['@type'] === 'Product')
-          : Array.isArray(json['@graph'])
-            ? json['@graph'].filter((i: Record<string, string>) => i['@type'] === 'Product')
-            : [];
 
-        for (const item of candidates) {
-          const offers = item.offers;
+        // Direct Product type
+        if (json['@type'] === 'Product' && json.name) {
+          const offers = json.offers;
           const price = offers?.price || offers?.lowPrice
             || (Array.isArray(offers) ? offers[0]?.price : 0) || 0;
           products.push({
-            name: item.name || '',
+            name: json.name,
             price: parseFloat(String(price)) || 0,
             currency: offers?.priceCurrency || (Array.isArray(offers) ? offers[0]?.priceCurrency : 'INR') || 'INR',
-            url: item.url || undefined,
+            url: json.url || undefined,
           });
+        }
+
+        // ItemList (Melorra uses this with ListItem children)
+        if (json['@type'] === 'ItemList' && Array.isArray(json.itemListElement)) {
+          for (const listItem of json.itemListElement) {
+            const item = listItem.item || listItem;
+            if (item.name) {
+              products.push({
+                name: item.name,
+                price: 0,
+                currency: 'INR',
+                url: item.url || undefined,
+              });
+            }
+          }
+        }
+
+        // @graph container
+        if (Array.isArray(json['@graph'])) {
+          for (const item of json['@graph']) {
+            if (item['@type'] === 'Product' && item.name) {
+              const offers = item.offers;
+              const price = offers?.price || offers?.lowPrice || 0;
+              products.push({
+                name: item.name,
+                price: parseFloat(String(price)) || 0,
+                currency: offers?.priceCurrency || 'INR',
+                url: item.url || undefined,
+              });
+            }
+          }
         }
       } catch { /* skip invalid JSON-LD */ }
     });
 
-    // Strategy 2: Common e-commerce CSS selectors (broad set covering Indian jewelry sites)
-    const selectors = [
-      // Generic e-commerce
-      '.product-card', '.product-item', '.product', '.wc-block-grid__product',
-      '[data-product-id]', '.grid-product', '.productCard', '.product-thumbnail',
-      '.product-tile', '.product-grid-item', '.plp-card', '.product-listing',
-      // Tanishq / Titan
-      '.product-list-item', '.product-box', '.product_box', '.product-info',
+    if (products.length > 0) {
+      logger.debug({ strategy: 'json-ld', count: products.length }, 'Products extracted via JSON-LD');
+      return products;
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // Strategy 2: Site-specific CSS selectors (verified against actual DOMs)
+    // ────────────────────────────────────────────────────────────────
+
+    // BlueStone: class="pid-XXXX ..." with .p-name and .new-price .WebRupee
+    const bluestoneCards = $('[class^="pid-"]');
+    if (bluestoneCards.length >= 2) {
+      bluestoneCards.each((_, el) => {
+        const $el = $(el);
+        // Name is inside .p-name > a
+        const name = $el.find('.p-name a').first().text().trim()
+          || $el.find('.p-name').first().text().trim();
+        // Price: look for text after WebRupee span
+        const priceText = $el.find('.new-price').text().trim() || $el.find('.b-price-left').text().trim();
+        const price = this.parseIndianPrice(priceText);
+        const link = $el.find('.p-name a, a.pr-i, a').first().attr('href');
+
+        if (name && name.length > 2) {
+          products.push({
+            name,
+            price,
+            currency: 'INR',
+            url: link ? this.resolveUrl(link, baseUrl) : undefined,
+          });
+        }
+      });
+      if (products.length > 0) {
+        logger.debug({ strategy: 'bluestone-pid', count: products.length }, 'Products extracted via BlueStone selectors');
+        return products;
+      }
+    }
+
+    // Melorra: class="card product-card pdt-outer" or jsx-* product_card
+    const melorraCards = $('[class*="product-card"][class*="pdt-outer"], [class*="product_card"]');
+    if (melorraCards.length >= 2) {
+      melorraCards.each((_, el) => {
+        const $el = $(el);
+        const name = $el.find('[class*="customizedProductTitle"], [class*="ProductTitle"]').first().text().trim()
+          || $el.find('h2, h3, .title').first().text().trim();
+        const priceText = $el.find('[class*="price"], [class*="Price"]').first().text().trim();
+        const price = this.parseIndianPrice(priceText);
+        const link = $el.find('a').first().attr('href');
+
+        if (name && name.length > 2) {
+          products.push({
+            name,
+            price,
+            currency: 'INR',
+            url: link ? this.resolveUrl(link, baseUrl) : undefined,
+          });
+        }
+      });
+      if (products.length > 0) {
+        logger.debug({ strategy: 'melorra-card', count: products.length }, 'Products extracted via Melorra selectors');
+        return products;
+      }
+    }
+
+    // PNG / Shopify: .card-wrapper.product-card-wrapper or .mega_col_product_list_item
+    const pngCards = $('.card-wrapper.product-card-wrapper, .mega_col_product_list_item');
+    if (pngCards.length >= 2) {
+      pngCards.each((_, el) => {
+        const $el = $(el);
+        const name = $el.find('.card__heading a, .card__heading, h2, h3').first().text().trim()
+          || $el.find('img[alt]').first().attr('alt')?.trim() || '';
+        const priceText = $el.find('.price, .price-item, [class*="price"], .money').first().text().trim();
+        const price = this.parseIndianPrice(priceText);
+        const link = $el.find('a').first().attr('href');
+
+        if (name && name.length > 2 && name.length < 200) {
+          products.push({
+            name,
+            price,
+            currency: 'INR',
+            url: link ? this.resolveUrl(link, baseUrl) : undefined,
+          });
+        }
+      });
+      if (products.length > 0) {
+        logger.debug({ strategy: 'shopify-card', count: products.length }, 'Products extracted via Shopify/PNG selectors');
+        return products;
+      }
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // Strategy 3: Generic CSS selectors (broad catch-all)
+    // ────────────────────────────────────────────────────────────────
+    const genericSelectors = [
+      // Most common e-commerce patterns
+      '.product-card', '.product-item', '.product-tile', '.product-grid-item',
+      '.wc-block-grid__product', '[data-product-id]', '.productCard',
+      // Attribute-based (catches React/Next.js sites like CaratLane/Tanishq)
       '[class*="ProductCard"]', '[class*="productCard"]', '[class*="product-card"]',
       '[class*="ProductTile"]', '[class*="productTile"]', '[class*="product-tile"]',
       '[class*="ProductItem"]', '[class*="product-item"]',
-      // CaratLane / BlueStone
-      '[class*="plp-product"]', '[class*="plp_product"]', '[class*="PLPProduct"]',
-      '[class*="search-product"]', '[class*="catalog-product"]',
-      '.product-collection-item', '.collection-product',
-      // Generic card patterns
-      '[class*="card"][class*="product"]', '[class*="item"][class*="product"]',
+      '[class*="plp-product"]', '[class*="plp_product"]',
+      '[class*="PLPProduct"]', '[class*="search-product"]',
+      '[class*="catalog-product"]',
       '[data-testid*="product"]', '[data-component*="product"]',
-      // Image grid fallback (many jewelry sites use image grids)
+      // Card + product combo
+      '[class*="card"][class*="product"]', '[class*="item"][class*="product"]',
+      // Grid children (fallback for custom grids)
       '.product-grid > div', '.products-grid > div', '.product-list > div',
       '[class*="ProductGrid"] > div', '[class*="productGrid"] > div',
+      '.product-grid > li', '.products > li',
     ];
 
-    // Name selectors — broad to catch custom class names
+    // Name selectors — broad
     const nameSelectors = [
       '.product-title', '.product-name', '.woocommerce-loop-product__title',
       'h2', 'h3', 'h4',
       '.title', '.name',
       '[class*="name"]', '[class*="title"]', '[class*="Name"]', '[class*="Title"]',
       '[class*="product-name"]', '[class*="productName"]',
-      'a[title]', // many sites put product name in link title attr
+      'a[title]',
     ].join(', ');
 
     // Price selectors
@@ -498,21 +648,16 @@ class CrawlerService {
       '[class*="price"]', '[class*="Price"]',
       '[class*="cost"]', '[class*="Cost"]',
       '[class*="mrp"]', '[class*="MRP"]',
-      '[class*="offer"]',
+      '.money', '[class*="money"]',
     ].join(', ');
 
-    for (const selector of selectors) {
+    for (const selector of genericSelectors) {
       const found: CrawlProduct[] = [];
       $(selector).each((_, el) => {
         const $el = $(el);
-        // Try name from selectors, then from link title attribute
         let name = $el.find(nameSelectors).first().text().trim();
-        if (!name) {
-          name = $el.find('a[title]').attr('title')?.trim() || '';
-        }
-        if (!name) {
-          name = $el.find('img[alt]').attr('alt')?.trim() || '';
-        }
+        if (!name) name = $el.find('a[title]').attr('title')?.trim() || '';
+        if (!name) name = $el.find('img[alt]').attr('alt')?.trim() || '';
 
         const priceText = $el.find(priceSelectors).first().text().trim();
         const price = this.parseIndianPrice(priceText);
@@ -523,44 +668,197 @@ class CrawlerService {
             name,
             price,
             currency: 'INR',
-            url: link ? (() => { try { return new URL(link, baseUrl).href; } catch { return undefined; } })() : undefined,
+            url: link ? this.resolveUrl(link, baseUrl) : undefined,
           });
         }
       });
-      if (found.length >= 2) { // need at least 2 matches to trust the selector
+      if (found.length >= 2) {
         products.push(...found);
+        logger.debug({ strategy: 'generic-css', selector, count: found.length }, 'Products extracted via generic selector');
         break;
       }
     }
 
-    // Strategy 3: If nothing found yet, try micro-data (itemprop)
-    if (products.length === 0) {
-      $('[itemtype*="schema.org/Product"], [itemtype*="Product"]').each((_, el) => {
-        const $el = $(el);
-        const name = $el.find('[itemprop="name"]').first().text().trim();
-        const priceText = $el.find('[itemprop="price"]').first().text().trim() || $el.find('[itemprop="price"]').attr('content') || '';
-        const price = this.parseIndianPrice(priceText);
-        const url = $el.find('[itemprop="url"]').attr('href') || $el.find('a').first().attr('href');
+    if (products.length > 0) return products;
 
-        if (name && name.length > 2) {
+    // ────────────────────────────────────────────────────────────────
+    // Strategy 4: Microdata (itemprop)
+    // ────────────────────────────────────────────────────────────────
+    $('[itemtype*="schema.org/Product"], [itemtype*="Product"]').each((_, el) => {
+      const $el = $(el);
+      const name = $el.find('[itemprop="name"]').first().text().trim();
+      const priceText = $el.find('[itemprop="price"]').first().text().trim()
+        || $el.find('[itemprop="price"]').attr('content') || '';
+      const price = this.parseIndianPrice(priceText);
+      const url = $el.find('[itemprop="url"]').attr('href') || $el.find('a').first().attr('href');
+
+      if (name && name.length > 2) {
+        products.push({
+          name,
+          price,
+          currency: 'INR',
+          url: url ? this.resolveUrl(url, baseUrl) : undefined,
+        });
+      }
+    });
+
+    if (products.length > 0) {
+      logger.debug({ strategy: 'microdata', count: products.length }, 'Products extracted via microdata');
+      return products;
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // Strategy 5: Heuristic — find price-like patterns and walk up DOM
+    // ────────────────────────────────────────────────────────────────
+    const priceElements = $('*').filter((_, el) => {
+      const text = $(el).text().trim();
+      // Match ₹ followed by number, or Rs/Rs. followed by number
+      return /^[₹][\s]*[\d,]+/.test(text) || /^Rs\.?\s*[\d,]+/.test(text);
+    });
+
+    if (priceElements.length >= 2) {
+      priceElements.slice(0, 50).each((_, el) => {
+        const $priceEl = $(el);
+        // Walk up max 4 levels to find a "card" container
+        let $card = $priceEl.parent();
+        for (let i = 0; i < 4; i++) {
+          // Check if this looks like a product container (has both name-like text and a link)
+          const hasLink = $card.find('a').length > 0;
+          const hasImage = $card.find('img').length > 0;
+          if (hasLink && hasImage) break;
+          $card = $card.parent();
+        }
+
+        // Extract name from the card
+        let name = $card.find('h2, h3, h4, [class*="name"], [class*="title"], [class*="Name"], [class*="Title"]').first().text().trim();
+        if (!name) name = $card.find('a[title]').attr('title')?.trim() || '';
+        if (!name) name = $card.find('img[alt]').attr('alt')?.trim() || '';
+
+        const price = this.parseIndianPrice($priceEl.text().trim());
+        const link = $card.find('a').first().attr('href');
+
+        if (name && name.length > 2 && name.length < 200 && price > 0) {
           products.push({
             name,
             price,
             currency: 'INR',
-            url: url ? (() => { try { return new URL(url, baseUrl).href; } catch { return undefined; } })() : undefined,
+            url: link ? this.resolveUrl(link, baseUrl) : undefined,
           });
         }
       });
+
+      if (products.length > 0) {
+        logger.debug({ strategy: 'heuristic-price', count: products.length }, 'Products extracted via price heuristic');
+      }
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // Strategy 6: SPA state extraction (CaratLane __PRELOADED_STATE__, Next.js __NEXT_DATA__)
+    // ────────────────────────────────────────────────────────────────
+    if (products.length === 0) {
+      $('script').each((_, el) => {
+        const scriptText = $(el).text();
+
+        // __NEXT_DATA__ (Next.js)
+        if (scriptText.includes('__NEXT_DATA__')) {
+          try {
+            const match = scriptText.match(/__NEXT_DATA__\s*=\s*({.*})/);
+            if (match) {
+              const data = JSON.parse(match[1]);
+              this.extractFromNestedObject(data, products, baseUrl);
+            }
+          } catch { /* skip */ }
+        }
+
+        // __PRELOADED_STATE__ (CaratLane-style Redux)
+        if (scriptText.includes('__PRELOADED_STATE__')) {
+          try {
+            const match = scriptText.match(/__PRELOADED_STATE__\s*=\s*({.*})/);
+            if (match) {
+              const data = JSON.parse(match[1]);
+              this.extractFromNestedObject(data, products, baseUrl);
+            }
+          } catch { /* skip */ }
+        }
+      });
+
+      if (products.length > 0) {
+        logger.debug({ strategy: 'spa-state', count: products.length }, 'Products extracted via SPA state');
+      }
     }
 
     return products;
   }
 
-  /** Parse Indian price format: ₹1,23,456.00 → 123456 */
+  /** Recursively search a nested object for product-like data (name + price patterns) */
+  private extractFromNestedObject(
+    obj: unknown,
+    products: CrawlProduct[],
+    baseUrl: string,
+    depth = 0,
+  ): void {
+    if (depth > 8 || products.length > 100) return;
+
+    if (Array.isArray(obj)) {
+      // If array of objects with 'name' and 'price' — likely products
+      if (obj.length >= 2 && obj[0] && typeof obj[0] === 'object') {
+        const first = obj[0] as Record<string, unknown>;
+        if ('name' in first && ('price' in first || 'sellingPrice' in first || 'mrp' in first || 'offers' in first)) {
+          for (const item of obj.slice(0, 50)) {
+            const rec = item as Record<string, unknown>;
+            const name = String(rec.name || rec.productName || rec.title || '');
+            const price = Number(rec.price || rec.sellingPrice || rec.mrp || 0);
+            const url = String(rec.url || rec.slug || rec.href || '');
+
+            if (name && name.length > 2 && name.length < 200) {
+              products.push({
+                name,
+                price: price || 0,
+                currency: 'INR',
+                url: url ? this.resolveUrl(url, baseUrl) : undefined,
+              });
+            }
+          }
+          return;
+        }
+      }
+      for (const item of obj.slice(0, 20)) {
+        this.extractFromNestedObject(item, products, baseUrl, depth + 1);
+      }
+    } else if (obj && typeof obj === 'object') {
+      const rec = obj as Record<string, unknown>;
+      // Check if this object itself looks like a product
+      if (rec.products && Array.isArray(rec.products)) {
+        this.extractFromNestedObject(rec.products, products, baseUrl, depth + 1);
+        return;
+      }
+      if (rec.items && Array.isArray(rec.items)) {
+        this.extractFromNestedObject(rec.items, products, baseUrl, depth + 1);
+        return;
+      }
+      // Recurse into keys that might contain product data
+      for (const key of Object.keys(rec)) {
+        if (/product|item|listing|catalog|search|result/i.test(key)) {
+          this.extractFromNestedObject(rec[key], products, baseUrl, depth + 1);
+        }
+      }
+    }
+  }
+
+  /** Safely resolve a URL against a base */
+  private resolveUrl(href: string, baseUrl: string): string | undefined {
+    try {
+      return new URL(href, baseUrl).href;
+    } catch {
+      return undefined;
+    }
+  }
+
+  /** Parse Indian price format: ₹1,23,456.00 or Rs. 2,11,316 → number */
   private parseIndianPrice(text: string): number {
     if (!text) return 0;
-    // Remove currency symbols, spaces, and commas, keep digits and decimal
-    const cleaned = text.replace(/[₹$€£\s,]/g, '').replace(/[^0-9.]/g, '');
+    // Remove currency symbols (₹, Rs, Rs.), spaces, and commas
+    const cleaned = text.replace(/₹|Rs\.?|INR/gi, '').replace(/[\s,]/g, '').replace(/[^0-9.]/g, '');
     return parseFloat(cleaned) || 0;
   }
 
@@ -586,7 +884,7 @@ class CrawlerService {
     // Crawl sub-pages sequentially (1.5s delay between) to avoid rate limiting
     for (const path of urls) {
       try {
-        const fullUrl = `${baseUrl}${path}`;
+        const fullUrl = path.startsWith('http') ? path : `${baseUrl}${path}`;
         let html: string;
         try {
           html = await this.fetchWithBrowser(fullUrl);
@@ -598,10 +896,19 @@ class CrawlerService {
             continue;
           }
         }
+
+        logger.debug({ url: fullUrl, htmlLength: html.length }, 'Sub-page fetched');
         const $ = cheerio.load(html);
         const subProducts = this.extractProducts($, baseUrl);
         results.push({ url: fullUrl, products: subProducts });
-        logger.debug({ url: fullUrl, productsFound: subProducts.length }, 'Sub-page crawled');
+        logger.info({ url: fullUrl, productsFound: subProducts.length }, 'Sub-page crawled');
+
+        // Stop early if we already have plenty of products
+        const totalProducts = results.reduce((sum, r) => sum + r.products.length, 0);
+        if (totalProducts >= 50) {
+          logger.info({ totalProducts }, 'Sufficient products found — stopping sub-page crawl');
+          break;
+        }
 
         // Delay between sub-page crawls to be respectful
         await new Promise((resolve) => setTimeout(resolve, 1500));
