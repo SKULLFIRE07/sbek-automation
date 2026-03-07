@@ -988,6 +988,11 @@ dashboardRouter.post('/settings/validate', async (req: Request, res: Response) =
 /** Test Google Drive upload with a tiny test file (no AI credits used) */
 dashboardRouter.post('/test-drive-upload', async (_req: Request, res: Response) => {
   try {
+    // Debug: show what folder ID is being resolved
+    const rawFolderId = (await settings.get('GOOGLE_DRIVE_FOLDER_ID')) ?? env.GOOGLE_DRIVE_FOLDER_ID ?? '';
+    const folderIdMatch = rawFolderId.match(/folders\/([a-zA-Z0-9_-]+)/);
+    const extractedId = folderIdMatch ? folderIdMatch[1] : rawFolderId;
+
     await gdrive.init();
 
     // Create a tiny 1x1 red pixel PNG (68 bytes)
@@ -1007,11 +1012,17 @@ dashboardRouter.post('/test-drive-upload', async (_req: Request, res: Response) 
       message: 'Google Drive upload works!',
       fileId: result.fileId,
       webViewLink: result.webViewLink,
+      debug: { rawFolderId, extractedId },
     });
   } catch (err) {
+    // Debug info in error response too
+    const rawFolderId = (await settings.get('GOOGLE_DRIVE_FOLDER_ID')) ?? env.GOOGLE_DRIVE_FOLDER_ID ?? '';
+    const folderIdMatch = rawFolderId.match(/folders\/([a-zA-Z0-9_-]+)/);
+    const extractedId = folderIdMatch ? folderIdMatch[1] : rawFolderId;
+
     const msg = err instanceof Error ? err.message : 'Upload failed';
     logger.error({ err }, 'Drive upload test failed');
-    res.json({ success: false, message: msg });
+    res.json({ success: false, message: msg, debug: { rawFolderId, extractedId } });
   }
 });
 
