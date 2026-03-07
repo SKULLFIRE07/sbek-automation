@@ -985,6 +985,36 @@ dashboardRouter.post('/settings/validate', async (req: Request, res: Response) =
   }
 });
 
+/** Test Google Drive upload with a tiny test file (no AI credits used) */
+dashboardRouter.post('/test-drive-upload', async (_req: Request, res: Response) => {
+  try {
+    await gdrive.init();
+
+    // Create a tiny 1x1 red pixel PNG (68 bytes)
+    const pngBuffer = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
+      'base64',
+    );
+
+    const result = await gdrive.uploadFile(
+      pngBuffer,
+      `sbek-drive-test-${Date.now()}.png`,
+      'image/png',
+    );
+
+    res.json({
+      success: true,
+      message: 'Google Drive upload works!',
+      fileId: result.fileId,
+      webViewLink: result.webViewLink,
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Upload failed';
+    logger.error({ err }, 'Drive upload test failed');
+    res.json({ success: false, message: msg });
+  }
+});
+
 // ── Competitor Monitoring ──────────────────────────────────────────────
 
 /** List all competitors from the Sheets tab */
