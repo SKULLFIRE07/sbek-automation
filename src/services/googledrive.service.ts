@@ -25,14 +25,38 @@ class GoogleDriveService {
    * folder exists. Re-initializes if credentials are updated via Settings.
    */
   async init(): Promise<void> {
-    const serviceEmail = (await settings.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')) ?? env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    const privateKey = (await settings.get('GOOGLE_PRIVATE_KEY')) ?? env.GOOGLE_PRIVATE_KEY;
+    // For Drive, prefer OAuth2 over service account because service accounts
+    // have ZERO storage quota and cannot upload files to regular Drive folders.
+    // OAuth2 uses a real user's quota which has 15 GB free.
+    const refreshToken = (await settings.get('GOOGLE_OAUTH_REFRESH_TOKEN')) ?? env.GOOGLE_OAUTH_REFRESH_TOKEN;
+    const clientId = (await settings.get('GOOGLE_OAUTH_CLIENT_ID')) ?? env.GOOGLE_OAUTH_CLIENT_ID;
+    const clientSecret = (await settings.get('GOOGLE_OAUTH_CLIENT_SECRET')) ?? env.GOOGLE_OAUTH_CLIENT_SECRET;
 
     let auth: JWT | OAuth2Client;
     let hash: string;
 
-    if (serviceEmail && privateKey) {
-      // Service account JWT — preferred for Drive (has explicit drive.file scope)
+    if (refreshToken && clientId && clientSecret) {
+      // OAuth2 preferred for Drive — uses real user's storage quota
+      hash = `oauth|${clientId}`;
+
+      if (this.initialized && hash === this.credHash) return;
+
+      const oauth2 = new OAuth2Client(clientId, clientSecret);
+      oauth2.setCredentials({ refresh_token: refreshToken });
+      auth = oauth2;
+      logger.info('Google Drive: using OAuth2 authentication (real user quota)');
+    } else {
+      // Service account JWT fallback — only works with Shared Drives (not regular folders)
+      const serviceEmail = (await settings.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')) ?? env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+      const privateKey = (await settings.get('GOOGLE_PRIVATE_KEY')) ?? env.GOOGLE_PRIVATE_KEY;
+
+      if (!serviceEmail || !privateKey) {
+        throw new Error(
+          'No Google credentials configured for Drive. ' +
+          'Connect via OAuth (preferred) or set service account credentials.',
+        );
+      }
+
       hash = serviceEmail;
 
       if (this.initialized && hash === this.credHash) return;
@@ -42,25 +66,7 @@ class GoogleDriveService {
         key: privateKey.replace(/\\n/g, '\n'),
         scopes: ['https://www.googleapis.com/auth/drive'],
       });
-      logger.info('Google Drive: using service account JWT authentication');
-    } else {
-      // OAuth2 fallback — only works if token has drive.file scope (dashboard OAuth flow)
-      const refreshToken = (await settings.get('GOOGLE_OAUTH_REFRESH_TOKEN')) ?? env.GOOGLE_OAUTH_REFRESH_TOKEN;
-      const clientId = (await settings.get('GOOGLE_OAUTH_CLIENT_ID')) ?? env.GOOGLE_OAUTH_CLIENT_ID;
-      const clientSecret = (await settings.get('GOOGLE_OAUTH_CLIENT_SECRET')) ?? env.GOOGLE_OAUTH_CLIENT_SECRET;
-
-      if (!refreshToken) {
-        throw new Error('No Google credentials configured — set service account or connect via OAuth');
-      }
-
-      hash = `oauth|${clientId ?? ''}`;
-
-      if (this.initialized && hash === this.credHash) return;
-
-      const oauth2 = new OAuth2Client(clientId, clientSecret);
-      oauth2.setCredentials({ refresh_token: refreshToken });
-      auth = oauth2;
-      logger.info('Google Drive: using OAuth2 authentication');
+      logger.info('Google Drive: using service account JWT (requires Shared Drive)');
     }
 
     try {
@@ -93,6 +99,8 @@ class GoogleDriveService {
       q: `mimeType='application/vnd.google-apps.folder' and name='${name}' and trashed=false`,
       fields: 'files(id, name)',
       spaces: 'drive',
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true,
     });
 
     if (search.data.files && search.data.files.length > 0) {
@@ -106,6 +114,7 @@ class GoogleDriveService {
         mimeType: 'application/vnd.google-apps.folder',
       },
       fields: 'id',
+      supportsAllDrives: true,
     });
 
     const id = folder.data.id!;
@@ -157,6 +166,7 @@ class GoogleDriveService {
         body: stream,
       },
       fields: 'id, webViewLink, webContentLink',
+      supportsAllDrives: true,
     }, { timeout: 30_000 });
 
     const fileId = response.data.id!;
@@ -164,13 +174,18 @@ class GoogleDriveService {
     const webContentLink = response.data.webContentLink || '';
 
     // Make the file accessible via link (anyone with link can view)
-    await this.drive.permissions.create({
-      fileId,
-      requestBody: {
-        role: 'reader',
-        type: 'anyone',
-      },
-    });
+    try {
+      await this.drive.permissions.create({
+        fileId,
+        requestBody: {
+          role: 'reader',
+          type: 'anyone',
+        },
+        supportsAllDrives: true,
+      });
+    } catch (_permErr) {
+      logger.warn({ fileId }, 'Could not set public permission — file may already be accessible via folder');
+    }
 
     logger.info(
       { fileId, filename, sizeKb: Math.round(buffer.length / 1024) },
