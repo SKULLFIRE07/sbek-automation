@@ -5,6 +5,11 @@ import { woocommerce } from '../services/woocommerce.service.js';
 import { sheets } from '../services/googlesheets.service.js';
 import type { ContentGenerationPayload } from '../queues/types.js';
 
+/** Strip markdown code fences (```html ... ```) that Gemini sometimes wraps around HTML output */
+function stripCodeFences(text: string): string {
+  return text.replace(/^```(?:html)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+}
+
 /**
  * Content Pipeline Workflow
  *
@@ -363,10 +368,11 @@ async function handleAEOKnowledgeBase(_productId: number, productName: string): 
 
   const userPrompt = `Generate the AEO knowledge base document. Focus product: ${productName}`;
 
-  const kbDocument = await openai.generateText(systemPrompt, userPrompt, {
+  const rawKb = await openai.generateText(systemPrompt, userPrompt, {
     maxTokens: 2048,
     temperature: 0.5,
   });
+  const kbDocument = stripCodeFences(rawKb);
 
   logger.info({ productName, length: kbDocument.length }, 'AEO knowledge base generated');
 
@@ -423,10 +429,11 @@ async function handleComparison(_productId: number, productName: string): Promis
 
   const userPrompt = `Write a comparison article for: ${productName}`;
 
-  const article = await openai.generateText(systemPrompt, userPrompt, {
+  const rawArticle = await openai.generateText(systemPrompt, userPrompt, {
     maxTokens: 2048,
     temperature: 0.6,
   });
+  const article = stripCodeFences(rawArticle);
 
   logger.info({ productName, length: article.length }, 'Comparison article generated');
 
