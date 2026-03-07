@@ -3,8 +3,11 @@ FROM node:20-slim AS builder
 
 WORKDIR /app
 
+# Limit Node memory during install & build
+ENV NODE_OPTIONS="--max-old-space-size=384"
+
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm ci --maxsockets=2
 
 COPY tsconfig.json ./
 COPY src/ ./src/
@@ -46,7 +49,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --maxsockets=2
 
 COPY --from=builder /app/dist ./dist
 COPY src/templates ./dist/templates
