@@ -24,5 +24,6 @@ router.use('/dashboard', requireAdminAuth, dashboardRouter);
 // Admin settings with Basic auth (BYOK — Bring Your Own Keys)
 router.use('/admin/settings', settingsRouter);
 
-// Google OAuth flow (admin auth required — connect/disconnect Google account)
-router.use('/auth', requireAdminAuth, authRouter);
+// Google OAuth flow — no admin auth on authorize/callback (Google redirects here)
+// Disconnect route still requires admin auth (handled inside authRouter)
+router.use('/auth', authRouter);
