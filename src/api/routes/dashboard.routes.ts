@@ -1115,6 +1115,20 @@ dashboardRouter.get('/competitors/results/download', async (req: Request, res: R
   try {
     const name = req.query.name as string | undefined;
 
+    // Serve pre-built static reports when available (curated for demos)
+    if (name) {
+      const { resolve } = await import('node:path');
+      const { existsSync, createReadStream } = await import('node:fs');
+      const staticPath = resolve(process.cwd(), 'static', `${name.replace(/\s+/g, '-')}-Competitor-Report.pdf`);
+      if (existsSync(staticPath)) {
+        const filename = `SBEK-Competitor-Report-${name.replace(/\s+/g, '-')}.pdf`;
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        createReadStream(staticPath).pipe(res);
+        return;
+      }
+    }
+
     const query = name
       ? db.select().from(competitorSnapshots)
           .where(eq(competitorSnapshots.competitorName, name))
