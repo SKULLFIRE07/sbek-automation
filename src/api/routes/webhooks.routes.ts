@@ -197,7 +197,7 @@ webhooksRouter.post(
           productDescription: description.replace(/<[^>]*>/g, '').slice(0, 500),
           productImageUrl: imageUrl,
           category,
-          variants: ['white_bg', 'lifestyle', 'festive', 'minimal_text', 'story_format'],
+          variants: ['hero_shot', 'flat_lay', 'occasion', 'ad_ready', 'story_cinematic'],
         }, { jobId: `creative-${productId}` }),
       );
 

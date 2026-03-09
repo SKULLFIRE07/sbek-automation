@@ -93,7 +93,11 @@ class NanoBananaService {
           },
           {
             type: 'text',
-            text: `Generate a new product image based on this reference. ${prompt}`,
+            text:
+              `IMPORTANT: The attached image shows the EXACT jewelry piece. ` +
+              `You MUST preserve this jewelry piece with 100% fidelity — same shape, same stones, ` +
+              `same metal color, same design details. Do NOT redesign, simplify, or reimagine the jewelry. ` +
+              `Only change the background, lighting, styling, and presentation as described below.\n\n${prompt}`,
           },
         ],
       });

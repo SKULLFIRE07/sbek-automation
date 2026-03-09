@@ -67,7 +67,7 @@ export async function runWeeklyContentGeneration(): Promise<void> {
           productDescription: description.slice(0, 500),
           productImageUrl: imageUrl,
           category,
-          variants: ['white_bg', 'lifestyle', 'festive', 'minimal_text', 'story_format'],
+          variants: ['hero_shot', 'flat_lay', 'occasion', 'ad_ready', 'story_cinematic'],
         }, { jobId: `weekly-creative-${product.id}` });
         enqueued++;
       } catch (err) {

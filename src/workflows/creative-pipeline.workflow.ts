@@ -7,42 +7,80 @@ import { gdrive } from '../services/googledrive.service.js';
 import type { CreativeGenerationPayload } from '../queues/types.js';
 
 // ── Variant Prompt Builders ──────────────────────────────────────────────────
+//
+// Each variant targets a specific marketing channel and visual style.
+// The reference product image is passed separately — these prompts tell the AI
+// HOW to present the product, not WHAT the product looks like.
+//
+// Golden rules for jewelry image generation:
+// 1. NEVER generate people/faces — AI faces look uncanny and kill trust
+// 2. ALWAYS emphasize keeping the jewelry piece EXACTLY as the reference
+// 3. Focus on background, lighting, and styling — not redesigning the product
+// 4. Use specific photography terminology for better results
+//
 
 const VARIANT_PROMPTS: Record<string, (name: string, desc: string) => string> = {
-  white_bg: (name, desc) =>
-    `Professional jewelry product photo of ${name} on a pure white background. ` +
-    `${desc}. Studio lighting with soft shadows, high-end e-commerce style, ` +
-    `sharp focus on intricate details, 4K product photography.`,
+  hero_shot: (name, desc) =>
+    `Ultra-premium luxury jewelry product photograph of ${name}. ${desc}. ` +
+    `Place the jewelry piece on a polished dark marble surface with subtle veining. ` +
+    `Single key light from top-left creating a gorgeous specular highlight on the metal and stones. ` +
+    `Soft fill light from the right. Background: gradient from charcoal to deep black. ` +
+    `Tiny scattered gold dust particles catching the light around the piece. ` +
+    `Shot with a macro lens at f/2.8, ultra-sharp focus on every facet and detail. ` +
+    `The jewelry must be the EXACT piece — do not redesign or reimagine it. ` +
+    `Vogue Jewellery editorial quality. No people, no hands, no text.`,
 
-  lifestyle: (name, desc) =>
-    `Elegant Indian woman wearing ${name} at a luxury event. ` +
-    `${desc}. Soft golden-hour lighting, shallow depth of field, ` +
-    `rich silk saree complement, candid yet editorial feel, warm tones.`,
+  flat_lay: (name, desc) =>
+    `Stunning overhead flat-lay product photography of ${name}. ${desc}. ` +
+    `The jewelry is placed on a slab of raw white Carrara marble with natural grey veins. ` +
+    `Surrounding props (arranged artfully with breathing room): ` +
+    `a sprig of dried eucalyptus, a small dish of loose uncut diamonds or crystals, ` +
+    `a torn piece of handmade cotton paper, and a thin gold ribbon curling organically. ` +
+    `Soft diffused natural window light from the top. Clean, minimal, editorial aesthetic. ` +
+    `Color palette: whites, creams, subtle golds, with the jewelry as the vibrant centerpiece. ` +
+    `Shot from directly above. Extremely sharp. No people, no text, no logos.`,
 
-  festive: (name, desc) =>
-    `Beautiful ${name} with Diwali diyas and marigold flowers in the background. ` +
-    `${desc}. Festive Indian celebration atmosphere, warm golden lighting, ` +
-    `traditional brass plate, rose petals scattered, rich and vibrant colors.`,
+  occasion: (name, desc) =>
+    `Exquisite jewelry still-life photograph of ${name} styled for an Indian wedding celebration. ${desc}. ` +
+    `The piece rests on a folded banarasi silk fabric in deep ruby red with gold zari border. ` +
+    `Behind it: a small vintage brass diya with a warm flickering flame, ` +
+    `a few loose jasmine buds, and a tiny ornate kumkum box. ` +
+    `Warm golden tungsten lighting mixed with soft candlelight creating rich shadows. ` +
+    `Shallow depth of field — jewelry razor-sharp, background elements softly blurred. ` +
+    `Evokes the emotion of getting ready for a special occasion. ` +
+    `Luxurious, intimate, deeply Indian. No people, no hands, no text.`,
 
-  minimal_text: (name, desc) =>
-    `${name} centered on minimal cream background with ample negative space. ` +
-    `${desc}. Clean, modern luxury aesthetic, subtle shadow, ` +
-    `ready for text overlay, magazine-quality editorial layout.`,
+  ad_ready: (name, desc) =>
+    `High-impact social media advertisement photo of ${name}. ${desc}. ` +
+    `The jewelry floats at a slight angle against a smooth gradient background ` +
+    `transitioning from warm champagne gold at the top to deep burgundy at the bottom. ` +
+    `Dramatic rim lighting creating a luminous glow outline around the entire piece. ` +
+    `Lens flare subtly kissing one edge of a gemstone. ` +
+    `The composition leaves generous negative space on the left side (40% of frame) ` +
+    `for text overlay — this is intentional for ad copy placement. ` +
+    `Ultra-luxurious, scroll-stopping, aspirational. ` +
+    `Think Cartier or Tiffany campaign quality. No people, no text, no watermarks.`,
 
-  story_format: (name, desc) =>
-    `Vertical 9:16 format, ${name} close-up macro photography. ` +
-    `${desc}. Dramatic studio lighting highlighting gemstone facets ` +
-    `and metal texture, ultra-sharp detail, dark moody background, cinematic feel.`,
+  story_cinematic: (name, desc) =>
+    `Cinematic vertical (9:16 portrait) jewelry photograph of ${name}. ${desc}. ` +
+    `Extreme macro close-up showing incredible detail — every grain of metal texture, ` +
+    `every facet of gemstones catching prismatic light, every curve of the craftsmanship. ` +
+    `Background: deep velvet black with a single streak of warm golden bokeh light ` +
+    `running diagonally across the upper portion. ` +
+    `Anamorphic lens flare in warm amber. Shallow depth of field at f/1.4. ` +
+    `The mood is cinematic, mysterious, and deeply luxurious — like a movie poster. ` +
+    `Inspired by high-end watch advertising (Rolex, Patek Philippe) adapted for jewelry. ` +
+    `No people, no hands, no text.`,
 };
 
 // ── Variant → Aspect Ratio Mapping ───────────────────────────────────────────
 
 const VARIANT_ASPECT: Record<string, AspectRatio> = {
-  white_bg: '1:1',
-  lifestyle: '1:1',
-  festive: '1:1',
-  minimal_text: '1:1',
-  story_format: '9:16',
+  hero_shot: '1:1',
+  flat_lay: '1:1',
+  occasion: '1:1',
+  ad_ready: '1:1',
+  story_cinematic: '9:16',
 };
 
 // ── Platform Size Presets ────────────────────────────────────────────────────
@@ -58,10 +96,12 @@ const PLATFORM_SIZES: Record<string, SizePreset[]> = {
   '1:1': [
     { name: 'Instagram Square', width: 1080, height: 1080, suffix: 'ig-square' },
     { name: 'Facebook Feed', width: 1200, height: 628, suffix: 'fb-feed' },
+    { name: 'Pinterest Pin', width: 1000, height: 1500, suffix: 'pinterest' },
     { name: 'Google Display', width: 300, height: 250, suffix: 'gdn-medium' },
   ],
   '9:16': [
-    { name: 'Stories', width: 1080, height: 1920, suffix: 'stories' },
+    { name: 'Instagram Story', width: 1080, height: 1920, suffix: 'ig-story' },
+    { name: 'Instagram Reel', width: 1080, height: 1920, suffix: 'reel-thumb' },
   ],
 };
 
