@@ -3,6 +3,7 @@
     "name": "order_confirmation",
     "language": "en",
     "category": "UTILITY",
+    "_aisensy_note": "Create this as a campaign in AiSensy dashboard with the same name",
     "components": [
       {
         "type": "HEADER",
@@ -28,6 +29,7 @@
     "name": "production_started",
     "language": "en",
     "category": "UTILITY",
+    "_aisensy_note": "Create this as a campaign in AiSensy dashboard with the same name",
     "components": [
       {
         "type": "HEADER",
@@ -53,6 +55,7 @@
     "name": "qc_passed",
     "language": "en",
     "category": "UTILITY",
+    "_aisensy_note": "Create this as a campaign in AiSensy dashboard with the same name",
     "components": [
       {
         "type": "HEADER",
@@ -78,6 +81,7 @@
     "name": "order_shipped",
     "language": "en",
     "category": "UTILITY",
+    "_aisensy_note": "Create this as a campaign in AiSensy dashboard with the same name",
     "components": [
       {
         "type": "HEADER",
@@ -103,6 +107,7 @@
     "name": "order_delivered",
     "language": "en",
     "category": "UTILITY",
+    "_aisensy_note": "Create this as a campaign in AiSensy dashboard with the same name",
     "components": [
       {
         "type": "HEADER",
@@ -128,6 +133,7 @@
     "name": "review_request",
     "language": "en",
     "category": "MARKETING",
+    "_aisensy_note": "Create this as a campaign in AiSensy dashboard with the same name",
     "components": [
       {
         "type": "HEADER",
@@ -153,6 +159,7 @@
     "name": "production_brief",
     "language": "en",
     "category": "UTILITY",
+    "_aisensy_note": "Create this as a campaign in AiSensy dashboard with the same name (internal use)",
     "components": [
       {
         "type": "HEADER",
@@ -178,6 +185,7 @@
     "name": "qc_failed_alert",
     "language": "en",
     "category": "UTILITY",
+    "_aisensy_note": "Create this as a campaign in AiSensy dashboard with the same name (internal use)",
     "components": [
       {
         "type": "HEADER",

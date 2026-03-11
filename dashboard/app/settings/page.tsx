@@ -116,19 +116,19 @@ const SECTIONS: SectionDef[] = [
   },
   // Google section is handled separately as a custom component
   {
-    id: "whatsapp-interakt",
-    title: "WhatsApp (Interakt)",
+    id: "whatsapp-aisensy",
+    title: "WhatsApp (AiSensy)",
     icon: "\u2709",
     description:
-      "WhatsApp Business API via Interakt for order confirmations, shipping updates, competitor alerts, and review requests.",
+      "WhatsApp Business API via AiSensy for order confirmations, shipping updates, competitor alerts, and review requests.",
     testable: true,
     fields: [
       {
-        key: "INTERAKT_API_KEY",
+        key: "AISENSY_API_KEY",
         label: "API Key",
         type: "password",
-        hint: "Your Interakt API key for sending WhatsApp messages",
-        howToGet: "Go to app.interakt.ai → Settings → Developer Settings → API Keys → copy your API key",
+        hint: "Your AiSensy API key for sending WhatsApp messages",
+        howToGet: "Go to AiSensy Dashboard → Settings → API Keys → copy your API key",
         required: true,
       },
     ],

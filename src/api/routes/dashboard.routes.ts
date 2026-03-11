@@ -843,37 +843,39 @@ dashboardRouter.post('/settings/validate', async (req: Request, res: Response) =
         return;
       }
 
-      case 'whatsapp-interakt': {
-        const interaktKey = await resolve('INTERAKT_API_KEY');
-        if (!interaktKey) {
-          res.json({ valid: false, message: 'Interakt API Key is required' });
+      case 'whatsapp-aisensy': {
+        const aisensyKey = await resolve('AISENSY_API_KEY');
+        if (!aisensyKey) {
+          res.json({ valid: false, message: 'AiSensy API Key is required' });
           return;
         }
-        // Verify the key by calling Interakt's track endpoint (lightweight)
+        // Verify the key by calling AiSensy campaign API with a dry-run style request
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 10000);
         const resp = await fetch(
-          'https://api.interakt.ai/v1/public/track/users/',
+          'https://backend.aisensy.com/campaign/t1/api/v2',
           {
             method: 'POST',
-            headers: {
-              Authorization: `Basic ${interaktKey}`,
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              phoneNumber: '0000000000',
-              countryCode: '+91',
-              traits: { name: 'SBEK Test' },
+              apiKey: aisensyKey,
+              campaignName: '__test_connection__',
+              destination: '910000000000',
+              userName: 'SBEK Test',
+              templateParams: [],
+              source: 'sbek-automation-test',
             }),
             signal: controller.signal,
           },
         );
         clearTimeout(timeout);
-        if (resp.status === 401 || resp.status === 403) {
-          res.json({ valid: false, message: 'Invalid Interakt API key — check your credentials' });
+        const respBody = await resp.text().catch(() => '');
+        if (resp.status === 401 || resp.status === 403 || respBody.toLowerCase().includes('invalid api')) {
+          res.json({ valid: false, message: 'Invalid AiSensy API key — check your credentials' });
           return;
         }
-        res.json({ valid: true, message: 'Interakt API key verified' });
+        // Any non-auth error means the key is valid (campaign name won't exist, that's fine)
+        res.json({ valid: true, message: 'AiSensy API key verified' });
         return;
       }
 

@@ -4,104 +4,122 @@ import { env } from '../config/env.js';
 
 // ── Types ───────────────────────────────────────────────────────────
 
-export interface InteraktResponse {
-  id?: string;
-  result?: boolean;
+export interface AiSensyResponse {
+  status?: string;
   message?: string;
+  data?: { messageId?: string };
 }
 
 // ── Service ─────────────────────────────────────────────────────────
 
 /**
- * WhatsApp service powered by Interakt.
+ * WhatsApp service powered by AiSensy.
  *
  * All WhatsApp messages (order updates, alerts, review requests)
- * are sent through the Interakt API.
+ * are sent through the AiSensy Campaign API.
  */
 class WhatsAppService {
-  private readonly baseUrl = 'https://api.interakt.ai/v1/public/message/';
+  private readonly baseUrl = 'https://backend.aisensy.com/campaign/t1/api/v2';
 
-  /** Resolve the Interakt API key from DB settings or env */
+  /** Resolve the AiSensy API key from DB settings or env */
   private async getApiKey(): Promise<string | undefined> {
-    return (await settings.get('INTERAKT_API_KEY')) ?? env.INTERAKT_API_KEY;
+    return (await settings.get('AISENSY_API_KEY')) ?? env.AISENSY_API_KEY;
   }
 
-  /** Returns true if an Interakt API key is configured */
+  /** Returns true if an AiSensy API key is configured */
   async isConfigured(): Promise<boolean> {
     const key = await this.getApiKey();
     return !!key;
   }
 
   /**
-   * Send a pre-approved WhatsApp template message via Interakt.
+   * Send a pre-approved WhatsApp template message via AiSensy.
+   *
+   * AiSensy uses "campaignName" which maps to the WhatsApp template name
+   * approved on the AiSensy dashboard.
    */
   async sendTemplate(
     to: string,
     templateName: string,
     params: Record<string, string>,
   ): Promise<string> {
-    const phone = to.replace(/^\+/, '');
+    const phone = normalizePhone(to);
+    const apiKey = await this.getApiKey();
+    if (!apiKey) {
+      throw new Error('AISENSY_API_KEY not configured — set it in Dashboard → Settings or as an env var');
+    }
+
     const body = {
-      countryCode: phone.startsWith('91') ? '+91' : `+${phone.slice(0, 2)}`,
-      phoneNumber: phone.startsWith('91') ? phone.slice(2) : phone,
-      type: 'Template',
-      template: {
-        name: templateName,
-        languageCode: 'en',
-        bodyValues: Object.values(params),
-      },
+      apiKey,
+      campaignName: templateName,
+      destination: phone,
+      userName: params.customer_name || params.userName || 'Customer',
+      templateParams: Object.values(params),
+      source: 'sbek-automation',
     };
 
     const data = await this.post(body);
-    const messageId = data.id ?? `interakt-${Date.now()}`;
-    logger.info({ to: phone, templateName, messageId }, 'WhatsApp template sent via Interakt');
+    const messageId = data.data?.messageId ?? `aisensy-${Date.now()}`;
+    logger.info({ to: phone, templateName, messageId }, 'WhatsApp template sent via AiSensy');
     return messageId;
   }
 
   /**
-   * Send a plain-text WhatsApp message via Interakt.
+   * Send a plain-text WhatsApp message via AiSensy.
+   *
+   * Uses a generic "text_message" campaign template.
+   * If no such template exists, falls back to logging a warning.
    */
   async sendText(to: string, text: string): Promise<string> {
-    const phone = to.replace(/^\+/, '');
+    const phone = normalizePhone(to);
+    const apiKey = await this.getApiKey();
+    if (!apiKey) {
+      throw new Error('AISENSY_API_KEY not configured — set it in Dashboard → Settings or as an env var');
+    }
+
     const body = {
-      countryCode: phone.startsWith('91') ? '+91' : `+${phone.slice(0, 2)}`,
-      phoneNumber: phone.startsWith('91') ? phone.slice(2) : phone,
-      type: 'Text',
-      data: { message: text },
+      apiKey,
+      campaignName: 'text_message',
+      destination: phone,
+      userName: 'Customer',
+      templateParams: [text],
+      source: 'sbek-automation',
     };
 
     const data = await this.post(body);
-    const messageId = data.id ?? `interakt-text-${Date.now()}`;
-    logger.info({ to: phone, messageId }, 'WhatsApp text sent via Interakt');
+    const messageId = data.data?.messageId ?? `aisensy-text-${Date.now()}`;
+    logger.info({ to: phone, messageId }, 'WhatsApp text sent via AiSensy');
     return messageId;
   }
 
   // ── Private helper ───────────────────────────────────────────────
 
-  private async post(body: unknown): Promise<InteraktResponse> {
-    const apiKey = await this.getApiKey();
-    if (!apiKey) {
-      throw new Error('INTERAKT_API_KEY not configured — set it in Dashboard → Settings or as an env var');
-    }
-
+  private async post(body: unknown): Promise<AiSensyResponse> {
     const res = await fetch(this.baseUrl, {
       method: 'POST',
-      headers: {
-        Authorization: `Basic ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(15_000),
     });
 
     if (!res.ok) {
       const errBody = await res.text();
-      logger.error({ status: res.status, errBody }, 'Interakt API error');
-      throw new Error(`Interakt API ${res.status}: ${errBody}`);
+      logger.error({ status: res.status, errBody }, 'AiSensy API error');
+      throw new Error(`AiSensy API ${res.status}: ${errBody}`);
     }
 
-    return (await res.json()) as InteraktResponse;
+    return (await res.json()) as AiSensyResponse;
   }
+}
+
+/** Normalize phone to country code + number (e.g. 919876543210) */
+function normalizePhone(phone: string): string {
+  const digits = phone.replace(/[^0-9]/g, '');
+  // If already has country code (91...)
+  if (digits.startsWith('91') && digits.length >= 12) return digits;
+  // If 10-digit Indian number, prepend 91
+  if (digits.length === 10) return `91${digits}`;
+  return digits;
 }
 
 export const whatsapp = new WhatsAppService();

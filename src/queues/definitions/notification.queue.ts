@@ -19,7 +19,7 @@ function redisOpts() {
 }
 
 /**
- * Notification Worker — fan-out dispatcher for WhatsApp (Interakt) and Email.
+ * Notification Worker — fan-out dispatcher for WhatsApp (AiSensy) and Email.
  * Workflows enqueue jobs with channel: 'whatsapp' | 'email' | 'both'.
  */
 export const notificationWorker = new Worker<NotificationPayload>(
@@ -74,17 +74,17 @@ export const notificationWorker = new Worker<NotificationPayload>(
       }
     }
 
-    // WhatsApp via Interakt
+    // WhatsApp via AiSensy
     if ((channel === 'whatsapp' || channel === 'both') && recipientPhone) {
       const configured = await whatsapp.isConfigured();
       if (!configured) {
-        logger.warn({ recipientPhone, templateName }, 'WhatsApp (Interakt) not configured — skipping');
+        logger.warn({ recipientPhone, templateName }, 'WhatsApp (AiSensy) not configured — skipping');
         results.whatsapp = 'not_configured';
       } else {
         try {
           const msgId = await whatsapp.sendTemplate(recipientPhone, templateName, templateData);
           results.whatsapp = msgId;
-          logger.info({ recipientPhone, templateName, msgId }, 'WhatsApp sent via Interakt');
+          logger.info({ recipientPhone, templateName, msgId }, 'WhatsApp sent via AiSensy');
           try {
             await db.insert(notificationLogs).values({
               orderId: job.data.orderId ?? null,
@@ -99,7 +99,7 @@ export const notificationWorker = new Worker<NotificationPayload>(
             logger.warn({ err: logErr }, 'Failed to log WhatsApp notification');
           }
         } catch (err) {
-          logger.error({ err, recipientPhone, templateName }, 'WhatsApp (Interakt) failed');
+          logger.error({ err, recipientPhone, templateName }, 'WhatsApp (AiSensy) failed');
           results.whatsapp = 'failed';
           try {
             await db.insert(notificationLogs).values({

@@ -28,8 +28,8 @@ export const CONFIGURABLE_KEYS = [
   'GOOGLE_SHEET_ID',
   'GOOGLE_DRIVE_FOLDER_ID',
 
-  // WhatsApp (Interakt)
-  'INTERAKT_API_KEY',
+  // WhatsApp (AiSensy)
+  'AISENSY_API_KEY',
 
   // Email / SMTP
   'SMTP_HOST',
@@ -49,7 +49,8 @@ export const CONFIGURABLE_KEYS = [
 
   // Postiz removed — not in use
 
-  // Crawler
+  // Crawler (Crawl360)
+  'CRAWL360_API_KEY',
   'CRAWLER_BASE_URL',
 
   // Brand config
@@ -218,7 +219,8 @@ const FULLY_MASKED_KEYS = new Set([
   'OPENROUTER_API_KEY',
   'GOOGLE_OAUTH_CLIENT_SECRET',
   'GOOGLE_OAUTH_REFRESH_TOKEN',
-  'INTERAKT_API_KEY',
+  'AISENSY_API_KEY',
+  'CRAWL360_API_KEY',
 ]);
 
 function maskValue(key: string, value: string): string {
