@@ -1302,7 +1302,7 @@ dashboardRouter.post('/email-templates/:name/test', async (req: Request, res: Re
     const templateName = req.params.name as string;
     const { to } = req.body as { to?: string };
 
-    const adminEmail = (await settings.get('ADMIN_EMAIL')) || to;
+    const adminEmail = to || (await settings.get('ADMIN_EMAIL'));
     if (!adminEmail) {
       res.status(400).json({ error: 'No recipient email — set ADMIN_EMAIL in Settings or pass "to" in body' });
       return;

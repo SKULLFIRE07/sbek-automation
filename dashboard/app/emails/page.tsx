@@ -20,12 +20,21 @@ export default function EmailsPage() {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [testMsg, setTestMsg] = useState("");
   const [sending, setSending] = useState(false);
+  const [testEmail, setTestEmail] = useState("");
+  const [emailSaved, setEmailSaved] = useState(false);
 
   useEffect(() => {
     fetchApi<{ templates: EmailTemplate[] }>("/dashboard/email-templates")
       .then((d) => setTemplates(d.templates))
       .catch(() => setTemplates([]))
       .finally(() => setLoading(false));
+
+    // Load saved test email from localStorage
+    const saved = localStorage.getItem("sbek_test_email");
+    if (saved) {
+      setTestEmail(saved);
+      setEmailSaved(true);
+    }
   }, []);
 
   async function handlePreview(name: string) {
@@ -56,12 +65,27 @@ export default function EmailsPage() {
     }
   }
 
+  function handleSaveEmail() {
+    const trimmed = testEmail.trim();
+    if (!trimmed) return;
+    localStorage.setItem("sbek_test_email", trimmed);
+    setEmailSaved(true);
+    setTestMsg(`Test email saved: ${trimmed}`);
+    setTimeout(() => setTestMsg(""), 3000);
+  }
+
   async function handleSendTest(name: string) {
+    if (!testEmail.trim()) {
+      setTestMsg("Enter a test email address above first");
+      setTimeout(() => setTestMsg(""), 3000);
+      return;
+    }
     setSending(true);
     setTestMsg("");
     try {
       const res = await postApi<{ sent: boolean; to: string }>(
-        `/dashboard/email-templates/${name}/test`
+        `/dashboard/email-templates/${name}/test`,
+        { to: testEmail.trim() }
       );
       setTestMsg(`Test email sent to ${res.to}`);
       setTimeout(() => setTestMsg(""), 5000);
@@ -92,6 +116,75 @@ export default function EmailsPage() {
             {testMsg}
           </span>
         )}
+      </div>
+
+      {/* Test email input */}
+      <div
+        className="mb-6 p-4 flex items-center gap-3"
+        style={{
+          background: "var(--bg-surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "var(--radius-md)",
+        }}
+      >
+        <div
+          className="flex items-center justify-center"
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: "50%",
+            background: "var(--bg-elevated)",
+            flexShrink: 0,
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-subtle)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2" />
+            <path d="M22 7l-10 7L2 7" />
+          </svg>
+        </div>
+        <div className="flex-1">
+          <label
+            className="block text-[10px] uppercase tracking-widest mb-1 font-medium"
+            style={{ color: "var(--text-subtle)" }}
+          >
+            Send test emails to
+          </label>
+          <input
+            type="email"
+            value={testEmail}
+            onChange={(e) => {
+              setTestEmail(e.target.value);
+              setEmailSaved(false);
+            }}
+            onKeyDown={(e) => e.key === "Enter" && handleSaveEmail()}
+            placeholder="enter email address for test emails"
+            className="w-full text-sm"
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "var(--text-secondary)",
+              outline: "none",
+              padding: 0,
+            }}
+          />
+        </div>
+        <button
+          onClick={handleSaveEmail}
+          disabled={!testEmail.trim()}
+          className="px-4 py-2 text-[10px] font-medium uppercase tracking-wider"
+          style={{
+            background: emailSaved ? "rgba(34, 197, 94, 0.1)" : "var(--bg-elevated)",
+            color: emailSaved ? "#22C55E" : "var(--text-secondary)",
+            border: emailSaved ? "1px solid rgba(34, 197, 94, 0.3)" : "1px solid var(--border)",
+            borderRadius: "var(--radius-md, 6px)",
+            cursor: !testEmail.trim() ? "not-allowed" : "pointer",
+            opacity: !testEmail.trim() ? 0.5 : 1,
+            whiteSpace: "nowrap",
+            transition: "all 0.2s ease",
+          }}
+        >
+          {emailSaved ? "Saved" : "Save"}
+        </button>
       </div>
 
       {loading ? (
