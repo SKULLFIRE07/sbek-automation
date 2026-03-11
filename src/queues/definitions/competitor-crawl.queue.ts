@@ -19,7 +19,7 @@ function redisOpts() {
 /**
  * Competitor Crawl Worker — crawls competitor websites and analyses changes.
  * Concurrency: 1 (crawling is slow and resource-heavy).
- * Job timeout: 60 seconds.
+ * Job timeout: 5 minutes (crawl polling + AI analysis + email).
  */
 export const competitorCrawlWorker = new Worker<CompetitorCrawlPayload>(
   'competitor-crawl',
@@ -34,7 +34,7 @@ export const competitorCrawlWorker = new Worker<CompetitorCrawlPayload>(
   {
     connection: redisOpts(),
     concurrency: 1,
-    lockDuration: 60_000,
+    lockDuration: 300_000,
   },
 );
 
