@@ -2,6 +2,7 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import { resolve } from 'path';
 import { requestLogger } from './api/middleware/requestLogger.js';
 import { errorHandler } from './api/middleware/errorHandler.js';
 import { router } from './api/routes/index.js';
@@ -45,8 +46,17 @@ export function createApp() {
   // Trust proxy (Railway, Vercel, etc. run behind reverse proxies)
   app.set('trust proxy', 1);
 
-  // Security headers
-  app.use(helmet());
+  // Serve static files BEFORE helmet (so images aren't blocked by CSP)
+  app.use('/public', express.static(resolve(process.cwd(), 'public'), {
+    maxAge: '7d',
+    immutable: true,
+  }));
+
+  // Security headers (allow images from self)
+  app.use(helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    contentSecurityPolicy: false,
+  }));
   app.use(cors({
     origin: process.env.CORS_ORIGIN || true,
     credentials: true,
@@ -74,9 +84,6 @@ export function createApp() {
   // Route-specific rate limits (applied before route handlers)
   app.use('/webhooks', webhookLimiter);
   app.use('/dashboard', dashboardLimiter);
-
-  // Serve static files (email images, etc.)
-  app.use('/public', express.static('public'));
 
   // All routes
   app.use(router);
