@@ -75,6 +75,9 @@ export function createApp() {
   app.use('/webhooks', webhookLimiter);
   app.use('/dashboard', dashboardLimiter);
 
+  // Serve static files (email images, etc.)
+  app.use('/public', express.static('public'));
+
   // All routes
   app.use(router);
 
