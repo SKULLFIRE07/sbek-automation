@@ -10,6 +10,7 @@ RUN npm ci --maxsockets=2
 
 COPY tsconfig.json ./
 COPY src/ ./src/
+COPY public/ ./public/
 
 # Copy optional asset directories
 RUN mkdir -p /app/seo /app/creatives /app/reports
